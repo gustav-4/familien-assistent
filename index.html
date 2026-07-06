@@ -1,0 +1,4207 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Familien-Assistent – Sprachgesteuerter Kochassistent &amp; Essensplaner für Familien</title>
+<meta name="description" content="Kostenlose Familien-App: Rezepte passend zu Zeit, Unverträglichkeiten (alle 14 EU-Allergene) und Ernährungsform finden, Einkaufsliste automatisch in Familienmengen erstellen und freihändig mit Sprachführung kochen – inkl. Timer und Garzeit-Ansagen. Ohne Konto, direkt im Browser.">
+<link rel="canonical" href="https://familienassistent.netlify.app/">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#c4704b">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Familien-Assistent – Kochen mit freien Händen">
+<meta property="og:description" content="Rezepte nach Zeit, Unverträglichkeiten &amp; Ernährungsform, automatische Einkaufsliste, sprachgeführtes Kochen mit Timern. Kostenlos im Browser.">
+<meta property="og:url" content="https://familienassistent.netlify.app/">
+<meta property="og:locale" content="de_DE">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Familien-Assistent – Kochen mit freien Händen">
+<meta name="twitter:description" content="Sprachgesteuerter Koch- und Essensplaner für Familien. Kostenlos, ohne Konto.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Familien-Assistent",
+  "url": "https://familienassistent.netlify.app/",
+  "description": "Sprachgesteuerter Kochassistent und Essensplaner für Familien: Rezepte nach verfügbarer Zeit, Unverträglichkeiten und Ernährungsform, automatisch skalierte Einkaufslisten und Schritt-für-Schritt-Sprachführung beim Kochen.",
+  "applicationCategory": "LifestyleApplication",
+  "operatingSystem": "Web Browser",
+  "inLanguage": "de",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+  "featureList": [
+    "Sprachgeführtes Kochen mit Bestätigung per Stimme",
+    "Rezeptsuche nach Zubereitungszeit (15-20, 20-30, 30-40, 40+ Minuten)",
+    "Harte Filterung aller 14 EU-Hauptallergene",
+    "Ernährungsformen pro Familienmitglied (vegan, vegetarisch, pescetarisch, low carb)",
+    "Automatische Einkaufsliste in Familienmengen",
+    "Timer mit Garzeit-Ansagen",
+    "Favoriten-Sammlung"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Was ist der Familien-Assistent?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Eine kostenlose Web-App für Familien, die Rezepte passend zu verfügbarer Zeit, Unverträglichkeiten und Ernährungsform findet, automatisch eine Einkaufsliste in Familienmengen erstellt und beim Kochen Schritt für Schritt per Sprache führt – mit Timern und Garzeit-Ansagen, ganz ohne die Hände zu benutzen." }
+    },
+    {
+      "@type": "Question",
+      "name": "Welche Unverträglichkeiten berücksichtigt die App?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Alle 14 EU-Hauptallergene: Gluten, Laktose/Milch, Nüsse, Ei, Erdnüsse, Soja, Fisch, Krebs- und Weichtiere, Sellerie, Senf, Sesam, Lupinen und Sulfite. Rezepte mit ausgeschlossenen Zutaten werden hart herausgefiltert – auch versteckte Quellen wie Sellerie in Brühe." }
+    },
+    {
+      "@type": "Question",
+      "name": "Kann ich Ernährungsformen pro Person festlegen?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Ja. Im Familienprofil lässt sich pro Person eine Ernährungsform speichern (vegan, vegetarisch, pescetarisch, low carb). Mit dem Umschalter „Für wen kochst du heute?“ zeigt die App entweder Gerichte für die ganze Familie – inklusive Varianten-Hinweisen für Einzelne – oder strikt passende Rezepte für eine bestimmte Person." }
+    },
+    {
+      "@type": "Question",
+      "name": "Ist die App kostenlos und brauche ich ein Konto?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Ja, die App ist kostenlos und läuft direkt im Browser auf Handy oder Tablet. Ein Konto ist nicht nötig, Favoriten und Profile werden lokal auf dem Gerät gespeichert." }
+    }
+  ]
+}
+</script>
+<style>
+  /* Modernes-Landhaus-Palette: Creme, Salbei, Terrakotta */
+  :root { --bg:#f7f1e6; --card:#fffdf8; --accent:#c4704b; --accent2:#7e9c6f;
+          --text:#3e3832; --muted:#94897a; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,Arial,sans-serif; background:var(--bg);
+         color:var(--text); padding-bottom:90px; }
+  header { background:linear-gradient(135deg,#efe6d2,#e3ead9);
+           color:var(--text); padding:16px 20px; }
+  header h1 { margin:0; font-size:1.3rem; color:#a85a38; }
+  header p { margin:4px 0 0; font-size:.85rem; color:var(--muted); }
+  nav { display:flex; position:fixed; bottom:0; left:0; right:0;
+        background:#fff; border-top:1px solid #eee; z-index:10; }
+  nav button { flex:1; padding:12px 2px; border:none; background:none;
+               font-size:.72rem; color:var(--muted); cursor:pointer; }
+  nav button.active { color:var(--accent); font-weight:700; }
+  main { padding:16px; max-width:560px; margin:0 auto; }
+  .card { background:var(--card); border-radius:14px; padding:16px;
+          margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,.07); }
+  h2 { margin:0 0 10px; font-size:1.05rem; }
+  label { display:flex; align-items:center; gap:8px; margin:8px 0;
+          font-size:.95rem; }
+  input[type=number] { width:64px; padding:6px; border:1px solid #ddd;
+                       border-radius:8px; font-size:1rem; }
+  .btn { display:inline-block; border:none; border-radius:10px;
+         padding:12px 18px; font-size:1rem; font-weight:700; cursor:pointer;
+         background:var(--accent); color:#fff; margin:4px 4px 4px 0; }
+  .btn.green { background:var(--accent2); }
+  .btn.ghost { background:#efe6d4; color:var(--text); }
+  .btn.big { width:100%; padding:16px; font-size:1.15rem; }
+  .timebtn { font-size:.85rem; padding:9px 12px; }
+  .timebtn.active-time { background:var(--accent); color:#fff; }
+  .muted { color:var(--muted); font-size:.85rem; }
+  .recipe { border:2px solid transparent; cursor:pointer; }
+  .recipe.selected { border-color:var(--accent); }
+  .tag { display:inline-block; background:#f1e8d6; border-radius:6px;
+         padding:2px 8px; font-size:.75rem; margin-right:4px;
+         margin-bottom:3px; }
+  .card { box-shadow:0 1px 5px rgba(120,100,70,.10); }
+  ul.shop { list-style:none; padding:0; margin:0; }
+  ul.shop li { display:flex; align-items:center; gap:10px; padding:8px 0;
+               border-bottom:1px solid #f0e9e4; font-size:1rem; }
+  ul.shop li.done span { text-decoration:line-through; color:var(--muted); }
+  #stepText { font-size:1.25rem; line-height:1.5; min-height:90px; }
+  #timerBox { font-size:2.2rem; font-weight:800; color:var(--accent);
+              text-align:center; margin:10px 0; }
+  #micStatus { text-align:center; font-size:.85rem; padding:8px;
+               border-radius:8px; background:#f0e9e4; margin-top:10px; }
+#onboarding { position:fixed; inset:0; z-index:970;
+    background:linear-gradient(160deg,#f7f1e6,#e3ead9);
+    display:flex; align-items:center; justify-content:center; padding:14px; }
+  #onboarding.hidden { display:none; }
+  .ob-box { background:var(--card); border-radius:18px; max-width:560px;
+    width:100%; max-height:92vh; max-height:88dvh; display:flex; flex-direction:column;
+    box-shadow:0 8px 30px rgba(120,100,70,.25); overflow:hidden; }
+  .ob-inhalt { padding:20px 22px; overflow-y:auto; }
+  .ob-hero { font-size:3rem; text-align:center; }
+  .ob-box h2 { color:#a85a38; margin:8px 0 10px; }
+  .ob-funk { background:#f7f1e6; border-radius:10px; padding:9px 12px;
+    margin:7px 0; font-size:.92rem; }
+  .ob-funk i { color:var(--muted); }
+  .ob-privacy { background:#e8f2e4; border:1px solid #b9d3ae;
+    border-radius:10px; padding:10px 12px; margin-top:10px;
+    font-size:.9rem; }
+  .ob-privacy summary { color:#4a7a3a; cursor:pointer; margin-top:6px;
+    font-weight:bold; }
+  .ob-form { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+  .ob-form input { flex:1; min-width:110px; padding:10px;
+    border:1px solid #ccc; border-radius:8px; }
+  .ob-dots { display:flex; gap:7px; justify-content:center; padding:14px 0 0; }
+  .ob-dots span { width:9px; height:9px; border-radius:50%;
+    background:#d8cfc0; }
+  .ob-dots span.an { background:var(--accent); }
+  .ob-fuss { display:flex; flex-wrap:wrap; gap:8px;
+    justify-content:space-between; padding:12px 14px
+    calc(12px + env(safe-area-inset-bottom)); border-top:1px solid #eee2d0; }
+  .ob-fuss .btn { flex:1 1 30%; min-width:104px; padding:12px 6px;
+    white-space:nowrap; }
+  
+  #lokalBanner { position:sticky; top:0; z-index:960; background:#fff3cd;
+    border-bottom:2px solid #e0a800; padding:10px 14px; font-size:.95rem; }
+  #lokalBanner.hidden { display:none; }
+  #byeOverlay { position:fixed; inset:0; z-index:950; background:rgba(255,255,255,.97);
+    display:flex; align-items:center; justify-content:center; text-align:center; }
+  #byeOverlay.hidden { display:none; }
+  #gvSage { position:fixed; left:10px; right:10px; bottom:120px;
+    z-index:899; background:#333; color:#fff; border-radius:12px;
+    padding:10px 14px; font-size:.95rem; opacity:0; pointer-events:none;
+    transition:opacity .25s; box-shadow:0 2px 10px rgba(0,0,0,.3); }
+  #gvSage.sichtbar { opacity:.95; }
+  #rechtsFooter { text-align:center; padding:18px 10px 84px;
+    font-size:.82rem; color:var(--muted); }
+  #rechtsFooter a { color:var(--muted); }
+  #gvChip { position:fixed; right:10px; bottom:74px; z-index:900;
+    background:#fff; border:1px solid #ccc; border-radius:20px;
+    padding:7px 13px; font-size:.85rem; box-shadow:0 2px 8px rgba(0,0,0,.15);
+    cursor:pointer; user-select:none; }
+  #gvChip.an { background:#e3f2e1; border-color:var(--accent2); }
+  #gvChip.aus { background:#f4f4f4; color:#666; }
+  #micStatus.listening { background:#e3f2e1; color:var(--accent2);
+                         font-weight:700; }
+  .hidden { display:none; }
+  .progress { height:8px; background:#f0e9e4; border-radius:4px;
+              overflow:hidden; margin-bottom:12px; }
+  .progress div { height:100%; background:var(--accent2); width:0%;
+                  transition:width .4s; }
+  .entry { display:flex; align-items:center; gap:8px; padding:6px 0;
+           border-bottom:1px solid #f0e9e4; font-size:.95rem; }
+</style>
+</head>
+<body>
+<div id="gvChip" onclick="gvToggle()" title="Sprachsteuerung an/aus">🎤 starte …</div>
+<div id="onboarding" class="hidden">
+ <div class="ob-box">
+  <div class="ob-dots" id="obDots"></div>
+  <div class="ob-inhalt">
+
+   <div class="ob-step" data-ob="0">
+    <div class="ob-hero">👨‍👩‍👧‍👦</div>
+    <h2>Willkommen beim Familien-Assistenten!</h2>
+    <p><b>Für wen?</b> Für Familien, bei denen der Kopf immer voll ist:
+    <i>Was kochen wir heute? Wer muss morgen wann wohin? Was fehlt
+    im Haus? Und bloß nichts mit Nuss für die Kleine…</i></p>
+    <p><b>Was er euch abnimmt:</b> Diese App ist euer mitdenkender
+    Alltagshelfer – ihr <b>sprecht einfach</b>, statt zu tippen. Sie
+    plant Mahlzeiten passend zu Allergien &amp; Ernährungsform, führt
+    euch freihändig durchs Kochen, schreibt die Einkaufsliste und
+    <b>erinnert von selbst</b> an Termine. Weniger Kopf-Chaos,
+    mehr Familienzeit. ❤️</p>
+    <div class="ob-privacy">🔒 <b>Eure Daten gehören euch:</b>
+    Alle Familiendaten (Namen, Allergien, Termine, Listen) werden
+    <b>ausschließlich auf eurem Gerät</b> gespeichert – kein Konto,
+    kein Tracking, kein Fremdzugriff, keine Weitergabe. Unser
+    Erinnerungs-Dienst (Serverstandort <b>Frankfurt, EU</b>) kennt nur
+    anonyme Zufallsnummern und Uhrzeiten – niemals Namen oder Inhalte.
+    <details><summary>Was heißt DSGVO-konform? (antippen)</summary>
+    Die DSGVO ist das europäische Datenschutzgesetz. Für euch heißt
+    das hier konkret: ① Datenminimierung – wir erheben nur, was die
+    Funktion braucht, und Persönliches verlässt euer Gerät nicht.
+    ② Keine Profile, keine Werbung, keine Cookies von Drittfirmen.
+    ③ Volle Kontrolle – der Knopf „Alle Server-Daten löschen“ in der
+    App entfernt eure anonymen Erinnerungsdaten jederzeit restlos.
+    ④ Bei der Rezept-Recherche wird nur euer anonymer Essenswunsch
+    (z.B. „etwas mit Kürbis, ohne Nüsse“) an den KI-Dienst gesendet –
+    niemals Namen oder Familiendaten. <a href="/datenschutz.html" target="_blank">Zur vollständigen Datenschutzerklärung</a>.</details></div>
+   </div>
+
+   <div class="ob-step hidden" data-ob="1">
+    <h2>🧰 Das kann eure App</h2>
+    <div class="ob-funk">🍳 <b>Freihändig kochen:</b> Jeder Schritt wird
+     vorgelesen – mit Mengen. Sag „fertig“, Timer laufen von allein.
+     <i>Typisch: Hände im Teig, App sagt was zu tun ist.</i></div>
+    <div class="ob-funk">🔍 <b>Rezept-Recherche:</b> „Rezept – etwas mit
+     Kürbis“ → 3 sichere Vorschläge, geprüft gegen eure Allergien und
+     Ernährungsformen (vegan, vegetarisch, low carb …).</div>
+    <div class="ob-funk">🛒 <b>Einkaufsliste:</b> „Einkauf Milch“ ruft ihr
+     durch die Wohnung – steht drauf. Rezept-Zutaten in euren Mengen
+     per Satz: „Auf die Einkaufsliste“. Im Laden: Einkaufs-Modus zum
+     Abhaken per Stimme.</div>
+    <div class="ob-funk">📅 <b>Termine &amp; Erinnerungen:</b> „Termin: Zoe
+     Montag 14 Uhr Reiten“ – die App fragt nach (Abfahrt? Anfahrt?) und
+     erinnert später von selbst, auch bei <b>geschlossener</b> App.</div>
+    <div class="ob-funk">🧻 <b>Verbrauchs-Planer:</b> denkt an Klopapier,
+     Zahnpasta &amp; Co, bevor sie ausgehen – lernt euren Verbrauch.</div>
+    <div class="ob-funk">🗓 <b>Wochen-Matrix:</b> die ganze Familienwoche
+     auf einen Blick.</div>
+    <div class="ob-funk">🎤 <b>Sprachsteuerung überall:</b> „Hilfe“ nennt
+     alle Befehle, „Weiter“ überspringt, „Stopp“ macht still.</div>
+   </div>
+
+   <div class="ob-step hidden" data-ob="2">
+    <div class="ob-hero">⏱️</div>
+    <h2>Einmalig einrichten – max. 10 Minuten</h2>
+    <p>Damit die App <b>eure</b> App wird (richtige Mengen, sichere
+    Rezepte, Erinnerungen aufs richtige Gerät), nehmt euch jetzt einmal
+    kurz Zeit. Ich führe euch Schritt für Schritt – jeder Schritt wird
+    einzeln bestätigt, nichts geht verloren.</p>
+    <p class="muted">Tipp: Ihr könnt jederzeit „Weiter“ sagen oder unten
+    tippen.</p>
+   </div>
+
+   <div class="ob-step hidden" data-ob="3">
+    <h2>👤 Schritt 1: Eure Familie</h2>
+    <p>Wer gehört dazu? Daraus berechne ich automatisch alle
+    Portionsmengen.</p>
+    <div class="ob-form">
+      <input type="text" id="obName" placeholder="Name (z.B. Zoe)">
+      <input type="number" id="obAlter" placeholder="Alter" min="0" max="120">
+      <select id="obGeschlecht">
+        <option value="w">♀ weiblich</option>
+        <option value="m">♂ männlich</option>
+      </select>
+      <button class="btn" type="button" onclick="obMitgliedHinzu()">+ Hinzufügen</button>
+    </div>
+    <div id="obFamListe" class="muted"></div>
+    <p class="muted">Allergien &amp; Ernährungsform je Person könnt ihr
+    gleich danach unter <b>Rezepte → Eure Familie</b> verfeinern –
+    wichtig für sichere Rezeptvorschläge!</p>
+   </div>
+
+   <div class="ob-step hidden" data-ob="4">
+    <h2>🎤 Schritt 2: Mikrofon</h2>
+    <p>Das Herz der App: einfach sprechen. Erlaubt einmalig das
+    Mikrofon – danach hört die App beim Öffnen automatisch zu.</p>
+    <button class="btn big" type="button" onclick="obMikro()">🎤 Mikrofon jetzt erlauben</button>
+    <p id="obMikroStatus" class="muted"></p>
+   </div>
+
+   <div class="ob-step hidden" data-ob="5">
+    <h2>🔔 Schritt 3: Erinnerungen</h2>
+    <p>Damit Termin-Erinnerungen auch bei <b>geschlossener App</b>
+    ankommen (datensparsam – der Server kennt keine Inhalte).</p>
+    <button class="btn big" type="button" onclick="obPush()">🔔 Erinnerungen aktivieren</button>
+    <p id="obPushStatus" class="muted"></p>
+    <p class="muted">📱 iPhone: erst über „Teilen → Zum Home-Bildschirm“
+    installieren, dann von dort öffnen und aktivieren.</p>
+   </div>
+
+   <div class="ob-step hidden" data-ob="6">
+    <h2>📲 Schritt 4: Als App installieren</h2>
+    <p>Ein Fingertipp vom Startbildschirm – wie eine echte App, und
+    eure Daten bleiben dauerhaft erhalten.</p>
+    <button class="btn big" type="button" onclick="obInstall()">📲 Jetzt installieren</button>
+    <p id="obInstallStatus" class="muted"></p>
+   </div>
+
+   <div class="ob-step hidden" data-ob="7">
+    <div class="ob-hero">🌱</div>
+    <h2>Ein ehrliches Wort zum Schluss</h2>
+    <p><b>Diese App kann euch nur helfen, wenn ihr sie auch
+    benutzt.</b> Wie so vieles im Leben ist das ein Prozess: Die ersten
+    Tage heißt es dran denken – „Einkauf Milch“ rufen statt Zettel
+    suchen, den Termin der App sagen statt ihn im Kopf zu jonglieren.</p>
+    <p>Nach kurzer Zeit wird es selbstverständlich – und dann spart
+    sie euch jeden Tag Denkarbeit, Zettelwirtschaft und das
+    „Ach-Mist-vergessen“-Gefühl. <b>Es wird sich für euch lohnen. 💛</b></p>
+   </div>
+
+  </div>
+  <div class="ob-fuss">
+    <button class="btn ghost" type="button" id="obZurueckBtn" onclick="obZurueck()">‹ Zurück</button>
+    <button class="btn ghost" type="button" onclick="obFertig(true)">Überspringen</button>
+    <button class="btn" type="button" id="obWeiterBtn" onclick="obWeiter()">Weiter ›</button>
+  </div>
+ </div>
+</div>
+<div id="lokalBanner" class="hidden">
+  ⚠️ <b>Lokale Datei geöffnet.</b> Rezept-Recherche, Termin-Übersetzung
+  und Push-Erinnerungen brauchen den Server und funktionieren hier nicht.
+  <a class="btn" href="https://familienassistent.net/"
+     style="margin-left:10px">🌐 Online-Version öffnen</a>
+</div>
+<div id="byeOverlay" class="hidden">
+  <div>
+    <h2>👋 Bis bald!</h2>
+    <p>Mikrofon und Stimme sind aus.<br>Ihr könnt diesen Tab jetzt schließen.</p>
+    <button class="btn" onclick="document.getElementById('byeOverlay')
+      .classList.add('hidden'); gvStart();">↩ Doch weitermachen</button>
+  </div>
+</div>
+<header>
+  <h1>Familien-Assistent <span style="font-size:.7em">(Prototyp)</span></h1>
+  <p>Sprachgeführt kochen, planen, einkaufen – Hände frei für alles andere</p>
+</header>
+
+<main>
+  <!-- ============ TAB 1: FAMILIE ============ -->
+  <section id="tab-familie">
+    <div class="card" style="padding:0;overflow:hidden">
+      <svg viewBox="0 0 800 330" xmlns="http://www.w3.org/2000/svg"
+           role="img" aria-label="Helle Landhausküche mit gedecktem Tisch"
+           style="display:block;width:100%">
+        <rect width="800" height="330" fill="#f6efe0"/>
+        <rect y="268" width="800" height="62" fill="#eadfc8"/>
+        <rect x="48" y="28" width="270" height="150" rx="10" fill="#d7e6ec"/>
+        <rect x="48" y="28" width="270" height="150" rx="10" fill="none"
+              stroke="#d9c7a4" stroke-width="10"/>
+        <line x1="183" y1="33" x2="183" y2="173" stroke="#d9c7a4" stroke-width="7"/>
+        <circle cx="120" cy="75" r="26" fill="#f4d489"/>
+        <path d="M210 140 q20 -28 45 0 q22 -20 40 0 l0 33 l-85 0 z" fill="#ffffff" opacity=".8"/>
+        <rect x="284" y="150" width="26" height="24" rx="4" fill="#c4704b"/>
+        <path d="M297 150 q-14 -22 -2 -34 M297 150 q12 -20 4 -32 M297 150 q0 -24 0 -30"
+              stroke="#7e9c6f" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <rect x="600" y="48" width="150" height="8" rx="4" fill="#d9c7a4"/>
+        <rect x="614" y="20" width="24" height="28" rx="4" fill="#e9b86b"/>
+        <rect x="648" y="14" width="24" height="34" rx="4" fill="#c98a5b"/>
+        <rect x="682" y="24" width="24" height="24" rx="4" fill="#7e9c6f"/>
+        <rect x="600" y="118" width="150" height="8" rx="4" fill="#d9c7a4"/>
+        <rect x="620" y="92" width="30" height="26" rx="5" fill="#e3d3b4"/>
+        <rect x="664" y="86" width="22" height="32" rx="5" fill="#b9cba8"/>
+        <rect x="170" y="218" width="460" height="20" rx="10" fill="#dcc294"/>
+        <rect x="196" y="238" width="16" height="60" rx="6" fill="#c8ab7c"/>
+        <rect x="588" y="238" width="16" height="60" rx="6" fill="#c8ab7c"/>
+        <rect x="360" y="180" width="80" height="40" rx="10" fill="#c4704b"/>
+        <rect x="348" y="176" width="104" height="10" rx="5" fill="#a85a38"/>
+        <path d="M385 165 q-8 -14 2 -26 M405 165 q8 -16 -2 -28 M420 168 q6 -10 0 -20"
+              stroke="#cbb89a" stroke-width="5" fill="none" stroke-linecap="round" opacity=".8"/>
+        <ellipse cx="260" cy="226" rx="30" ry="8" fill="#fffdf8"/>
+        <ellipse cx="540" cy="226" rx="30" ry="8" fill="#fffdf8"/>
+        <line x1="400" y1="0" x2="400" y2="58" stroke="#a8957a" stroke-width="3"/>
+        <path d="M376 58 q24 -20 48 0 l0 14 l-48 0 z" fill="#b3784f"/>
+        <circle cx="400" cy="80" r="5" fill="#f4d489"/>
+        <line x1="500" y1="0" x2="500" y2="42" stroke="#a8957a" stroke-width="3"/>
+        <path d="M480 42 q20 -17 40 0 l0 12 l-40 0 z" fill="#7e9c6f"/>
+        <circle cx="500" cy="62" r="4" fill="#f4d489"/>
+        <path d="M250 218 q-3 -26 5 -34 l14 0 q8 8 5 34 z" fill="#e3d3b4"/>
+        <path d="M262 184 q-10 -28 -24 -38 M262 184 q2 -30 14 -44 M262 184 q-2 -26 -2 -36"
+              stroke="#7e9c6f" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <circle cx="240" cy="150" r="5" fill="#9bb38c"/>
+        <circle cx="250" cy="158" r="4" fill="#9bb38c"/>
+        <circle cx="272" cy="146" r="5" fill="#9bb38c"/>
+        <circle cx="262" cy="156" r="4" fill="#9bb38c"/>
+        <ellipse cx="528" cy="216" rx="52" ry="10" fill="#c8a878"/>
+        <path d="M496 206 q32 -26 64 0 q-6 8 -32 8 q-26 0 -32 -8" fill="#d9a85e"/>
+        <path d="M512 196 q5 -5 10 0 M530 192 q5 -5 10 0 M547 197 q5 -5 10 0"
+              stroke="#b3784f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M236 226 l54 0 l-4 52 q-12 8 -22 0 q-10 8 -22 0 z" fill="#f3ecdc"/>
+        <path d="M250 238 l28 0 M248 254 l30 0" stroke="#ddd1b8" stroke-width="3"
+              stroke-linecap="round"/>
+        <path d="M310 216 q0 14 22 14 q22 0 22 -14 z" fill="#9bb38c"/>
+        <path d="M448 216 q0 12 18 12 q18 0 18 -12 z" fill="#c4704b"/>
+        <rect x="606" y="196 " width="26" height="22" rx="4" fill="#e3d3b4"/>
+        <path d="M619 196 q-9 -14 -2 -22 M619 196 q8 -12 3 -20 M619 196 q0 -16 0 -18"
+              stroke="#7e9c6f" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div style="padding:14px 18px 18px">
+        <h2 style="margin:0 0 4px">Willkommen zu Hause.</h2>
+        <p class="muted" style="margin:0">Plant euer Essen, kauft ohne
+        Zettel ein und kocht mit freien Händen – die App spricht mit euch.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h2>1. Eure Familie</h2>
+      <label>Erwachsene: <input type="number" id="adults" min="1" max="6" value="2"></label>
+      <label>Kinder: <input type="number" id="kids" min="0" max="8" value="2"></label>
+      <p class="muted" id="famAutoInfo">Daraus berechne ich automatisch
+      die Mengen für Rezepte und Einkaufsliste.</p>
+      <button class="btn ghost" type="button" onclick="onboardingOeffnen()">
+        📖 Einführung &amp; Einrichtung erneut ansehen</button>
+      <div style="margin-top:12px">
+        <label style="display:block;margin-bottom:6px"><b>Euer
+        Familienprofil</b> – Grundlage für Rezeptmengen, Ernährungsform,
+        Einkaufsplanung und Termine:</label>
+        <input type="text" id="memberName" placeholder="Name, z. B. Lena"
+               style="width:34%;padding:8px;border:1px solid #ddd;
+                      border-radius:8px;font-size:1rem">
+        <input type="number" id="memberAlter" placeholder="Alter" min="0"
+               max="99" style="width:70px;padding:8px;border:1px solid #ddd;
+                      border-radius:8px;font-size:1rem">
+        <select id="memberGeschlecht" style="padding:8px;border-radius:8px;
+                border:1px solid #ddd;font-size:1rem">
+          <option value="w">♀ weiblich</option>
+          <option value="m">♂ männlich</option>
+        </select>
+        <details style="margin:8px 0">
+          <summary style="cursor:pointer;color:var(--accent);
+                   font-weight:600">Allergien/Unverträglichkeiten dieser
+                   Person (optional)</summary>
+          <div id="palgBox" style="margin-top:6px">
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="gluten"> Gluten</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="laktose"> Laktose</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="nuesse"> Nüsse</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="ei"> Ei</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="erdnuss"> Erdnüsse</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="soja"> Soja</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="fisch"> Fisch</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="meerestiere"> Meerestiere</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="sellerie"> Sellerie</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="senf"> Senf</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="sesam"> Sesam</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="lupinen"> Lupinen</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="sulfite"> Sulfite</label>
+          </div>
+        </details>
+        <details style="margin:8px 0">
+          <summary style="cursor:pointer;color:var(--accent);
+                   font-weight:600">Ernährungsform dieser Person (optional)</summary>
+          <div id="pdietBox" style="margin-top:6px">
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="pdiet" value="vegetarisch"> vegetarisch</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="pdiet" value="vegan"> vegan</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="pdiet" value="pescetarisch"> pescetarisch</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="pdiet" value="lowcarb"> low carb</label>
+          </div>
+          <p class="muted" style="margin:4px 0 0">vegan zählt automatisch
+          auch als vegetarisch und pescetarisch – das berücksichtigt die
+          App beim Filtern.</p>
+        </details>
+        <button class="btn" style="padding:9px 14px" type="button"
+                onclick="addMember()">+ Hinzufügen</button>
+        <div id="memberList" style="margin-top:8px"></div>
+        <p class="muted">Ein 13-jähriger isst wie ein Erwachsener, eine
+        3-jährige die Hälfte – mit dem Profil rechnet die App das
+        automatisch richtig.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h2>2. Unverträglichkeiten</h2>
+      <label><input type="checkbox" class="intol" value="gluten"> Gluten</label>
+      <label><input type="checkbox" class="intol" value="laktose"> Laktose</label>
+      <label><input type="checkbox" class="intol" value="nuesse"> Nüsse (Schalenfrüchte)</label>
+      <label><input type="checkbox" class="intol" value="ei"> Ei</label>
+      <details style="margin-top:10px">
+        <summary style="cursor:pointer;color:var(--accent);font-weight:600">
+          Weitere Unverträglichkeiten anzeigen (EU-Allergenliste)</summary>
+        <label><input type="checkbox" class="intol" value="erdnuss"> Erdnüsse</label>
+        <label><input type="checkbox" class="intol" value="soja"> Soja</label>
+        <label><input type="checkbox" class="intol" value="fisch"> Fisch</label>
+        <label><input type="checkbox" class="intol" value="meerestiere"> Krebs- &amp; Weichtiere (Garnelen, Muscheln …)</label>
+        <label><input type="checkbox" class="intol" value="sellerie"> Sellerie (auch in Brühen!)</label>
+        <label><input type="checkbox" class="intol" value="senf"> Senf</label>
+        <label><input type="checkbox" class="intol" value="sesam"> Sesam</label>
+        <label><input type="checkbox" class="intol" value="lupinen"> Lupinen</label>
+        <label><input type="checkbox" class="intol" value="sulfite"> Sulfite (Wein, Trockenfrüchte …)</label>
+      </details>
+      <p class="muted">Rezepte mit diesen Zutaten werden <b>hart ausgeschlossen</b> –
+      hier entscheidet niemals eine KI, sondern eine feste Zutatenliste.
+      Allergien gelten <b>immer für die ganze Familie</b>, unabhängig vom
+      Koch-Modus.</p>
+      <p class="muted">⚠️ <b>Wichtig:</b> Die App hilft beim Filtern, ersetzt aber
+      bei schweren Allergien keine eigene Kontrolle der Zutaten und keine
+      ärztliche Beratung.</p>
+    </div>
+
+    <div class="card">
+      <h2>🔒 Eure Daten</h2>
+      <p class="muted">Profil, Termine und Verbrauch liegen auf diesem
+      Gerät. Der Erinnerungs-Server kennt nur Weckzeiten und
+      Zufallsnummern – keine Namen, keine Inhalte. Es gibt kein Konto,
+      keine Werbung, keinen Datenverkauf.</p>
+      <button class="btn" style="background:#d64545" type="button"
+              onclick="loescheAlles()">🗑 Alle Daten unwiderruflich löschen</button>
+    </div>
+    <button class="btn big" onclick="goTab('rezepte')">Weiter zu den Rezepten</button>
+
+    <div class="card">
+      <h2>Häufige Fragen</h2>
+      <details>
+        <summary style="cursor:pointer;font-weight:600">Was kann der
+        Familien-Assistent?</summary>
+        <p class="muted">Er findet Rezepte passend zu eurer verfügbaren Zeit,
+        euren Unverträglichkeiten und Ernährungsformen, erstellt automatisch
+        eine Einkaufsliste in Familienmengen und führt euch beim Kochen
+        Schritt für Schritt per Sprache – mit Timern und Garzeit-Ansagen,
+        ohne dass ihr das Display anfassen müsst.</p>
+      </details>
+      <details>
+        <summary style="cursor:pointer;font-weight:600">Wie funktionieren
+        die Ernährungsformen?</summary>
+        <p class="muted">Pro Person speichert ihr im Profil eine
+        Ernährungsform (vegan, vegetarisch, pescetarisch, low carb). Über
+        „Für wen kochst du heute?“ wählt ihr, ob für die ganze Familie oder
+        für eine bestimmte Person gefiltert wird. Im Familien-Modus zeigt
+        die App auch Gerichte mit passender Variante, z. B. „vegane Variante
+        für Lena möglich“.</p>
+      </details>
+      <details>
+        <summary style="cursor:pointer;font-weight:600">Kostet die App etwas?
+        Brauche ich ein Konto?</summary>
+        <p class="muted">Nein – die App ist kostenlos, läuft direkt im
+        Browser auf Handy oder Tablet und braucht kein Konto. Favoriten und
+        Profile bleiben lokal auf eurem Gerät gespeichert.</p>
+      </details>
+      <details>
+        <summary style="cursor:pointer;font-weight:600">Wie funktioniert das
+        Kochen per Sprache?</summary>
+        <p class="muted">Die App liest jeden Schritt laut vor und wartet auf
+        euer „fertig“. Bei Wartezeiten läuft automatisch ein Timer, und am
+        Ende sagt euch die App, was jetzt gar sein sollte – z. B. „Die
+        Möhren sollten jetzt weich sein.“</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============ TAB 2: REZEPTE ============ -->
+  <section id="tab-rezepte" class="hidden">
+    <div class="card">
+      <h2>Für wen kochst du heute?</h2>
+      <select id="kochModusSel" onchange="setKochModus(this.value)"
+        style="width:100%;padding:11px;border-radius:8px;
+               border:1px solid #ddd;font-size:1rem">
+        <option value="familie">👨‍👩‍👧‍👦 Ganze Familie</option>
+      </select>
+      <p class="muted">Allergien gelten <b>immer</b> für alle. Die
+      Ernährungsform richtet sich nach dieser Auswahl: „Ganze Familie“ zeigt
+      Gerichte, die für alle passen – inklusive Hinweis, wo sich für einzelne
+      Personen eine Variante anbietet. Wähle eine Person, um strikt für sie
+      zu filtern.</p>
+    </div>
+    <div class="card">
+      <h2>Wieviel Zeit hast du heute?</h2>
+      <div id="timeButtons">
+        <button class="btn ghost timebtn active-time" data-min="0" data-max="999"
+                onclick="setTimeGroup(this)">Alle</button>
+        <button class="btn ghost timebtn" data-min="15" data-max="20"
+                onclick="setTimeGroup(this)">15–20 Min.</button>
+        <button class="btn ghost timebtn" data-min="20" data-max="30"
+                onclick="setTimeGroup(this)">20–30 Min.</button>
+        <button class="btn ghost timebtn" data-min="30" data-max="40"
+                onclick="setTimeGroup(this)">30–40 Min.</button>
+        <button class="btn ghost timebtn" data-min="40" data-max="999"
+                onclick="setTimeGroup(this)">ab 40 Min.</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Worauf habt ihr Lust?</h2>
+      <p class="muted">Optionaler Stil – hebt passende Rezepte hervor und
+      fließt in die Recherche ein. Mehrfachauswahl möglich, wird gespeichert.</p>
+      <div id="stilChips"></div>
+    </div>
+    <div class="card">
+      <h2>🔍 Neues Rezept recherchieren</h2>
+      <p class="muted">Sag uns, worauf ihr Lust habt – Unverträglichkeiten,
+      Ernährungsform, deine Zeitauswahl und euer Stil werden automatisch
+      beachtet und sicherheitsgeprüft.</p>
+      <input type="text" id="searchWish"
+        placeholder="z. B. etwas mit Kürbis, asiatisch, ohne Fleisch …"
+        style="width:100%;padding:11px;border-radius:8px;
+               border:1px solid #ddd;font-size:1rem">
+      <p></p>
+      <button class="btn" id="searchBtn" onclick="rechercheRezept(false)">
+        Rezept recherchieren</button>
+      <button class="btn ghost" type="button" onclick="rezeptVoiceStart()">
+        🎤 Wunsch sprechen</button>
+      <button class="btn ghost hidden" id="retryBtn"
+        onclick="rechercheRezept(true)">🔄 Andere Vorschläge</button>
+      <p class="muted" id="searchStatus"></p>
+    </div>
+    <div id="searchResults"></div>
+    <div class="card">
+      <h2>📖 Unsere Standard-Rezepte</h2>
+      <p class="muted" id="filterInfo"></p>
+    </div>
+    <button class="btn ghost" id="stdToggle" type="button"
+            onclick="toggleStdRezepte()">📖 Standard-Rezepte anzeigen</button>
+    <div id="recipeList" class="hidden"></div>
+    <button class="btn big" id="toShopBtn" disabled
+            onclick="buildShoppingList();goTab('einkauf')">
+      Einkaufsliste erstellen</button>
+  </section>
+
+  <!-- ============ TAB 3: EINKAUF ============ -->
+  <section id="tab-einkauf" class="hidden">
+    <div class="card">
+      <h2>Einkaufsliste <span class="muted" id="portionInfo"></span></h2>
+      <ul class="shop" id="shopList"></ul>
+      <br>
+      <button class="btn ghost" onclick="readShoppingList()">🔊 Liste vorlesen</button>
+      <button class="btn ghost" onclick="leereEinkaufslisteKnopf()">🗑 Liste leeren</button>
+    </div>
+    <button class="btn big green" onclick="startCooking()">Jetzt kochen 🍳</button>
+
+    <div class="card">
+      <h2>🧻 Verbrauchsgüter – automatisch geplant</h2>
+      <p class="muted" id="vbInfo"></p>
+      <h3 style="margin:10px 0 4px">Wahrscheinlich bald leer:</h3>
+      <div id="vbEvtl"></div>
+      <h3 style="margin:16px 0 4px">🛒 Verbrauchs-Einkaufsliste:</h3>
+      <ul class="shop" id="vbListe"></ul>
+      <!-- NEU (Einkaufs-Voice): freihändiges Abhaken beim Einkaufen -->
+      <button class="btn ghost" type="button" id="vbVoiceBtn"
+        onclick="vbVoiceCheckoffToggle()">
+        🛒 Freihändig abhaken (Einkaufs-Modus)</button>
+      <p class="muted" id="vbVoiceStatus" style="margin:4px 0 0"></p>
+      <p class="muted" style="margin:4px 0 10px">Im Einkaufs-Modus einfach
+      sagen, was im Wagen ist – z. B. <b>„Milch okay“</b>. Die App bestätigt
+      per Stimme und lernt euren echten Verbrauch mit.</p>
+      <button class="btn ghost" type="button" onclick="vbVoiceAdd()">
+        🎤 Artikel per Sprache hinzufügen</button>
+      <details style="margin-top:12px">
+        <summary style="cursor:pointer;color:var(--accent);font-weight:600">
+          Alle Artikel verwalten (Reichweiten ansehen)</summary>
+        <div id="vbAlle" style="margin-top:8px"></div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============ TAB 4: KOCHEN ============ -->
+  <section id="tab-kochen" class="hidden">
+    <div class="card">
+      <div class="progress"><div id="progressBar"></div></div>
+      <h2 id="recipeTitle"></h2>
+      <p id="stepText">…</p>
+      <p id="stepZutaten" class="muted"></p>
+      <div id="timerBox" class="hidden"></div>
+      <button class="btn big green" id="doneBtn" onclick="confirmStep()">
+        ✓ Fertig / Erledigt</button>
+      <button class="btn ghost" onclick="repeatStep()">🔁 Wiederholen</button>
+      <div id="favoriteBox" class="hidden" style="margin-top:12px">
+        <button class="btn" id="favBtn" onclick="addFavorite()">
+          ⭐ Das war lecker – als Favorit speichern</button>
+      </div>
+      <div id="micStatus">Mikrofon: wird geprüft…</div>
+      <p class="muted">Sag einfach <b>„fertig“</b> oder <b>„erledigt“</b>,
+      wenn der Schritt geschafft ist. Ich erinnere dich, wenn du nichts sagst.</p>
+    </div>
+  </section>
+
+  <!-- ============ TAB 5: FAVORITEN ============ -->
+  <section id="tab-favoriten" class="hidden">
+    <div class="card">
+      <h2>⭐ Eure Lieblingsgerichte</h2>
+      <p class="muted" id="favInfo"></p>
+    </div>
+    <div id="favList"></div>
+  </section>
+
+  <!-- ============ TAB 6: TERMINE ============ -->
+  <section id="tab-termine" class="hidden">
+    <div class="card">
+      <h2>🎤 Termin per Sprache erfassen</h2>
+      <p class="muted">Sprich einfach, z. B.: „Donnerstag halb drei Zahnarzt
+      für Lena, dauert eine Stunde, Mama bringt hin, sehr wichtig“</p>
+      <button class="btn" id="terminVoiceBtn" type="button"
+              onclick="terminVoiceStart()">🎤 Jetzt sprechen</button>
+      <p class="muted" id="terminVoiceStatus"></p>
+    </div>
+
+    <div class="card">
+      <h2>🔔 Erinnerungen bei geschlossener App</h2>
+      <p class="muted">Aktiviere Push, damit der Termin-Wächter dich auch
+      erreicht, wenn die App zu ist. <b>Datenschutz:</b> Der Server kennt
+      dabei nur Weckzeiten und Zufallsnummern – die Klartexte deiner
+      Termine bleiben ausschließlich auf diesem Gerät.</p>
+      <button class="btn" type="button" onclick="aktivierePush()">
+        🔔 Push-Erinnerungen aktivieren</button>
+      <p class="muted" id="pushStatus"></p>
+      <p class="muted">📱 iPhone: Zuerst über „Teilen → Zum Home-Bildschirm“
+      installieren, dann hier aktivieren. Android: direkt aktivierbar.</p>
+    </div>
+
+    <div class="card">
+      <h2>Termin prüfen &amp; speichern</h2>
+      <label>Titel: <input type="text" id="tTitel" style="width:65%;
+        padding:8px;border:1px solid #ddd;border-radius:8px"></label>
+      <label>Für wen: <select id="tPerson"></select></label>
+      <label>Wer übernimmt: <select id="tVerantwortlich"></select></label>
+      <label>Datum: <input type="date" id="tDatum"></label>
+      <label>Uhrzeit: <input type="time" id="tZeit"></label>
+      <label>Dauer (Min.): <input type="number" id="tDauer" min="5"
+        max="720" value="60" style="width:80px;padding:6px;
+        border:1px solid #ddd;border-radius:8px"></label>
+      <label>Wegzeit (Min.): <input type="number" id="tWegzeit" min="0"
+        max="240" value="0" style="width:80px;padding:6px;
+        border:1px solid #ddd;border-radius:8px"></label>
+      <label>Wichtigkeit:
+        <select id="tKategorie">
+          <option value="rot">🔴 Sehr wichtig</option>
+          <option value="orange" selected>🟠 Wichtig</option>
+          <option value="gelb">🟡 Flexibel</option>
+          <option value="gruen">🟢 Locker / Me-Time</option>
+        </select>
+      </label>
+      <p id="tKollision" class="muted" style="color:#d64545"></p>
+      <button class="btn green" type="button" onclick="saveTermin()">
+        ✓ Termin speichern</button>
+    </div>
+
+    <div class="card">
+      <h2>📅 Wochen-Matrix</h2>
+      <div style="margin-bottom:8px">
+        <button class="btn ghost" type="button"
+          onclick="wocheWechseln(-1)">‹ Woche</button>
+        <button class="btn ghost" type="button"
+          onclick="wocheWechseln(0)">Heute</button>
+        <button class="btn ghost" type="button"
+          onclick="wocheWechseln(1)">Woche ›</button>
+        <span class="muted" id="matrixWoche"></span>
+      </div>
+      <div style="overflow-x:auto">
+        <div id="matrixGrid"></div>
+      </div>
+      <p class="muted">Blassblau = Routine-Abwesenheit (Arbeit, Sport …),
+      Farben = Termin-Wichtigkeit. Überlappungen = Kollision!</p>
+    </div>
+
+    <div class="card">
+      <h2>🔁 Routine-Abwesenheiten</h2>
+      <p class="muted">Feste wöchentliche Blöcke wie Arbeit, Schule,
+      Training – erscheinen blassblau in der Matrix und fließen in die
+      Kollisionsprüfung ein.</p>
+      <label>Wer: <select id="rPerson"></select></label>
+      <label>Was: <input type="text" id="rLabel" placeholder="z. B. Arbeit"
+        style="width:50%;padding:8px;border:1px solid #ddd;
+        border-radius:8px"></label>
+      <div id="rTage" style="margin:8px 0"></div>
+      <label>Von: <input type="time" id="rVon" value="08:00"></label>
+      <label>Bis: <input type="time" id="rBis" value="16:00"></label>
+      <button class="btn" type="button" onclick="addRoutine()">
+        + Routine anlegen</button>
+      <div id="routineList" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h2>⏰ Anstehende Termine</h2>
+      <div id="terminList"></div>
+    </div>
+  </section>
+
+  <!-- Schwebender Feedback-Knopf (Testphase, auf jeder Seite) -->
+  <button id="fbBtn" type="button" onclick="fbOeffnen()"
+    style="position:fixed;right:14px;bottom:78px;z-index:40;width:54px;
+           height:54px;border-radius:50%;border:none;cursor:pointer;
+           background:var(--accent2);color:#fff;font-size:1.5rem;
+           box-shadow:0 3px 10px rgba(0,0,0,.25)"
+    title="Fehler oder Wunsch melden">💬</button>
+
+  <div id="fbPanel" class="hidden"
+       style="position:fixed;left:12px;right:12px;bottom:78px;z-index:45;
+              background:var(--card);border-radius:14px;padding:16px;
+              box-shadow:0 6px 24px rgba(0,0,0,.3);max-width:520px;
+              margin:0 auto">
+    <h2 style="margin:0 0 6px">💬 Fehler entdeckt? Wunsch?</h2>
+    <p class="muted" style="margin:0 0 10px">Sprich einfach drauflos –
+    oder tippe. Geht direkt an die Entwicklung. Danke dir!</p>
+    <button class="btn" type="button" onclick="fbSprechen()"
+            id="fbMicBtn">🎤 Sprechen</button>
+    <textarea id="fbText" rows="3" placeholder="… oder hier tippen"
+      style="width:100%;margin-top:8px;padding:10px;border-radius:10px;
+             border:1px solid #ddd;font-size:1rem"></textarea>
+    <div style="margin-top:8px">
+      <button class="btn green" type="button" onclick="fbSenden()">
+        ✓ Absenden</button>
+      <button class="btn ghost" type="button" onclick="fbSchliessen()">
+        Abbrechen</button>
+    </div>
+    <p class="muted" id="fbStatus" style="margin:8px 0 0"></p>
+  </div>
+
+  <!-- Erinnerungs-Banner (erscheint ueber allem) -->
+  <div id="reminderBanner" class="hidden"
+       style="position:fixed;top:0;left:0;right:0;z-index:50;
+              background:#d64545;color:#fff;padding:14px 16px;
+              box-shadow:0 2px 10px rgba(0,0,0,.3)">
+    <b id="reminderText"></b>
+    <div style="margin-top:8px">
+      <button class="btn" style="background:#fff;color:#d64545"
+              type="button" onclick="reminderOk()">✓ OK / Erledigt</button>
+    </div>
+  </div>
+</main>
+
+<nav>
+  <button id="nav-familie" class="active" onclick="goTab('familie')">👨‍👩‍👧 Familie</button>
+  <button id="nav-rezepte" onclick="goTab('rezepte')">📖 Rezepte</button>
+  <button id="nav-einkauf" onclick="goTab('einkauf')">🛒 Einkauf</button>
+  <button id="nav-kochen" onclick="goTab('kochen')">🍳 Kochen</button>
+  <button id="nav-favoriten" onclick="goTab('favoriten')">⭐ Favoriten</button>
+  <button id="nav-termine" onclick="goTab('termine')">📅 Termine</button>
+</nav>
+
+<script>
+// =====================================================
+// REZEPT-DATENBANK (strukturiert, kuratiert)
+// Allergene pro Rezept fest hinterlegt -> harter Filter.
+// diet     = erfuellte Ernaehrungsformen (vegan impliziert
+//            vegetarisch + pescetarisch, siehe DIET_IMPLIES)
+// varianten= moegliche Anpassungen, z.B. vegane Variante
+// stile    = weiche Stil-Tags fuers Ranking + Recherche
+// Basis-Portionen: 2 Erwachsene + 2 Kinder
+// =====================================================
+const RECIPES = [
+  {
+    id: "eintopf",
+    name: "Möhren-Kartoffel-Eintopf",
+    timeMin: 35,
+    time: "ca. 35 Min.",
+    allergens: ["sellerie"],
+    tags: ["glutenfrei", "laktosefrei", "vegetarisch"],
+    diet: ["vegan", "vegetarisch", "pescetarisch"],
+    varianten: [],
+    stile: ["gesund", "nachhaltig", "budget", "pflanzenbetont"],
+    ingredients: [
+      { name: "Möhren", qty: 500, unit: "g" },
+      { name: "Kartoffeln", qty: 600, unit: "g" },
+      { name: "Zwiebel", qty: 1, unit: "Stück" },
+      { name: "Gemüsebrühe", qty: 1, unit: "Liter" },
+      { name: "Rapsöl", qty: 2, unit: "EL" },
+      { name: "Petersilie", qty: 1, unit: "Bund" }
+    ],
+    steps: [
+      { text: "Wasche die Möhren und schneide sie in etwa 2 Zentimeter dicke Scheiben." },
+      { text: "Schäle die Kartoffeln und schneide sie in mundgerechte Würfel." },
+      { text: "Würfle die Zwiebel fein." },
+      { text: "Erhitze 2 Esslöffel Rapsöl im großen Topf und dünste die Zwiebel glasig an. Das dauert etwa 2 Minuten.", timer: 120,
+        announce: "Die Zwiebeln sollten jetzt glasig sein." },
+      { text: "Gib Möhren und Kartoffeln dazu, brate alles kurz mit an und gieße mit 1 Liter Gemüsebrühe auf." },
+      { text: "Lass den Eintopf nun zugedeckt 15 Minuten köcheln. Ich sage dir Bescheid – du hast jetzt Zeit für die Kinder.", timer: 900,
+        announce: "15 Minuten sind um. Die Möhren sollten jetzt gar sein. Stich mit einer Gabel hinein, um zu prüfen." },
+      { text: "Schmecke mit Salz und Pfeffer ab und streue die gehackte Petersilie darüber." },
+      { text: "Fertig! Der Eintopf kann serviert werden. Guten Appetit für die ganze Familie!" }
+    ]
+  },
+  {
+    id: "ofengemuese",
+    name: "Ofengemüse mit Reis",
+    timeMin: 40,
+    time: "ca. 40 Min.",
+    allergens: [],
+    tags: ["glutenfrei", "laktosefrei", "vegan"],
+    diet: ["vegan", "vegetarisch", "pescetarisch"],
+    varianten: [],
+    stile: ["gesund", "pflanzenbetont", "cleanlabel"],
+    ingredients: [
+      { name: "Paprika", qty: 2, unit: "Stück" },
+      { name: "Zucchini", qty: 1, unit: "Stück" },
+      { name: "Süßkartoffeln", qty: 400, unit: "g" },
+      { name: "Reis", qty: 250, unit: "g" },
+      { name: "Olivenöl", qty: 3, unit: "EL" },
+      { name: "Paprikapulver", qty: 1, unit: "TL" }
+    ],
+    steps: [
+      { text: "Heize den Ofen auf 220 Grad Ober- und Unterhitze vor." },
+      { text: "Schneide Paprika, Zucchini und Süßkartoffeln in grobe Stücke." },
+      { text: "Vermenge das Gemüse auf einem Backblech mit 3 Esslöffeln Olivenöl, Paprikapulver und etwas Salz." },
+      { text: "Schiebe das Blech in den Ofen. Das Gemüse braucht 25 Minuten. Ich melde mich!", timer: 1500,
+        announce: "25 Minuten sind um. Das Gemüse sollte jetzt weich sein und leicht gebräunte Ränder haben." },
+      { text: "Koche währenddessen den Reis nach Packungsanleitung. Meist sind das 2 Tassen Wasser auf 1 Tasse Reis, etwa 15 Minuten.", timer: 900,
+        announce: "Der Reis sollte jetzt gar sein. Das Wasser sollte vollständig aufgesogen sein." },
+      { text: "Richte Reis und Ofengemüse zusammen an. Fertig – guten Appetit!" }
+    ]
+  },
+  {
+    id: "nudeln",
+    name: "Nudeln mit schneller Tomatensoße",
+    timeMin: 25,
+    time: "ca. 25 Min.",
+    allergens: ["gluten"],
+    tags: ["vegetarisch", "kinderliebling"],
+    diet: ["vegan", "vegetarisch", "pescetarisch"],
+    varianten: [],
+    stile: ["budget", "mealprep"],
+    ingredients: [
+      { name: "Nudeln", qty: 400, unit: "g" },
+      { name: "Passierte Tomaten", qty: 500, unit: "ml" },
+      { name: "Zwiebel", qty: 1, unit: "Stück" },
+      { name: "Knoblauchzehe", qty: 1, unit: "Stück" },
+      { name: "Olivenöl", qty: 2, unit: "EL" },
+      { name: "Oregano", qty: 1, unit: "TL" }
+    ],
+    steps: [
+      { text: "Setze einen großen Topf mit gesalzenem Wasser für die Nudeln auf." },
+      { text: "Würfle Zwiebel und Knoblauch fein." },
+      { text: "Erhitze Olivenöl in einer Pfanne und dünste Zwiebel und Knoblauch 2 Minuten an.", timer: 120,
+        announce: "Zwiebel und Knoblauch sollten jetzt duften und glasig sein." },
+      { text: "Gieße die passierten Tomaten dazu, würze mit Oregano, Salz und einer Prise Zucker. Lass die Soße 10 Minuten leise köcheln.", timer: 600,
+        announce: "Die Soße ist fertig. Sie sollte leicht eingedickt sein." },
+      { text: "Koche die Nudeln nach Packungszeit bissfest. Meist 9 bis 11 Minuten.", timer: 600,
+        announce: "Probiere jetzt eine Nudel. Sie sollte bissfest sein." },
+      { text: "Gieße die Nudeln ab, vermenge sie mit der Soße. Fertig – guten Appetit!" }
+    ]
+  },
+  {
+    id: "couscous",
+    name: "Schnelle Couscous-Gemüsepfanne",
+    timeMin: 18,
+    time: "ca. 18 Min.",
+    allergens: ["gluten", "sellerie"],
+    tags: ["vegan", "superschnell"],
+    diet: ["vegan", "vegetarisch", "pescetarisch"],
+    varianten: [],
+    stile: ["mealprep", "international"],
+    ingredients: [
+      { name: "Couscous", qty: 250, unit: "g" },
+      { name: "Paprika", qty: 2, unit: "Stück" },
+      { name: "Zucchini", qty: 1, unit: "Stück" },
+      { name: "Kirschtomaten", qty: 250, unit: "g" },
+      { name: "Olivenöl", qty: 2, unit: "EL" },
+      { name: "Gemüsebrühe", qty: 0.3, unit: "Liter" }
+    ],
+    steps: [
+      { text: "Koche 300 Milliliter Gemüsebrühe auf, gieße sie über den Couscous und lass ihn zugedeckt 5 Minuten quellen.", timer: 300,
+        announce: "Der Couscous sollte jetzt die Brühe aufgesogen haben. Lockere ihn mit einer Gabel auf." },
+      { text: "Schneide währenddessen Paprika und Zucchini in kleine Würfel und halbiere die Kirschtomaten." },
+      { text: "Erhitze Olivenöl in einer großen Pfanne und brate das Gemüse 6 Minuten bei hoher Hitze an.", timer: 360,
+        announce: "Das Gemüse sollte jetzt bissfest sein." },
+      { text: "Hebe den Couscous unter das Gemüse, würze mit Salz, Pfeffer und etwas Zitronensaft. Fertig – guten Appetit!" }
+    ]
+  },
+  {
+    id: "omelett",
+    name: "Gemüse-Omelett",
+    timeMin: 15,
+    time: "ca. 15 Min.",
+    allergens: ["ei"],
+    tags: ["glutenfrei", "superschnell", "vegetarisch"],
+    diet: ["vegetarisch", "pescetarisch", "lowcarb"],
+    varianten: [],
+    stile: ["highprotein", "cleanlabel"],
+    ingredients: [
+      { name: "Eier", qty: 6, unit: "Stück" },
+      { name: "Paprika", qty: 1, unit: "Stück" },
+      { name: "Frühlingszwiebeln", qty: 2, unit: "Stück" },
+      { name: "Milch", qty: 50, unit: "ml" },
+      { name: "Butter", qty: 1, unit: "EL" }
+    ],
+    steps: [
+      { text: "Würfle die Paprika klein und schneide die Frühlingszwiebeln in Ringe." },
+      { text: "Verquirle die Eier mit der Milch, Salz und Pfeffer." },
+      { text: "Erhitze Butter in der Pfanne und brate das Gemüse 2 Minuten an.", timer: 120,
+        announce: "Das Gemüse ist angebraten." },
+      { text: "Gieße die Eimasse darüber und lass das Omelett bei mittlerer Hitze 5 Minuten stocken.", timer: 300,
+        announce: "Das Omelett sollte jetzt gestockt sein. Die Oberfläche darf nicht mehr flüssig glänzen." },
+      { text: "Halbiere das Omelett und richte es an. Fertig – guten Appetit!" }
+    ]
+  },
+  {
+    id: "tomatensuppe",
+    name: "Tomatensuppe mit Brot",
+    timeMin: 20,
+    time: "ca. 20 Min.",
+    allergens: ["gluten", "laktose", "sellerie"],
+    tags: ["vegetarisch", "kinderliebling"],
+    diet: ["vegetarisch", "pescetarisch"],
+    varianten: [{ macht: "vegan", text: "Hafercreme statt Sahne verwenden" }],
+    stile: ["budget", "gesund"],
+    ingredients: [
+      { name: "Passierte Tomaten", qty: 750, unit: "ml" },
+      { name: "Zwiebel", qty: 1, unit: "Stück" },
+      { name: "Gemüsebrühe", qty: 0.25, unit: "Liter" },
+      { name: "Sahne oder Hafercreme", qty: 100, unit: "ml" },
+      { name: "Brot", qty: 1, unit: "Stück" },
+      { name: "Olivenöl", qty: 2, unit: "EL" }
+    ],
+    steps: [
+      { text: "Würfle die Zwiebel und dünste sie in Olivenöl 2 Minuten glasig.", timer: 120,
+        announce: "Die Zwiebeln sind glasig." },
+      { text: "Gieße passierte Tomaten und Brühe dazu, würze mit Salz, Pfeffer und einer Prise Zucker. Lass die Suppe 10 Minuten köcheln.", timer: 600,
+        announce: "Die Suppe ist fertig gekocht." },
+      { text: "Rühre die Sahne ein und schmecke nochmal ab." },
+      { text: "Schneide das Brot in Scheiben und serviere es dazu. Fertig – guten Appetit!" }
+    ]
+  },
+  {
+    id: "bratkartoffeln",
+    name: "Bratkartoffeln mit Kräuterquark",
+    timeMin: 20,
+    time: "ca. 20 Min. (mit vorgekochten Kartoffeln)",
+    allergens: ["laktose"],
+    tags: ["glutenfrei", "vegetarisch", "resteverwertung"],
+    diet: ["vegetarisch", "pescetarisch"],
+    varianten: [{ macht: "vegan", text: "veganen Quark statt Kräuterquark verwenden" }],
+    stile: ["budget", "nachhaltig"],
+    ingredients: [
+      { name: "Vorgekochte Kartoffeln", qty: 800, unit: "g" },
+      { name: "Quark", qty: 500, unit: "g" },
+      { name: "Schnittlauch", qty: 1, unit: "Bund" },
+      { name: "Zwiebel", qty: 1, unit: "Stück" },
+      { name: "Rapsöl", qty: 3, unit: "EL" }
+    ],
+    steps: [
+      { text: "Schneide die vorgekochten Kartoffeln in Scheiben und würfle die Zwiebel." },
+      { text: "Verrühre den Quark mit geschnittenem Schnittlauch, Salz, Pfeffer und einem Schluck Mineralwasser." },
+      { text: "Erhitze das Öl in einer großen Pfanne und brate die Kartoffeln mit der Zwiebel 12 Minuten goldbraun. Zwischendurch wenden!", timer: 720,
+        announce: "Die Bratkartoffeln sollten jetzt goldbraun und knusprig sein." },
+      { text: "Mit Salz würzen und mit dem Kräuterquark servieren. Fertig – guten Appetit!" }
+    ]
+  },
+  {
+    id: "curry",
+    name: "Gemüse-Curry mit Kokosmilch und Reis",
+    timeMin: 28,
+    time: "ca. 28 Min.",
+    allergens: [],
+    tags: ["vegan", "glutenfrei", "laktosefrei"],
+    diet: ["vegan", "vegetarisch", "pescetarisch"],
+    varianten: [],
+    stile: ["pflanzenbetont", "international", "gesund"],
+    ingredients: [
+      { name: "Reis", qty: 250, unit: "g" },
+      { name: "Kokosmilch", qty: 400, unit: "ml" },
+      { name: "Blumenkohl", qty: 1, unit: "Stück" },
+      { name: "Möhren", qty: 300, unit: "g" },
+      { name: "Currypaste mild (Zutatenliste prüfen!)", qty: 1, unit: "EL" },
+      { name: "Rapsöl", qty: 2, unit: "EL" }
+    ],
+    steps: [
+      { text: "Setze den Reis nach Packungsanleitung auf. Meist 2 Tassen Wasser auf 1 Tasse Reis, etwa 15 Minuten." },
+      { text: "Teile den Blumenkohl in kleine Röschen und schneide die Möhren in dünne Scheiben." },
+      { text: "Erhitze Öl im Topf, röste die Currypaste kurz an und gib das Gemüse dazu." },
+      { text: "Gieße die Kokosmilch an und lass das Curry zugedeckt 12 Minuten köcheln.", timer: 720,
+        announce: "Das Gemüse sollte jetzt gar, aber noch bissfest sein. Die Möhren prüfst du am besten mit einer Gabel." },
+      { text: "Mit Salz abschmecken und mit dem Reis servieren. Fertig – guten Appetit!" }
+    ]
+  },
+  {
+    id: "haehnchenpfanne",
+    name: "Hähnchen-Gemüse-Pfanne mit Reis",
+    timeMin: 30,
+    time: "ca. 30 Min.",
+    allergens: ["soja"],
+    tags: ["glutenfrei", "laktosefrei", "eiweissreich"],
+    diet: [],
+    varianten: [
+      { macht: "vegetarisch", text: "Tofu statt Hähnchen verwenden" },
+      { macht: "vegan", text: "Tofu statt Hähnchen und vegane Sojasauce verwenden" }
+    ],
+    stile: ["highprotein", "mealprep", "international"],
+    ingredients: [
+      { name: "Hähnchenbrustfilet", qty: 500, unit: "g" },
+      { name: "Reis", qty: 250, unit: "g" },
+      { name: "Brokkoli", qty: 1, unit: "Stück" },
+      { name: "Paprika", qty: 2, unit: "Stück" },
+      { name: "Sojasauce glutenfrei", qty: 3, unit: "EL" },
+      { name: "Rapsöl", qty: 2, unit: "EL" }
+    ],
+    steps: [
+      { text: "Setze den Reis nach Packungsanleitung auf." },
+      { text: "Schneide das Hähnchen in mundgerechte Streifen, den Brokkoli in Röschen und die Paprika in Streifen." },
+      { text: "Brate das Hähnchen in heißem Öl 6 Minuten rundherum kräftig an.", timer: 360,
+        announce: "Wichtig: Schneide ein dickes Stück auf. Das Fleisch muss innen komplett weiß sein, nicht mehr rosa oder glasig." },
+      { text: "Gib das Gemüse dazu und brate alles weitere 8 Minuten.", timer: 480,
+        announce: "Das Gemüse sollte bissfest sein." },
+      { text: "Mit Sojasauce ablöschen und mit dem Reis servieren. Fertig – guten Appetit!" }
+    ]
+  },
+  {
+    id: "auflauf",
+    name: "Kartoffel-Brokkoli-Auflauf",
+    timeMin: 38,
+    time: "ca. 38 Min.",
+    allergens: ["laktose"],
+    tags: ["glutenfrei", "vegetarisch", "kinderliebling"],
+    diet: ["vegetarisch", "pescetarisch"],
+    varianten: [{ macht: "vegan", text: "Hafersahne und veganen Käse statt Sahne und Käse verwenden" }],
+    stile: ["budget"],
+    ingredients: [
+      { name: "Kartoffeln", qty: 800, unit: "g" },
+      { name: "Brokkoli", qty: 1, unit: "Stück" },
+      { name: "Sahne", qty: 200, unit: "ml" },
+      { name: "Geriebener Käse", qty: 150, unit: "g" },
+      { name: "Muskatnuss", qty: 1, unit: "TL" }
+    ],
+    steps: [
+      { text: "Heize den Ofen auf 200 Grad Ober- und Unterhitze vor." },
+      { text: "Schäle die Kartoffeln, schneide sie in dünne Scheiben und koche sie 8 Minuten vor.", timer: 480,
+        announce: "Die Kartoffeln sind vorgegart." },
+      { text: "Teile den Brokkoli in Röschen und gib ihn die letzten 3 Minuten mit ins Kochwasser." },
+      { text: "Schichte Kartoffeln und Brokkoli in eine Auflaufform, würze mit Salz, Pfeffer und Muskat, gieße die Sahne darüber und bestreue alles mit Käse." },
+      { text: "Backe den Auflauf 18 Minuten im Ofen.", timer: 1080,
+        announce: "Der Käse sollte jetzt goldbraun geschmolzen sein." },
+      { text: "Kurz abkühlen lassen und servieren. Fertig – guten Appetit!" }
+    ]
+  },
+  {
+    id: "chili",
+    name: "Chili sin Carne mit Reis",
+    timeMin: 45,
+    time: "ca. 45 Min.",
+    allergens: [],
+    tags: ["vegan", "glutenfrei", "laktosefrei", "vorkochen"],
+    diet: ["vegan", "vegetarisch", "pescetarisch"],
+    varianten: [],
+    stile: ["pflanzenbetont", "highprotein", "budget", "mealprep", "nachhaltig", "international"],
+    ingredients: [
+      { name: "Kidneybohnen (Dose)", qty: 2, unit: "Stück" },
+      { name: "Mais (Dose)", qty: 1, unit: "Stück" },
+      { name: "Gehackte Tomaten (Dose)", qty: 2, unit: "Stück" },
+      { name: "Zwiebel", qty: 2, unit: "Stück" },
+      { name: "Reis", qty: 300, unit: "g" },
+      { name: "Paprikapulver", qty: 2, unit: "TL" },
+      { name: "Kreuzkümmel", qty: 1, unit: "TL" },
+      { name: "Olivenöl", qty: 2, unit: "EL" }
+    ],
+    steps: [
+      { text: "Würfle die Zwiebeln und dünste sie in Olivenöl 3 Minuten an.", timer: 180,
+        announce: "Die Zwiebeln sind glasig." },
+      { text: "Gib Paprikapulver und Kreuzkümmel dazu und röste die Gewürze eine halbe Minute mit." },
+      { text: "Gieße die gehackten Tomaten an, gib abgespülte Bohnen und Mais dazu. Lass das Chili 25 Minuten leise köcheln. Zeit für andere Dinge – ich melde mich!", timer: 1500,
+        announce: "Das Chili ist fertig. Es sollte schön sämig eingekocht sein." },
+      { text: "Koche währenddessen den Reis nach Packungsanleitung." },
+      { text: "Schmecke mit Salz und etwas Zucker ab. Übrigens: Das Chili schmeckt aufgewärmt am nächsten Tag noch besser. Fertig – guten Appetit!" }
+    ]
+  },
+  {
+    id: "ofenhaehnchen",
+    name: "Ofen-Hähnchenschenkel mit Kartoffeln",
+    timeMin: 60,
+    time: "ca. 60 Min.",
+    allergens: [],
+    tags: ["glutenfrei", "laktosefrei", "wochenende"],
+    diet: [],
+    varianten: [{ macht: "vegetarisch", text: "Ofen-Halloumi oder Kichererbsen statt Hähnchen verwenden" }],
+    stile: ["highprotein"],
+    ingredients: [
+      { name: "Hähnchenschenkel", qty: 4, unit: "Stück" },
+      { name: "Kartoffeln", qty: 1000, unit: "g" },
+      { name: "Zitrone", qty: 1, unit: "Stück" },
+      { name: "Knoblauchzehe", qty: 3, unit: "Stück" },
+      { name: "Rosmarin", qty: 1, unit: "Bund" },
+      { name: "Olivenöl", qty: 4, unit: "EL" }
+    ],
+    steps: [
+      { text: "Heize den Ofen auf 200 Grad Ober- und Unterhitze vor." },
+      { text: "Schneide die Kartoffeln in Spalten und vermenge sie auf einem tiefen Blech mit Olivenöl, Salz und Rosmarin." },
+      { text: "Reibe die Hähnchenschenkel mit Salz, Paprikapulver und zerdrücktem Knoblauch ein und lege sie auf die Kartoffeln. Zitronenscheiben darüber verteilen." },
+      { text: "Schiebe das Blech in den Ofen. Alles gart jetzt 45 Minuten – du hast frei, ich melde mich!", timer: 2700,
+        announce: "45 Minuten sind um. Wichtige Garprobe: Stich an der dicksten Stelle ins Fleisch. Der austretende Saft muss klar sein, nicht rosa. Im Zweifel 10 Minuten verlängern." },
+      { text: "Alles zusammen servieren. Fertig – ein richtiges Festessen, guten Appetit!" }
+    ]
+  }
+];
+
+// =====================================================
+// ERNAEHRUNGS-LOGIK
+// Allergien bleiben IMMER hart und additiv (Sicherheit).
+// Ernaehrungsformen sind weicher: per Person im Profil,
+// gesteuert ueber den Koch-Modus. vegan impliziert
+// vegetarisch + pescetarisch. Varianten verhindern
+// leere Listen im Familien-Modus.
+// =====================================================
+const DIET_LABELS = {
+  vegan: "vegan", vegetarisch: "vegetarisch",
+  pescetarisch: "pescetarisch", lowcarb: "low carb"
+};
+// Welche Anforderungen erfuellt ein Rezept-/Varianten-Tag?
+const DIET_IMPLIES = {
+  vegan: ["vegan", "vegetarisch", "pescetarisch"],
+  vegetarisch: ["vegetarisch", "pescetarisch"],
+  pescetarisch: ["pescetarisch"],
+  lowcarb: ["lowcarb"]
+};
+// Weiche Stil-Vorlieben (Familienprofil, gespeichert)
+const STILE = [
+  { id: "pflanzenbetont", label: "🌱 Pflanzenbetont" },
+  { id: "highprotein", label: "💪 High Protein" },
+  { id: "gesund", label: "🥗 Gesund & ausgewogen" },
+  { id: "nachhaltig", label: "♻️ Saisonal/Nachhaltig" },
+  { id: "fermentiert", label: "🫙 Fermentiert" },
+  { id: "cleanlabel", label: "🧾 Clean Label" },
+  { id: "international", label: "🌍 Internationale Aromen" },
+  { id: "mealprep", label: "⏱ Meal Prep/Schnell" },
+  { id: "budget", label: "💰 Budgetfreundlich" }
+];
+
+let kochModus = "familie";      // "familie" oder ein Personenname
+let familienStile = [];         // gespeicherte weiche Vorlieben
+
+// Welche Ernaehrungsformen sind im aktuellen Modus gefordert?
+// Rueckgabe: { diet: [Personennamen] }
+function requiredDiets() {
+  if (typeof mitglieder === "undefined") return {};
+  const quelle = kochModus === "familie"
+    ? mitglieder
+    : mitglieder.filter(m => m.name === kochModus);
+  const map = {};
+  quelle.forEach(m => (m.ernaehrung || []).forEach(d => {
+    if (!map[d]) map[d] = [];
+    if (!map[d].includes(m.name)) map[d].push(m.name);
+  }));
+  return map;
+}
+
+// Erfuellt ein Rezept eine Ernaehrungs-Anforderung -
+// direkt oder ueber eine Variante?
+function satisfiesDiet(recipe, diet) {
+  const direkt = (recipe.diet || []).some(tag =>
+    (DIET_IMPLIES[tag] || [tag]).includes(diet));
+  if (direkt) return { ok: true, variante: null };
+  const v = (recipe.varianten || []).find(va =>
+    (DIET_IMPLIES[va.macht] || [va.macht]).includes(diet));
+  if (v) return { ok: true, variante: v.text };
+  return { ok: false, variante: null };
+}
+
+// Passt ein Rezept zum aktuellen Modus? Liefert Varianten-Hinweise.
+function dietPasses(recipe) {
+  // KI-Treffer wurden serverseitig bereits nach Ernaehrungsform
+  // gefiltert -> hier nicht erneut hart filtern.
+  if (String(recipe.id || "").startsWith("ki_"))
+    return { ok: true, hinweise: [] };
+  const map = requiredDiets();
+  const hinweise = [];
+  for (const diet in map) {
+    const s = satisfiesDiet(recipe, diet);
+    if (!s.ok) return { ok: false, hinweise: [] };
+    if (s.variante)
+      hinweise.push(`${DIET_LABELS[diet]}-Variante für ` +
+        `${map[diet].join(", ")}: ${s.variante}`);
+  }
+  return { ok: true, hinweise };
+}
+
+// Wie gut passt ein Rezept zu den weichen Stil-Vorlieben? (Anzahl Treffer)
+function styleScore(recipe) {
+  if (!familienStile.length) return 0;
+  const s = recipe.stile || [];
+  return familienStile.filter(x => s.includes(x)).length;
+}
+
+// =====================================================
+// ZUSTAND
+// =====================================================
+let selectedRecipe = null;
+let stepIndex = 0;
+let timerInterval = null;
+let reminderTimeout = null;
+let recognition = null;
+let listening = false;
+const REMINDER_SEC = 45;
+
+// =====================================================
+// SPRACHAUSGABE (Text-to-Speech, im Browser eingebaut)
+// =====================================================
+let ttsActive = false;
+let ttsCooldownUntil = 0;
+let micMuted = false;
+
+function cookingVisible() {
+  return !document.getElementById("tab-kochen").classList.contains("hidden");
+}
+
+function muteMic() {
+  micMuted = true;
+  if (recognition) {
+    try { recognition.abort(); } catch (e) {}
+  }
+}
+
+function unmuteMic() {
+  micMuted = false;
+  // Neustart uebernimmt der globale Controller (gvNeustart)
+  gvNeustart();
+}
+
+// BUGFIX: Chrome bricht lange Ansagen nach ~15 Sekunden stumm ab
+// (bekannter speechSynthesis-Fehler). Deshalb wird der Text jetzt
+// in kurze Saetze/Stuecke zerlegt und als Kette gesprochen - jedes
+// Stueck bleibt unter der kritischen Laenge.
+function speakChunks(text) {
+  const stuecke = [];
+  const saetze = String(text).match(/[^.!?…]+[.!?…]*\s*/g) || [String(text)];
+  for (let s of saetze) {
+    s = s.trim();
+    while (s.length > 180) {                 // Notfalls an Kommas teilen
+      let cut = s.lastIndexOf(",", 180);
+      if (cut < 60) cut = s.lastIndexOf(" ", 180);
+      if (cut < 60) cut = 180;
+      stuecke.push(s.slice(0, cut + 1).trim());
+      s = s.slice(cut + 1).trim();
+    }
+    if (s) stuecke.push(s);
+  }
+  return stuecke;
+}
+// Sichtbare Sprechblase: zeigt jede Ansage auch als Text an.
+// Ueberlebenswichtig, wenn der Browser die Sprachausgabe (noch)
+// blockiert - die App bleibt dann trotzdem voll bedienbar.
+function gvSprechblase(text) {
+  try {
+    let b = document.getElementById("gvSage");
+    if (!b) {
+      b = document.createElement("div");
+      b.id = "gvSage";
+      document.body.appendChild(b);
+    }
+    b.textContent = "💬 " + text;
+    b.classList.add("sichtbar");
+    clearTimeout(gvSprechblase._t);
+    gvSprechblase._t = setTimeout(() => b.classList.remove("sichtbar"),
+      Math.min(4000 + text.length * 60, 15000));
+    const ms = Math.max(3000, text.length * 90) + 1500;
+    setTimeout(() => {
+      if (!window.speechSynthesis.speaking
+          && !window.speechSynthesis.pending) {
+        ttsActive = false;
+        unmuteMic();
+      }
+    }, ms);
+  } catch (e) { unmuteMic(); }
+}
+
+let ttsStartete = false;      // hat der Browser JE eine Ansage gestartet?
+let ttsNotausTimer = null;    // Zwangs-Entstummung (Deadlock-Schutz)
+
+function speak(text, interrupt) {
+  try {
+    gvSprechblase(text); // Text IMMER auch anzeigen
+    muteMic();
+    if (interrupt) window.speechSynthesis.cancel();
+
+    // DEADLOCK-SCHUTZ: Egal was mit der Ansage passiert - nach
+    // spaetestens 12 Sekunden geht das Mikrofon zwingend wieder an.
+    // (Vorher konnte eine vom Browser blockierte Ansage das Mikro
+    // dauerhaft stumm lassen: onend kam nie -> unmute kam nie.)
+    clearTimeout(ttsNotausTimer);
+    // BUGFIX v9: Der Schutz wuergte lange Ansagen (Kochschritt +
+    // Mengen > 12 s) mitten im Satz ab - deshalb fehlten auch die
+    // Mengen am Ende. Neu: Solange AKTIV gesprochen wird, wacht er
+    // nur weiter. Eingreifen darf er nur, wenn nichts spielt und
+    // das Mikro trotzdem stumm haengt (blockierte Ansage).
+    ttsNotausTimer = setTimeout(function notaus() {
+      if (window.speechSynthesis.speaking || ttsActive) {
+        ttsNotausTimer = setTimeout(notaus, 4000);
+        return;
+      }
+      if (micMuted) {
+        try { window.speechSynthesis.cancel(); } catch (e) {}
+        unmuteMic();
+      }
+    }, 12000);
+
+    const finish = () => {
+      if (window.speechSynthesis.speaking
+          || window.speechSynthesis.pending) return;
+      ttsActive = false;
+      ttsCooldownUntil = Date.now() + 800;
+      setTimeout(() => {
+        if (!window.speechSynthesis.speaking) unmuteMic();
+      }, 800);
+    };
+
+    let gestartet = false;
+    for (const stueck of speakChunks(text)) {
+      const u = new SpeechSynthesisUtterance(stueck);
+      u.lang = "de-DE";
+      u.rate = 0.95;
+      u.onstart = () => { gestartet = true; ttsStartete = true;
+        ttsActive = true; };
+      u.onend = finish;
+      u.onerror = finish;
+      window.speechSynthesis.speak(u);
+    }
+
+    // TTS-WAECHTER: Startet binnen 2,5 s keine Ansage, blockiert
+    // der Browser die Sprachausgabe (Android: erst nach der ersten
+    // Beruehrung erlaubt). Dann: Warteschlange leeren und das
+    // Mikrofon SOFORT wieder freigeben - die Sprechblase hat den
+    // Text ja bereits angezeigt.
+    setTimeout(() => {
+      if (!gestartet && !window.speechSynthesis.speaking) {
+        try { window.speechSynthesis.cancel(); } catch (e) {}
+        ttsActive = false;
+        ttsCooldownUntil = 0;
+        unmuteMic();
+      }
+    }, 2500);
+  } catch (e) { try { unmuteMic(); } catch (e2) {} }
+}
+
+// Sprachausgabe beim ersten Fingertipp freischalten (Browser-
+// Autoplay-Regel): eine stumme Mini-Ansage "entsperrt" die Stimme.
+document.addEventListener("click", function ttsUnlock() {
+  try {
+    if (!ttsStartete) {
+      const u = new SpeechSynthesisUtterance(" ");
+      u.volume = 0;
+      window.speechSynthesis.speak(u);
+    }
+  } catch (e) {}
+  document.removeEventListener("click", ttsUnlock);
+}, { once: true });
+
+// =====================================================
+// GLOBALE SPRACHSTEUERUNG (eine Instanz fuer die GANZE App)
+// -----------------------------------------------------
+// BUGFIX-Architektur: Vorher gab es VIER getrennte
+// Erkennungs-Instanzen (Kochen, Termin, Einkauf, Feedback).
+// Der Browser erlaubt aber nur EINE aktive Instanz - die
+// Kochmodul-Instanz startete sich endlos neu und schoss die
+// anderen ab (daher "geht nicht in jedem Modul"). Jetzt gibt
+// es genau EINEN Controller: Er hoert dauerhaft zu, leitet
+// Gesagtes an das aktive Modul bzw. globale Kommandos weiter
+// und kann fuer Rueckfrage-Dialoge "reserviert" werden.
+// Auto-Start: Ist die Mikrofon-Berechtigung schon erteilt,
+// startet das Zuhoeren direkt beim App-Aufruf - App oeffnen
+// und lossprechen.
+// =====================================================
+const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
+// Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
+// SYSTEM bei jedem Erkennungs-Neustart und laesst sich per Web-App
+// nicht abschalten. Wir reduzieren die Neustarts: Nach laengerer
+// Stille pausiert das Zuhoeren automatisch (Chip antippen oder
+// irgendwo tippen startet es wieder).
+let GV_RUHE_MS = 20000; // v10: 20 s statt 90 s (Ton-Reduktion)
+let gvLetztesErgebnis = Date.now();
+
+function gvChip(text, klasse) {
+  const c = document.getElementById("gvChip");
+  if (!c) return;
+  c.textContent = text;
+  c.className = klasse || "";
+}
+
+function gvKochStatus(text, listening) {
+  const s = document.getElementById("micStatus");
+  if (!s) return;
+  s.textContent = text;
+  s.className = listening ? "listening" : "";
+}
+
+function gvNeustart() {
+  if (!recognition || !GlobalVoice.aktiv || micMuted) return;
+  try { recognition.start(); } catch (e) {}
+}
+
+function gvStart() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    gvChip("🎤 nicht unterstützt", "aus");
+    gvKochStatus("Mikrofon: vom Browser nicht unterstützt – nutze den grünen Knopf.", false);
+    return;
+  }
+  if (!recognition) {
+    recognition = new SR();
+    recognition.lang = "de-DE";
+    recognition.continuous = true;
+    recognition.interimResults = false;
+
+    recognition.onresult = (ev) => {
+      gvLetztesErgebnis = Date.now(); // Aktivitaet: Ruhepause-Zaehler zuruecksetzen
+      // Eigene Stimme der App ignorieren (Bugfix)
+      if (ttsActive || Date.now() < ttsCooldownUntil) return;
+      const said = ev.results[ev.results.length - 1][0].transcript.trim();
+      if (said) gvRoute(said);
+    };
+    recognition.onstart = () => {
+      listening = true;
+      GlobalVoice.gestartet = true;
+      gvChip("🎤 an – ich höre", "an");
+      if (cookingVisible()) {
+        gvKochStatus("🎤 Ich höre zu – sag „fertig“, wenn du soweit bist", true);
+      }
+    };
+    recognition.onerror = (e) => {
+      if (e.error === "aborted") return; // bewusstes Stummschalten
+      listening = false;
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+        GlobalVoice.aktiv = false;
+        gvChip("🎤 aus – Berechtigung fehlt", "aus");
+        gvKochStatus("Mikrofon nicht erlaubt – nutze den grünen Knopf.", false);
+      } else if (e.error === "audio-capture") {
+        GlobalVoice.aktiv = false;
+        gvChip("🎤 kein Mikrofon", "aus");
+        gvKochStatus("Kein Mikrofon gefunden – Bedienung über die Knöpfe.", false);
+      }
+      // "no-speech" u.ae.: onend startet automatisch neu
+    };
+    recognition.onend = () => {
+      listening = false;
+      // Automatische Ruhepause: lange nichts gehoert und kein
+      // Dialog offen -> nicht neu starten (= kein Systemton mehr)
+      if (GlobalVoice.aktiv && !GlobalVoice.dialog
+          && Date.now() - gvLetztesErgebnis > GV_RUHE_MS) {
+        GlobalVoice.aktiv = false;
+        gvChip("🎤 Ruhepause – tippen zum Weiterhören", "aus");
+        return;
+      }
+      if (GlobalVoice.aktiv && !micMuted) {
+        setTimeout(gvNeustart, 300);
+      } else if (!GlobalVoice.aktiv) {
+        gvChip("🎤 aus – tippen zum Einschalten", "aus");
+      }
+    };
+  }
+  GlobalVoice.aktiv = true;
+  gvLetztesErgebnis = Date.now();
+  try { recognition.start(); } catch (e) {}
+}
+
+function gvStopp() {
+  GlobalVoice.aktiv = false;
+  GlobalVoice.dialog = null;
+  if (recognition) { try { recognition.abort(); } catch (e) {} }
+  gvChip("🎤 aus – tippen zum Einschalten", "aus");
+}
+
+function gvToggle() { GlobalVoice.aktiv ? gvStopp() : gvStart(); }
+
+// v10: Bildschirm aus / App im Hintergrund -> SOFORT still.
+// (Haeufigste Quelle des nervigen Aktivierungstons: Neustarts,
+//  waehrend das Handy in der Tasche liegt.)
+let gvWarAktivVorHintergrund = false;
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    gvWarAktivVorHintergrund = GlobalVoice.aktiv;
+    if (GlobalVoice.aktiv) {
+      GlobalVoice.aktiv = false;
+      if (recognition) { try { recognition.abort(); } catch (e) {} }
+    }
+  } else if (gvWarAktivVorHintergrund) {
+    gvStart();
+  }
+});
+
+// Beim App-Start: wenn die Berechtigung schon erteilt ist,
+// sofort zuhoeren. Sonst wartet der Controller auf die erste
+// Beruehrung irgendwo in der App und versucht es dann einmal
+// (Browser verlangen fuer die Berechtigungs-Abfrage eine Geste).
+function gvAutoStart() {
+  gvChip("🎤 starte …", "");
+  const versuch = () => { if (!GlobalVoice.gestartet) gvStart(); };
+  if (navigator.permissions && navigator.permissions.query) {
+    navigator.permissions.query({ name: "microphone" })
+      .then((p) => {
+        if (p.state === "granted") gvStart();
+        else gvChip("🎤 tippen zum Einschalten", "aus");
+      })
+      .catch(versuch);
+  } else {
+    versuch();
+  }
+}
+
+// ---------- Kommando-Erkennung (pur & testbar) ----------
+const GV_TAB_WOERTER = {
+  rezepte: "rezepte", rezept: "rezepte", rezepten: "rezepte",
+  termine: "termine", terminen: "termine", kalender: "termine",
+  einkauf: "einkauf", einkaufsliste: "einkauf", liste: "einkauf",
+  kochen: "kochen", küche: "kochen",
+  favoriten: "favoriten", lieblingsgerichte: "favoriten",
+  familie: "familie", profil: "familie",
+};
+
+// "Weiter/Überspringen" als Universalbefehl - aber NUR, wenn das
+// Wort (nahezu) allein gesagt wird. "Wir gehen weiter zum Park"
+// waehrend eines Diktats darf nichts ueberspringen.
+function istUeberspringen(text) {
+  const t = String(text).toLowerCase().trim().replace(/[.,!?]+$/g, "");
+  return /^(?:überspringen|ueberspringen|weiter|skip|nächste(?:\s+frage)?|naechste(?:\s+frage)?|nächster(?:\s+schritt)?|naechster(?:\s+schritt)?)$/.test(t);
+}
+
+function erkenneKommando(text) {
+  const t = String(text).toLowerCase().trim()
+    .replace(/[.,!?]+$/g, "");
+  if (/^(stopp|stop|sei still|ruhe|leise)$/.test(t)) return { typ: "still" };
+  if (/^(?:einführung|einfuehrung|anleitung|tour|einrichtung)$/.test(t)) {
+    return { typ: "einfuehrung" };
+  }
+  if (/^(?:mikro(?:fon)?|zuhören|zuhoeren)\s+(?:aus|stopp|stop|beenden)$/.test(t)) {
+    return { typ: "mikro_aus" };
+  }
+  if (/^(?:app\s+|assistent\s+)?(?:beenden|schliessen|schließen)$/.test(t)
+      || /^(?:tschüss|tschuess|auf wiedersehen)$/.test(t)) {
+    return { typ: "app_ende" };
+  }
+  if (/\b(hilfe|was kannst du)\b/.test(t)) return { typ: "hilfe" };
+  if (/^(?:jetzt\s+|los\s+|lass uns\s+)?koch(?:en)?(?:\s+start(?:en)?|\s+beginnen|\s+los)?$/.test(t)) {
+    return { typ: "kochen" };
+  }
+  let m = t.match(/^(?:setz(?:e)?(?:\s+(?:es|das|alles))?\s+)?(?:die\s+)?(?:zutaten\s+)?auf\s+die\s+(?:einkaufs)?liste$/);
+  if (m) return { typ: "auf_liste" };
+  m = t.match(/^(?:(?:einkauf[:,]?\s+)?liste|einkaufs?liste)\s+(vorlesen|leeren|löschen|loeschen)$/);
+  if (m) return { typ: "liste",
+    aktion: m[1] === "vorlesen" ? "vorlesen" : "leeren" };
+  m = t.match(/^(?:rezept|suche|recherchiere)(?:[:,]?\s+(.+))?$/);
+  if (m) return { typ: "rezept", rest: (m[1] || "").trim() };
+  m = t.match(/^(?:neuer\s+|neuen\s+)?termin[:,]?\s*(.*)$/);
+  if (m) return { typ: "termin", rest: m[1].trim() };
+  m = t.match(/^(?:einkauf|einkaufen|kaufe|kaufen|besorge|besorgen|auf die liste)[:,]?\s*(.*)$/);
+  if (m) return { typ: "einkauf", rest: m[1].trim() };
+  m = t.match(/^(?:gehe?|wechs(?:le|el)|zeige?|öffne)\s+(?:zu[rm]?\s+|zu\s+|die\s+|den\s+|das\s+)?([a-zäöüß]+)/);
+  if (m && GV_TAB_WOERTER[m[1]]) return { typ: "nav", ziel: GV_TAB_WOERTER[m[1]] };
+  return null;
+}
+
+// ---------- Einkaufs-Artikel (pur & testbar) ----------
+function parseArtikelListe(text) {
+  return String(text).split(/\s+und\s+|,/)
+    .map((s) => s.trim().replace(/^(noch|bitte|auch)\s+/i, "").slice(0, 50))
+    .filter((s) => s.length > 1);
+}
+
+function einkaufHinzufuegen(text) {
+  const artikel = parseArtikelListe(text);
+  if (!artikel.length) { speak("Das habe ich nicht verstanden.", true); return; }
+  artikel.forEach((name) => vState.liste.push({ name: name, laden: "" }));
+  vbSave(); renderVerbrauch();
+  speak(artikel.length === 1
+    ? artikel[0] + " ist auf der Liste."
+    : artikel.join(" und ") + " sind auf der Liste.", true);
+}
+
+// ---------- Zentrale Weiche ----------
+function gvRoute(said) {
+  // 1) Laufender Rueckfrage-Dialog hat Vorrang
+  if (GlobalVoice.dialog) {
+    GlobalVoice.dialog.onInput(said);
+    return;
+  }
+  // Onboarding offen? Dann hat es Vorrang vor ALLEN Kontexten:
+  // "Weiter/Überspringen" blättert die Einrichtung.
+  if (obOffen && istUeberspringen(said)) { obWeiter(); return; }
+  const klein = said.toLowerCase();
+  // 2) Kochmodus-Kommandos (nur wenn Kochen sichtbar)
+  if (cookingVisible()) {
+    if (/\b(fertig|erledigt|weiter|überspringen|ueberspringen|nächster|naechster)\b/.test(klein)) { confirmStep(); return; }
+    if (/wiederhol/.test(klein)) { repeatStep(); return; }
+  }
+  // 3) Globale Kommandos - in jedem Modul verfuegbar
+  // "Weiter/Überspringen" ohne aktiven Dialog: laufende Ansage
+  // (z.B. Rezept-Vorstellung, Zutatenliste) sofort beenden
+  if (istUeberspringen(said)) {
+    window.speechSynthesis.cancel();
+    return;
+  }
+  const k = erkenneKommando(said);
+  if (!k) return; // Alltagsgespraech ignorieren
+  if (k.typ === "still") { window.speechSynthesis.cancel(); return; }
+  if (k.typ === "einfuehrung") { onboardingOeffnen(); return; }
+  if (k.typ === "mikro_aus") {
+    GlobalVoice.aktiv = false; // verhindert jeden Neustart
+    speak("Okay, Mikrofon ist aus. Zum Einschalten unten rechts auf " +
+      "das Mikrofon-Symbol tippen.", true);
+    gvChip("🎤 aus – tippen zum Einschalten", "aus");
+    return;
+  }
+  if (k.typ === "app_ende") { appBeenden(); return; }
+  if (k.typ === "hilfe") {
+    speak("Ihr könnt sagen: Termin, dann den Termin sprechen. " +
+      "Einkauf und ein Artikel. Liste vorlesen oder Liste leeren. " +
+      "Nach der Rezeptwahl: Auf die Einkaufsliste. " +
+      "Rezept und euer Wunsch. " +
+      "Gehe zu Rezepten, Terminen, Einkauf, " +
+      "Kochen, Favoriten oder Familie. Nach der Rezeptwahl: Kochen. Beim Kochen: fertig, weiter " +
+      "oder wiederholen. Mikrofon aus schaltet das Zuhören ab, " +
+      "App beenden verabschiedet mich. " +
+      "Einführung öffnet die Anleitung. Weiter oder Überspringen lässt Fragen und Ansagen aus. Und Stopp, wenn ich still sein soll.", true);
+    return;
+  }
+  if (k.typ === "kochen") {
+    if (selectedRecipe) { startCooking(); }
+    else { speak("Wählt zuerst ein Rezept aus.", true); goTab("rezepte"); }
+    return;
+  }
+  if (k.typ === "nav") { goTab(k.ziel); speak("Okay.", true); return; }
+  if (k.typ === "auf_liste") {
+    if (selectedRecipe) {
+      buildShoppingList();
+      goTab("einkauf");
+      speak("Die Zutaten von " + selectedRecipe.name +
+        " sind auf der Einkaufsliste.", true);
+    } else {
+      speak("Wählt zuerst ein Rezept aus.", true);
+      goTab("rezepte");
+    }
+    return;
+  }
+  if (k.typ === "liste") {
+    goTab("einkauf");
+    if (k.aktion === "vorlesen") readShoppingList();
+    else leereEinkaufslisteVoice();
+    return;
+  }
+  if (k.typ === "rezept") {
+    goTab("rezepte");
+    if (k.rest) rezeptSucheMitText(k.rest);
+    else gvOneShot("Worauf habt ihr Lust?", rezeptSucheMitText);
+    return;
+  }
+  if (k.typ === "einkauf") {
+    if (k.rest) { einkaufHinzufuegen(k.rest); }
+    else { gvOneShot("Welcher Artikel?", einkaufHinzufuegen); }
+    return;
+  }
+  if (k.typ === "termin") {
+    goTab("termine");
+    startTerminDialog(k.rest && k.rest.length > 3 ? k.rest : null);
+  }
+}
+
+// ---------- App per Sprache beenden ----------
+// Ehrlicher Hinweis: Ein Browser-Tab darf sich aus Sicherheits-
+// gruenden meist NICHT selbst schliessen. Deshalb: Stimme + Mikro
+// aus, Abschieds-Bildschirm, und der Schliessversuch dort, wo die
+// Plattform ihn erlaubt (installierte App).
+function appBeenden() {
+  GlobalVoice.aktiv = false;
+  GlobalVoice.dialog = null;
+  if (recognition) { try { recognition.abort(); } catch (e) {} }
+  gvChip("🎤 aus", "aus");
+  speak("Bis bald!", true);
+  const o = document.getElementById("byeOverlay");
+  if (o) o.classList.remove("hidden");
+  setTimeout(() => { try { window.close(); } catch (e) {} }, 1800);
+}
+
+// =====================================================
+// GEFUEHRTE STARTSEITE / ERSTEINRICHTUNG (v11)
+// Zustand lebt in Variablen (nicht nur im DOM) - dadurch
+// vollstaendig im Simulator testbar.
+// =====================================================
+const OB_FLAG = "ka_onboarding_fertig";
+const OB_SCHRITTE = 8;
+let obOffen = false;
+let obIndex = 0;
+
+// Gesprochene Kurzfassung jeder Seite. Browser erlauben Sprach-
+// ausgabe erst nach der ersten Beruehrung - Seite 1 erscheint daher
+// ggf. nur als Sprechblase; ab dem ersten Tipp spricht die App.
+const OB_SAG = [
+  "Herzlich willkommen! Diese App nimmt eurem Familienalltag die " +
+    "Denkarbeit ab: Ihr sprecht – sie plant, erinnert und denkt " +
+    "Allergien mit. Wichtig: Alle Familiendaten bleiben nur auf " +
+    "eurem Gerät. Tippt oder sagt: Weiter.",
+  "Das kann eure App: freihändig kochen mit vorgelesenen Schritten, " +
+    "sichere Rezepte passend zu Allergien und Ernährungsform, " +
+    "Einkaufsliste per Zuruf, Termin-Erinnerungen auch bei " +
+    "geschlossener App, Vorrats-Planung und die Wochen-Übersicht.",
+  "Nehmt euch jetzt einmalig höchstens zehn Minuten – ich führe " +
+    "euch Schritt für Schritt durch die Einrichtung.",
+  "Schritt 1: Tragt eure Familienmitglieder ein – Name, Alter und " +
+    "Geschlecht. Daraus berechne ich automatisch alle Portionsmengen.",
+  "Schritt 2: Erlaubt einmalig das Mikrofon – danach könnt ihr die " +
+    "App einfach ansprechen.",
+  "Schritt 3: Aktiviert die Erinnerungen, damit ich euch auch bei " +
+    "geschlossener App an Termine erinnern kann.",
+  "Schritt 4: Installiert die App auf dem Startbildschirm – ein " +
+    "Fingertipp, und eure Daten bleiben dauerhaft erhalten.",
+  "Und zum Schluss ganz ehrlich: Die App hilft nur, wenn ihr sie " +
+    "auch benutzt. Gebt euch ein paar Tage – dann wird es " +
+    "selbstverständlich, und es wird sich für euch lohnen! " +
+    "Tippt auf: Los geht's.",
+];
+
+
+function obZeige() {
+  document.querySelectorAll(".ob-step").forEach((el) => {
+    el.classList.toggle("hidden",
+      Number(el.getAttribute("data-ob")) !== obIndex);
+  });
+  const dots = document.getElementById("obDots");
+  if (dots) {
+    dots.innerHTML = "";
+    for (let d = 0; d < OB_SCHRITTE; d++) {
+      const s = document.createElement("span");
+      if (d === obIndex) s.className = "an";
+      dots.appendChild(s);
+    }
+  }
+  const zurueck = document.getElementById("obZurueckBtn");
+  if (zurueck) zurueck.style.visibility = obIndex === 0 ? "hidden" : "visible";
+  const weiter = document.getElementById("obWeiterBtn");
+  if (weiter) weiter.textContent =
+    obIndex === OB_SCHRITTE - 1 ? "🚀 Los geht's!" : "Weiter ›";
+  if (obOffen && OB_SAG[obIndex]) speak(OB_SAG[obIndex], true);
+}
+
+function onboardingOeffnen() {
+  obOffen = true;
+  obIndex = 0;
+  const o = document.getElementById("onboarding");
+  if (o) o.classList.remove("hidden");
+  obZeige();
+  obFamListeAktualisieren();
+}
+
+function obWeiter() {
+  if (obIndex >= OB_SCHRITTE - 1) { obFertig(false); return; }
+  obIndex++;
+  obZeige();
+}
+function obZurueck() {
+  if (obIndex > 0) { obIndex--; obZeige(); }
+}
+function obFertig(uebersprungen) {
+  obOffen = false;
+  try { localStorage.setItem(OB_FLAG, "1"); } catch (e) {}
+  const o = document.getElementById("onboarding");
+  if (o) o.classList.add("hidden");
+  if (!uebersprungen) {
+    speak("Fertig eingerichtet! Sagt zum Beispiel: Rezept – und euren " +
+      "Wunsch. Oder: Hilfe.", true);
+  }
+}
+
+function obFamListeAktualisieren() {
+  const box = document.getElementById("obFamListe");
+  if (!box) return;
+  box.textContent = mitglieder.length
+    ? "✅ Dabei: " + mitglieder.map((m) => m.name +
+        (m.alter ? " (" + m.alter + ")" : "")).join(", ")
+    : "Noch niemand eingetragen.";
+}
+
+function obMitgliedHinzu() {
+  const nameEl = document.getElementById("obName");
+  const alterEl = document.getElementById("obAlter");
+  const name = String((nameEl && nameEl.value) || "").trim().slice(0, 30);
+  const alter = parseInt((alterEl && alterEl.value) || "", 10);
+  if (!name) return;
+  const gEl = document.getElementById("obGeschlecht");
+  const geschlecht = (gEl && gEl.value) === "m" ? "m" : "w";
+  mitglieder.push({ name: name,
+    alter: Number.isFinite(alter) ? alter : 30,
+    geschlecht: geschlecht, allergien: [], ernaehrung: [] });
+  tSaveAll();
+  renderMembers();
+  if (nameEl) nameEl.value = "";
+  if (alterEl) alterEl.value = "";
+  obFamListeAktualisieren();
+  speak(name + " ist dabei!", true);
+}
+
+function obMikro() {
+  gvStart();
+  const s = document.getElementById("obMikroStatus");
+  setTimeout(() => {
+    if (!s) return;
+    s.textContent = GlobalVoice.gestartet
+      ? "✅ Mikrofon aktiv – die App hört zu!"
+      : "Bitte die Browser-Abfrage mit „Zulassen“ bestätigen.";
+  }, 1200);
+}
+
+function obPush() {
+  try { aktivierePush(); } catch (e) {}
+  const s = document.getElementById("obPushStatus");
+  setTimeout(() => {
+    if (!s) return;
+    const quelle = document.getElementById("pushStatus");
+    s.textContent = (quelle && quelle.textContent)
+      ? quelle.textContent
+      : "Bitte die Abfrage bestätigen …";
+  }, 1500);
+}
+
+function obInstall() {
+  const s = document.getElementById("obInstallStatus");
+  const btn = document.getElementById("kaInstallBtn");
+  if (btn) {
+    btn.click();
+    if (s) s.textContent = "Folge der Browser-Abfrage …";
+  } else if (s) {
+    s.textContent = "📱 iPhone/iPad: Teilen-Symbol → „Zum Home-Bildschirm“. " +
+      "Sonst: Browser-Menü ⋮ → „App installieren“.";
+  }
+}
+
+
+// ---------- Rezeptsuche per Sprache ----------
+function rezeptSucheMitText(text) {
+  const wunsch = String(text || "").trim().slice(0, 120);
+  if (!wunsch) { speak("Das habe ich nicht verstanden.", true); return; }
+  const feld = document.getElementById("searchWish");
+  if (feld) feld.value = wunsch;
+  speak("Ich suche: " + wunsch + ".", true);
+  rechercheRezept(false);
+}
+function rezeptVoiceStart() {
+  goTab("rezepte");
+  gvOneShot("Worauf habt ihr Lust?", rezeptSucheMitText);
+}
+
+// ---------- Einmal-Zuhoeren fuer einfache Eingaben ----------
+function gvOneShot(frage, callback) {
+  gvStart();
+  GlobalVoice.dialog = {
+    onInput: (text) => {
+      GlobalVoice.dialog = null;
+      if (istUeberspringen(text)) { speak("Okay, übersprungen.", true); return; }
+      callback(text);
+    },
+  };
+  if (frage) speak(frage, true);
+}
+
+// Kompatibilitaets-Huelle: das Kochmodul rief bisher
+// initRecognition() auf - jetzt startet das den Controller.
+function initRecognition() {
+  gvStart();
+}
+
+// =====================================================
+// TABS
+// =====================================================
+function goTab(name) {
+  // NEU (Einkaufs-Voice): Freihändig-Modus beenden, wenn man Einkauf verlässt
+  // (verhindert Mikrofon-Konflikt mit der Koch-Spracherkennung)
+  if (name !== "einkauf" && typeof vbVoiceCheckoffStop === "function")
+    vbVoiceCheckoffStop();
+  ["familie", "rezepte", "einkauf", "kochen", "favoriten", "termine"]
+    .forEach(t => {
+      document.getElementById("tab-" + t).classList.toggle("hidden", t !== name);
+      document.getElementById("nav-" + t).classList.toggle("active", t === name);
+    });
+  if (name === "rezepte") {
+    renderKochModusSelect();
+    renderStilChips();
+    renderRecipes();
+  }
+  if (name === "favoriten") renderFavoriten();
+  if (name === "termine") renderTermineTab();
+  if (name === "einkauf" && typeof renderVerbrauch === "function")
+    renderVerbrauch();
+}
+
+// =====================================================
+// KOCH-MODUS & STIL-VORLIEBEN (UI)
+// =====================================================
+function renderKochModusSelect() {
+  const sel = document.getElementById("kochModusSel");
+  if (!sel) return;
+  const alt = kochModus;
+  sel.innerHTML = '<option value="familie">👨‍👩‍👧‍👦 Ganze Familie</option>';
+  (typeof mitglieder !== "undefined" ? mitglieder : []).forEach(m => {
+    const o = document.createElement("option");
+    o.value = m.name;
+    const e = (m.ernaehrung || []).length
+      ? " (" + m.ernaehrung.map(d => DIET_LABELS[d]).join(", ") + ")" : "";
+    o.textContent = "Nur " + m.name + e;
+    sel.appendChild(o);
+  });
+  if ([...sel.options].some(o => o.value === alt)) sel.value = alt;
+  else kochModus = "familie";
+}
+
+function setKochModus(v) {
+  kochModus = v;
+  selectedRecipe = null;
+  document.getElementById("toShopBtn").disabled = true;
+  renderRecipes();
+}
+
+function renderStilChips() {
+  const box = document.getElementById("stilChips");
+  if (!box) return;
+  box.innerHTML = "";
+  STILE.forEach(s => {
+    const b = document.createElement("button");
+    const aktiv = familienStile.includes(s.id);
+    b.type = "button";
+    b.className = "btn " + (aktiv ? "" : "ghost");
+    b.style.cssText = "padding:8px 12px;font-size:.85rem";
+    b.textContent = s.label;
+    b.onclick = () => toggleStil(s.id);
+    box.appendChild(b);
+  });
+}
+
+function toggleStil(id) {
+  const i = familienStile.indexOf(id);
+  if (i >= 0) familienStile.splice(i, 1);
+  else familienStile.push(id);
+  try { localStorage.setItem("ka_stile", JSON.stringify(familienStile)); }
+  catch (e) {}
+  renderStilChips();
+  renderRecipes();
+}
+
+// =====================================================
+// FAVORITEN (dauerhaft auf dem Geraet gespeichert)
+// =====================================================
+function loadFavs() {
+  try {
+    return JSON.parse(localStorage.getItem("ka_favoriten") || "[]");
+  } catch (e) { return []; }
+}
+
+function saveFavs(favs) {
+  try { localStorage.setItem("ka_favoriten", JSON.stringify(favs)); }
+  catch (e) {}
+}
+
+function addFavorite() {
+  if (!selectedRecipe) return;
+  const favs = loadFavs();
+  const btn = document.getElementById("favBtn");
+  if (favs.some(f => f.name === selectedRecipe.name)) {
+    btn.disabled = true;
+    btn.textContent = "⭐ Ist schon in euren Favoriten";
+    return;
+  }
+  const kopie = JSON.parse(JSON.stringify(selectedRecipe));
+  kopie.tags = (kopie.tags || [])
+    .filter(t => !String(t).includes("neu recherchiert"));
+  favs.unshift(kopie);
+  saveFavs(favs);
+  btn.disabled = true;
+  btn.textContent = "⭐ Gespeichert! Zu finden unter „Favoriten“";
+  speak("Als Favorit gespeichert.");
+}
+
+function renderFavoriten() {
+  const favs = loadFavs();
+  const list = document.getElementById("favList");
+  list.innerHTML = "";
+  document.getElementById("favInfo").textContent = favs.length
+    ? "Ein Tipp auf „Nochmal kochen“ springt direkt zur Einkaufsliste."
+    : "Noch keine Favoriten – nach dem letzten Kochschritt kannst du " +
+      "Gerichte, die allen geschmeckt haben, hier verewigen.";
+
+  favs.forEach((r, idx) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const h = document.createElement("h2");
+    h.textContent = "⭐ " + r.name;
+    const p = document.createElement("p");
+    p.className = "muted";
+    p.textContent = (r.time || "") + "  " + (r.tags || []).join(" · ");
+    const cook = document.createElement("button");
+    cook.className = "btn green";
+    cook.textContent = "🍳 Nochmal kochen";
+    cook.onclick = () => {
+      selectedRecipe = r;
+      document.getElementById("toShopBtn").disabled = false;
+      buildShoppingList();
+      goTab("einkauf");
+    };
+    const del = document.createElement("button");
+    del.className = "btn ghost";
+    del.textContent = "Entfernen";
+    del.onclick = () => {
+      favs.splice(idx, 1);
+      saveFavs(favs);
+      renderFavoriten();
+    };
+    card.appendChild(h); card.appendChild(p);
+    card.appendChild(cook); card.appendChild(del);
+    list.appendChild(card);
+  });
+}
+
+// =====================================================
+// PORTIONS-FAKTOR (Basis: 2 Erwachsene + 2 Kinder = 3.2)
+// =====================================================
+// HINWEIS: portionFactor() ist WEITER UNTEN definiert (profilbewusst).
+// Die frühere Doppel-Definition an dieser Stelle wurde entfernt -
+// zwei gleichnamige Funktionen sind eine klassische Fehlerquelle.
+
+function selectedIntolerances() {
+  const manuell = Array.from(document.querySelectorAll(".intol:checked"))
+    .map(c => c.value);
+  const ausProfil = (typeof mitglieder !== "undefined" ? mitglieder : [])
+    .flatMap(m => m.allergien || []);
+  return [...new Set(manuell.concat(ausProfil))];
+}
+
+// =====================================================
+// ZEITGRUPPEN-FILTER (15-20 / 20-30 / 30-40 / ab 40)
+// =====================================================
+let timeMinSel = 0, timeMaxSel = 999;
+
+function setTimeGroup(btn) {
+  timeMinSel = parseInt(btn.dataset.min);
+  timeMaxSel = parseInt(btn.dataset.max);
+  document.querySelectorAll(".timebtn")
+    .forEach(b => b.classList.toggle("active-time", b === btn));
+  selectedRecipe = null;
+  document.getElementById("toShopBtn").disabled = true;
+  renderRecipes();
+}
+
+// =====================================================
+// REZEPTE (harter Allergie-Filter + Ernaehrungs-Modus +
+// weiches Stil-Ranking)
+// =====================================================
+// ---------- Rezept-Vorstellung bei Auswahl ----------
+// Wunsch: Nach dem Antippen stellt die App das Rezept erst
+// komplett vor (Name, Zeit, ZUTATEN in Familienmengen) - als
+// Sprachausgabe UND sichtbar (Sprechblase) - damit die Familie
+// sich endgueltig entscheiden kann, BEVOR es losgeht.
+// Ehrliche Fehlertexte: unterscheidet lokal / Serverfehler / Netz.
+// (Vorher log der Text "nur in der Online-Version" auch dann, wenn
+//  man laengst online war und der SERVER einen Fehler hatte.)
+function fehlermeldungRecherche(protokoll, httpStatus) {
+  if (protokoll === "file:") {
+    return "Lokal geöffnet – die Recherche braucht den Server. " +
+      "Ich leite zur Online-Version weiter …";
+  }
+  if (httpStatus) {
+    return "❌ Der Rezept-Server meldet Fehler " + httpStatus +
+      ". Bitte in einer Minute nochmal versuchen.";
+  }
+  return "❌ Keine Verbindung zum Rezept-Server (Internet prüfen) – " +
+    "bitte nochmal versuchen.";
+}
+
+function rezeptVorstellungsText(r, f) {
+  const zutaten = (r.ingredients || [])
+    .map((i) => smartQty(i, f)).join(", ");
+  let s = `${r.name}, etwa ${r.timeMin} Minuten. `;
+  s += `Ihr braucht: ${zutaten}. `;
+  const variante = (r.varianten || [])[0];
+  if (variante && variante.text) s += `Tipp: ${variante.text} `;
+  s += "Zum Loskochen sagt: Kochen. Zum Einkaufen sagt: " +
+    "Auf die Einkaufsliste. Oder wählt ein anderes Rezept.";
+  return s;
+}
+
+function rezeptVorstellen(r) {
+  try {
+    speak(rezeptVorstellungsText(r, portionFactor()), true);
+  } catch (e) {
+    speak(`${r.name} ausgewählt. Zum Loskochen sagt: Kochen.`, true);
+  }
+}
+
+let stdRezepteOffen = false;
+function toggleStdRezepte() {
+  stdRezepteOffen = !stdRezepteOffen;
+  renderRecipes();
+}
+
+function renderRecipes() {
+  const intol = selectedIntolerances();
+  const list = document.getElementById("recipeList");
+  const resBox = document.getElementById("searchResults");
+  list.innerHTML = "";
+  resBox.innerHTML = "";
+  let shown = 0, kiShown = 0, stdShown = 0;
+
+  const standard = RECIPES.filter(r => !String(r.id || "").startsWith("ki_"));
+  const ki = RECIPES.filter(r => String(r.id || "").startsWith("ki_"));
+
+  // --- Standard-Rezepte: filtern + nach Stil ranken ---
+  const passende = [];
+  standard.forEach(r => {
+    if (r.allergens.some(a => intol.includes(a))) return; // Allergie: hart
+    if (r.timeMin < timeMinSel || r.timeMin > timeMaxSel) return;
+    const d = dietPasses(r);
+    if (!d.ok) return; // Ernaehrungsform passt nicht (auch nicht per Variante)
+    passende.push({ r, hinweise: d.hinweise, score: styleScore(r) });
+  });
+  passende.sort((a, b) => b.score - a.score);
+
+  passende.forEach(({ r, hinweise, score }) => {
+    shown++;
+    stdShown++;
+    const div = document.createElement("div");
+    div.className = "card recipe" + (selectedRecipe === r ? " selected" : "");
+    let tags = r.tags.map(t => `<span class="tag">${t}</span>`).join("");
+    if (score > 0)
+      tags = `<span class="tag" style="background:#dde8d4;color:#4a6b3a">` +
+        `✓ passt zu eurem Stil</span>` + tags;
+    const hinweisHtml = hinweise.map(h =>
+      `<p class="muted" style="color:#7e9c6f;margin:4px 0 0">🔄 ${h}</p>`).join("");
+    div.innerHTML = `<h2>${r.name}</h2>` +
+      `<p class="muted">${r.time} &nbsp; ${tags}</p>${hinweisHtml}`;
+    div.onclick = () => {
+      selectedRecipe = r;
+      document.getElementById("toShopBtn").disabled = false;
+      renderRecipes();
+      rezeptVorstellen(r);
+    };
+    list.appendChild(div);
+  });
+
+  // --- KI-Treffer: serverseitig gefiltert, nur Allergen defensiv pruefen ---
+  ki.forEach(r => {
+    if ((r.allergens || []).some(a => intol.includes(a))) return;
+    kiShown++;
+    const div = document.createElement("div");
+    div.className = "card recipe" + (selectedRecipe === r ? " selected" : "");
+    const tags = (r.tags || [])
+      .map(t => `<span class="tag">${t}</span>`).join("");
+    div.innerHTML = `<h2>${r.name}</h2>` +
+      `<p class="muted">${r.time} &nbsp; ${tags}</p>`;
+    div.onclick = () => {
+      selectedRecipe = r;
+      document.getElementById("toShopBtn").disabled = false;
+      renderRecipes();
+      rezeptVorstellen(r);
+    };
+    resBox.appendChild(div);
+  });
+
+  // FUSION v10: Standard-Rezepte hinter Aufklapp-Knopf (Wunsch)
+  list.classList.toggle("hidden", !stdRezepteOffen);
+  const stdBtn = document.getElementById("stdToggle");
+  if (stdBtn) stdBtn.textContent = stdRezepteOffen
+    ? "📖 Standard-Rezepte ausblenden"
+    : `📖 Standard-Rezepte anzeigen (${stdShown})`;
+
+  if (kiShown > 0) {
+    const head = document.createElement("div");
+    head.className = "card";
+    head.style.borderLeft = "5px solid var(--accent)";
+    head.innerHTML = "<h2>🔍 Deine Suchergebnisse</h2>" +
+      "<p class='muted'>Frisch recherchiert und sicherheitsgeprüft – " +
+      "bei der nächsten Suche werden sie ersetzt.</p>";
+    resBox.insertBefore(head, resBox.firstChild);
+  }
+
+  // --- Info-Text ---
+  let info = "";
+  if (intol.length)
+    info += `Unverträglichkeiten aktiv: ${intol.join(", ")}. `;
+  const map = requiredDiets();
+  const dietKeys = Object.keys(map);
+  if (dietKeys.length)
+    info += `Ernährungsform (${kochModus === "familie"
+      ? "ganze Familie" : kochModus}): ` +
+      `${dietKeys.map(d => DIET_LABELS[d]).join(", ")}. `;
+  if (shown === 0)
+    info += "Kein passendes Standard-Rezept – ändere Zeit oder Koch-Modus " +
+            "oder nutze die Recherche.";
+  document.getElementById("filterInfo").textContent =
+    info || "Alle Rezepte verfügbar.";
+}
+
+// =====================================================
+// INTELLIGENTE MENGEN-RUNDUNG
+// =====================================================
+function smartQty(ing, f) {
+  const q = ing.qty * f;
+  const unit = ing.unit;
+
+  if (unit === "Stück" || unit === "Bund") {
+    const rounded = Math.ceil(q);
+    const diff = rounded - q;
+    let hint = "";
+    if (diff >= 0.5) hint = "kleine ";
+    else if (q - Math.floor(q) >= 0.85) hint = "große ";
+    const unitText = unit === "Bund" ? " Bund" : "";
+    return `${rounded}${unitText} ${hint}${ing.name}`;
+  }
+
+  if (unit === "g" || unit === "ml") {
+    const step = q >= 500 ? 50 : 25;
+    const rounded = Math.max(step, Math.round(q / step) * step);
+    return `${rounded} ${unit} ${ing.name}`;
+  }
+
+  if (unit === "Liter") {
+    const rounded = Math.max(0.25, Math.round(q * 4) / 4);
+    return `${String(rounded).replace(".", ",")} Liter ${ing.name}`;
+  }
+
+  if (unit === "EL" || unit === "TL") {
+    const rounded = Math.max(0.5, Math.round(q * 2) / 2);
+    return `${String(rounded).replace(".", ",")} ${unit} ${ing.name}`;
+  }
+
+  return `${Math.round(q * 10) / 10} ${unit} ${ing.name}`;
+}
+
+function buildShoppingList() {
+  if (!selectedRecipe) return;
+  const f = portionFactor();
+  const ul = document.getElementById("shopList");
+  ul.innerHTML = "";
+  selectedRecipe.ingredients.forEach(ing => {
+    const li = document.createElement("li");
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.onchange = () => li.classList.toggle("done", cb.checked);
+    const span = document.createElement("span");
+    span.textContent = smartQty(ing, f);
+    li.appendChild(cb); li.appendChild(span);
+    ul.appendChild(li);
+  });
+  if (typeof mitglieder !== "undefined" && mitglieder.length) {
+    document.getElementById("portionInfo").textContent =
+      `(für ${mitglieder.length} Personen nach Profil – ` +
+      `${summePE().toFixed(1)} Essens-Äquivalente)`;
+  } else {
+    const a = document.getElementById("adults").value;
+    const k = document.getElementById("kids").value;
+    document.getElementById("portionInfo").textContent =
+      `(für ${a} Erwachsene + ${k} Kinder)`;
+  }
+}
+
+function readShoppingList() {
+  // BUGFIX: brach ohne gewaehltes Rezept STUMM ab und ignorierte
+  // die per Sprache/Verbrauch hinzugefuegten Artikel komplett.
+  const teile = [];
+  if (selectedRecipe) {
+    const f = portionFactor();
+    teile.push(...selectedRecipe.ingredients.map((i) => smartQty(i, f)));
+  }
+  if (vState.liste.length) {
+    teile.push(...vState.liste.map((e) => e.name));
+  }
+  if (!teile.length) {
+    speak("Die Einkaufsliste ist leer.", true);
+    return;
+  }
+  speak("Eure Einkaufsliste: " + teile.join(". "), true);
+}
+
+// ===== "Liste leeren" =====
+function leereEinkaufsliste() {
+  vState.liste = [];
+  vbSave(); renderVerbrauch();
+  const ul = document.getElementById("shopList");
+  if (ul) ul.innerHTML = "";
+  const info = document.getElementById("portionInfo");
+  if (info) info.textContent = "";
+  speak("Alles klar, die Liste ist leer.", true);
+}
+function leereEinkaufslisteKnopf() {
+  if (confirm("Wirklich die ganze Einkaufsliste leeren?")) leereEinkaufsliste();
+}
+function leereEinkaufslisteVoice() {
+  gvOneShot("Wirklich die ganze Liste leeren? Ja oder Nein?", (antwort) => {
+    if (parseJaNein(antwort) === "ja") leereEinkaufsliste();
+    else speak("Okay, die Liste bleibt.", true);
+  });
+}
+
+// =====================================================
+// KOCHMODUS (Schritt fuer Schritt mit Bestätigung)
+// =====================================================
+function startCooking() {
+  if (!selectedRecipe) { goTab("rezepte"); return; }
+  stepIndex = 0;
+  goTab("kochen");
+  document.getElementById("recipeTitle").textContent = selectedRecipe.name;
+  initRecognition();
+  const favBox = document.getElementById("favoriteBox");
+  const favBtn = document.getElementById("favBtn");
+  favBox.classList.add("hidden");
+  favBtn.disabled = false;
+  favBtn.textContent = "⭐ Das war lecker – als Favorit speichern";
+  speak(`Los geht's mit ${selectedRecipe.name}. Sag jeweils fertig, ` +
+        `wenn ein Schritt geschafft ist.`, true);
+  showStep(); // laeuft sofort - unabhaengig von der Ansage
+}
+
+// Zutaten samt Menge heraussuchen, die in einem Schritt vorkommen
+// (pur & testbar). Singular/Plural wird grob toleriert.
+function zutatenImSchritt(step, recipe, f) {
+  const text = String(step.text).toLowerCase();
+  const treffer = [];
+  (recipe.ingredients || []).forEach((ing) => {
+    const name = String(ing.name).toLowerCase();
+    const formen = [name];
+    if (name.length > 4) formen.push(name.slice(0, -1));
+    if (name.length > 5) formen.push(name.slice(0, -2));
+    if (formen.some((fo) => text.includes(fo))) {
+      treffer.push(smartQty(ing, f));
+    }
+  });
+  return treffer;
+}
+
+// Nur Anzeige (ohne Sprache) - Bugfix: Anzeige war an TTS gekoppelt
+function renderStep() {
+  const steps = selectedRecipe.steps;
+  if (stepIndex >= steps.length) return;
+  document.getElementById("progressBar").style.width =
+    Math.round((stepIndex / steps.length) * 100) + "%";
+  document.getElementById("stepText").textContent =
+    `Schritt ${stepIndex + 1} von ${steps.length}: ${steps[stepIndex].text}`;
+  // Mengenangaben zum Schritt einblenden (skaliert aufs Familienprofil)
+  const zt = zutatenImSchritt(steps[stepIndex], selectedRecipe, portionFactor());
+  document.getElementById("stepZutaten").textContent =
+    zt.length ? "📏 " + zt.join("  ·  ") : "";
+  document.getElementById("timerBox").classList.add("hidden");
+}
+
+function showStep() {
+  clearTimers();
+  const steps = selectedRecipe.steps;
+  if (stepIndex >= steps.length) return;
+  const step = steps[stepIndex];
+
+  renderStep();
+  // Begleitspur inkl. Mengen - blockiert nichts
+  const ztSpruch = zutatenImSchritt(step, selectedRecipe, portionFactor());
+  speak(step.text + (ztSpruch.length
+    ? " Mengen: " + ztSpruch.join(", ") + "." : ""));
+
+  // Timer/Erinnerung starten SOFORT (v3) - nicht erst nach der Ansage
+  if (step.timer) startTimer(step);
+  else armReminder();
+}
+
+function startTimer(step) {
+  let remaining = step.timer;
+  const box = document.getElementById("timerBox");
+  box.classList.remove("hidden");
+  const render = () => {
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    box.textContent = `⏱ ${m}:${String(s).padStart(2, "0")}`;
+  };
+  render();
+  timerInterval = setInterval(() => {
+    remaining--;
+    render();
+    // Wunsch: Erinnerungsstimme meldet sich alle 45 Sekunden -
+    // auch waehrend ein Koch-Timer laeuft (kurze Restzeit-Ansage)
+    if (remaining > 15 && remaining % 45 === 0) {
+      const mm = Math.floor(remaining / 60);
+      const ss = remaining % 60;
+      speak("Noch " + (mm ? mm + (mm === 1 ? " Minute" : " Minuten") +
+        (ss ? " " + ss : "") : ss + " Sekunden") + ".");
+    }
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      box.textContent = "⏱ 0:00 – Zeit ist um!";
+      speak(step.announce || "Die Zeit ist um.", true);
+      armReminder();
+    }
+  }, 1000);
+}
+
+function armReminder() {
+  clearTimeout(reminderTimeout);
+  reminderTimeout = setTimeout(() => {
+    speak("Kleine Erinnerung: Sag fertig oder erledigt, wenn du soweit " +
+          "bist. Sag wiederhole, wenn ich den Schritt nochmal sagen soll.");
+    armReminder();
+  }, REMINDER_SEC * 1000);
+}
+
+let lastConfirm = 0;
+
+function confirmStep() {
+  const now = Date.now();
+  if (now - lastConfirm < 1500) return;
+  lastConfirm = now;
+
+  clearTimers();
+  const steps = selectedRecipe ? selectedRecipe.steps : [];
+  if (stepIndex < steps.length - 1) {
+    stepIndex++;
+    showStep();
+    flashStep();
+  } else {
+    document.getElementById("progressBar").style.width = "100%";
+    document.getElementById("stepText").textContent =
+      "🎉 Alles geschafft! Guten Appetit!";
+    document.getElementById("favoriteBox").classList.remove("hidden");
+    speak("Alles geschafft. Du bist großartig. Guten Appetit! " +
+          "Wenn es allen geschmeckt hat, kannst du das Gericht " +
+          "jetzt als Favorit speichern.", true);
+  }
+}
+
+function repeatStep() {
+  lastConfirm = Date.now();
+  showStep();
+  flashStep();
+}
+
+// =====================================================
+// KI-REZEPTRECHERCHE (laeuft nur in der Online-Version)
+// =====================================================
+let rechercheZyklen = 0;
+let letzterWunsch = null;
+let bisherigeNamen = [];
+
+function updateRetryButton() {
+  const retryBtn = document.getElementById("retryBtn");
+  const rest = 3 - rechercheZyklen;
+  if (rest > 0) {
+    retryBtn.classList.remove("hidden");
+    retryBtn.disabled = false;
+    retryBtn.textContent =
+      `🔄 Andere Vorschläge (noch ${rest}× möglich)`;
+  } else {
+    retryBtn.disabled = true;
+    retryBtn.textContent = "🔄 Limit erreicht – ändere deine Anfrage";
+  }
+}
+
+async function rechercheRezept(istWiederholung) {
+  const status = document.getElementById("searchStatus");
+  const btn = document.getElementById("searchBtn");
+  const retryBtn = document.getElementById("retryBtn");
+  const wunsch = document.getElementById("searchWish").value.trim();
+
+  if (wunsch !== letzterWunsch) {
+    rechercheZyklen = 0;
+    bisherigeNamen = [];
+    letzterWunsch = wunsch;
+    istWiederholung = false;
+  }
+  if (istWiederholung) {
+    if (rechercheZyklen >= 3) return;
+    rechercheZyklen++;
+  }
+
+  btn.disabled = true;
+  retryBtn.disabled = true;
+  status.textContent =
+    "🔍 Recherchiere 3 unterschiedliche Rezepte … (20–40 Sekunden)";
+
+  const ernaehrungsformen = Object.keys(requiredDiets());
+
+  try {
+    const r = await fetch("/api/rezept", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        wunsch: wunsch,
+        unvertraeglichkeiten: selectedIntolerances(),
+        ernaehrungsformen: ernaehrungsformen,
+        stile: familienStile,
+        minuten_min: timeMinSel,
+        minuten_max: timeMaxSel,
+        vermeide: bisherigeNamen,
+      }),
+    });
+    if (!r.ok) {
+      status.textContent = fehlermeldungRecherche(location.protocol, r.status);
+      btn.disabled = false;
+      return;
+    }
+    const data = await r.json();
+
+    if (!data.success) {
+      status.textContent = "❌ " + (data.error || "Keine Antwort erhalten.");
+      btn.disabled = false;
+      return;
+    }
+
+    for (let i = RECIPES.length - 1; i >= 0; i--) {
+      if (String(RECIPES[i].id || "").startsWith("ki_")) {
+        RECIPES.splice(i, 1);
+      }
+    }
+
+    const vorschlaege = data.recipes || (data.recipe ? [data.recipe] : []);
+    let filterAnpassen = false;
+    for (let i = vorschlaege.length - 1; i >= 0; i--) {
+      const rec = vorschlaege[i];
+      rec.id = "ki_" + Date.now() + "_" + i;
+      rec.time = "ca. " + rec.timeMin + " Min.";
+      rec.tags = ["🆕 neu recherchiert"].concat(rec.tags || []);
+      // Defensive Defaults, falls der Server Felder nicht mitliefert
+      rec.allergens = rec.allergens || [];
+      rec.diet = rec.diet || ernaehrungsformen.slice();
+      rec.varianten = rec.varianten || [];
+      rec.stile = rec.stile || [];
+      if (rec.timeMin < timeMinSel || rec.timeMin > timeMaxSel)
+        filterAnpassen = true;
+      RECIPES.unshift(rec);
+    }
+
+    if (filterAnpassen) {
+      timeMinSel = 0; timeMaxSel = 999;
+      document.querySelectorAll(".timebtn").forEach((b) =>
+        b.classList.toggle("active-time", b.dataset.min === "0"));
+    }
+
+    selectedRecipe = null;
+    document.getElementById("toShopBtn").disabled = true;
+    renderRecipes();
+    const erste = document.querySelector("#searchResults .recipe");
+    if (erste) erste.scrollIntoView({ behavior: "smooth", block: "center" });
+    status.textContent = "✅ " + vorschlaege.length +
+      " unterschiedliche Vorschläge gefunden und sicherheitsgeprüft – " +
+      "tippe dein Lieblingsrezept an. (Zutaten bitte kurz gegenprüfen.)";
+
+    vorschlaege.forEach((v) => bisherigeNamen.push(v.name));
+    updateRetryButton();
+  } catch (e) {
+    status.textContent =
+      fehlermeldungRecherche(location.protocol, 0);
+  }
+  btn.disabled = false;
+}
+
+function flashStep() {
+  const el = document.getElementById("stepText");
+  el.style.transition = "background .15s";
+  el.style.background = "#dff3e0";
+  el.style.borderRadius = "8px";
+  setTimeout(() => { el.style.background = "transparent"; }, 450);
+}
+
+function clearTimers() {
+  clearInterval(timerInterval);
+  clearTimeout(reminderTimeout);
+}
+</script>
+
+<script>
+// =====================================================
+// TERMIN-MODUL (Phase 1)
+// =====================================================
+"use strict";
+
+const KATEGORIEN = {
+  rot:    { label: "Sehr wichtig", farbe: "#d64545",
+            vorlauf: [1440, 120, 30], wiederholMin: 5 },
+  orange: { label: "Wichtig", farbe: "#e08a3c",
+            vorlauf: [1440, 60], wiederholMin: 10 },
+  gelb:   { label: "Flexibel", farbe: "#d9b23c",
+            vorlauf: [180], wiederholMin: 15 },
+  gruen:  { label: "Locker", farbe: "#7e9c6f",
+            vorlauf: [30], wiederholMin: 15 },
+};
+const ROUTINE_FARBE = "#cfe0ec";
+const TAGE_KURZ = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+
+let mitglieder = [];
+let routinen = [];
+let termine = [];
+let matrixOffset = 0;
+let aktiveErinnerung = null;
+
+// ---------- Speichern & Laden ----------
+function tLoad(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) || fallback; }
+  catch (e) { return fallback; }
+}
+function tSaveAll() {
+  try {
+    localStorage.setItem("ka_mitglieder", JSON.stringify(mitglieder));
+    localStorage.setItem("ka_routinen", JSON.stringify(routinen));
+    localStorage.setItem("ka_termine", JSON.stringify(termine));
+  } catch (e) {}
+  serverSync();
+}
+function deviceId() {
+  let id = localStorage.getItem("ka_device");
+  if (!id) {
+    // SECURITY-FIX (SonarCloud): kryptografisch starke Geraete-ID
+    // statt erratbarem Math.random. Bestehende Geraete behalten
+    // ihre gespeicherte ID - nur NEUE IDs entstehen hier.
+    if (window.crypto && crypto.getRandomValues) {
+      const b = new Uint8Array(16);
+      crypto.getRandomValues(b);
+      id = "g" + Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+    } else { // Uralt-Browser-Fallback
+      id = "g" + Math.random().toString(36).slice(2, 12) + Date.now().toString(36);
+    }
+    localStorage.setItem("ka_device", id);
+  }
+  return id;
+}
+function idbOpen() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open("ka", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("kv");
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+function idbSet(key, val) {
+  return idbOpen().then((d) => new Promise((res, rej) => {
+    const t = d.transaction("kv", "readwrite");
+    t.objectStore("kv").put(val, key);
+    t.oncomplete = res;
+    t.onerror = () => rej(t.error);
+  })).catch(() => {});
+}
+
+function weckerPlan() {
+  const eintraege = [];
+  const texte = {};
+  termine.forEach((t) => {
+    const kat = KATEGORIEN[t.kategorie];
+    const start = new Date(t.datum + "T" + t.zeit).getTime()
+      - (t.wegzeitMin || 0) * 60000;
+    if (start < Date.now() - 3600000) return;
+    kat.vorlauf.forEach((min) => {
+      const stage = String(min);
+      if (t.bestaetigt[stage]) return;
+      const ref = t.id + "_" + stage;
+      eintraege.push({ ref, fireAt: start - min * 60000,
+        endAt: start, repeatMin: kat.wiederholMin });
+      const wann = min >= 60 ? Math.round(min / 60) + " Std." : min + " Min.";
+      texte[ref] = `${kat.label}: ${t.titel} für ${t.person} in ${wann}` +
+        (t.wegzeitMin ? ` (inkl. ${t.wegzeitMin} Min. Weg)` : "") +
+        (t.verantwortlich ? ` – ${t.verantwortlich} übernimmt` : "");
+    });
+  });
+  return { eintraege, texte };
+}
+
+function serverSync() {
+  try {
+    const plan = weckerPlan();
+    idbSet("device", deviceId());
+    idbSet("refs", plan.texte);
+    fetch("/api/wecker", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ device: deviceId(),
+        eintraege: plan.eintraege }),
+    }).catch(() => {});
+  } catch (e) {}
+}
+
+// ---------- Push aktivieren ----------
+function b64ToUint8(b64) {
+  const pad = "=".repeat((4 - (b64.length % 4)) % 4);
+  const raw = atob((b64 + pad).replace(/-/g, "+").replace(/_/g, "/"));
+  return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+}
+async function aktivierePush() {
+  const status = document.getElementById("pushStatus");
+  try {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      status.textContent = "Dieses Gerät/Browser unterstützt kein Push " +
+        "(iPhone: erst zum Home-Bildschirm hinzufügen).";
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") {
+      status.textContent = "Benachrichtigungen wurden nicht erlaubt.";
+      return;
+    }
+    const reg = await navigator.serviceWorker.ready;
+    const vr = await fetch("/api/vapid");
+    const { publicKey } = await vr.json();
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: b64ToUint8(publicKey),
+    });
+    await fetch("/api/push-anmelden", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ device: deviceId(), subscription: sub }),
+    });
+    serverSync();
+    status.textContent = "✅ Aktiv! Der Wächter erreicht dich jetzt auch " +
+      "bei geschlossener App (Prüftakt: alle 5 Minuten).";
+  } catch (e) {
+    status.textContent = "Aktivierung fehlgeschlagen: " +
+      String(e.message || e).slice(0, 80);
+  }
+}
+
+// ---------- Push-Selbstheilung ----------
+// BUGFIX: Wechselt der Server-Schluessel (z.B. Speicher geleert),
+// werden alte Anmeldungen still ungueltig - der Push-Dienst lehnt
+// mit 401/403 ab, ohne dass es jemand merkt. Diese Pruefung laeuft
+// bei jedem App-Start und deckt DREI Faelle still ab:
+//  1. Anmeldung vorhanden + Schluessel passt -> nur auffrischen
+//  2. Anmeldung vorhanden + Schluessel veraltet -> erneuern
+//  3. Berechtigung erteilt, aber KEINE Anmeldung (z.B. weil die
+//     Aktivierung damals an einem Serverfehler scheiterte)
+//     -> still im Hintergrund nachholen
+// Ein manueller Klick auf "Push aktivieren" ist damit nur noch
+// fuer die allererste Berechtigungs-Abfrage noetig.
+async function pruefePushAbo() {
+  try {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    if (!("Notification" in window)
+        || Notification.permission !== "granted") return;
+    const reg = await navigator.serviceWorker.ready;
+    const vr = await fetch("/api/vapid");
+    const { publicKey } = await vr.json();
+    if (!publicKey) return;
+
+    let sub = await reg.pushManager.getSubscription();
+    let erneuert = false;
+
+    if (sub) {
+      // Fall 1/2: Schluessel der bestehenden Anmeldung vergleichen
+      let passt = true;
+      try {
+        const alt = sub.options && sub.options.applicationServerKey;
+        if (alt) {
+          const altB64 = btoa(String.fromCharCode(
+            ...new Uint8Array(alt)))
+            .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+          passt = (altB64 === publicKey);
+        }
+      } catch (e) {}
+      if (!passt) {
+        await sub.unsubscribe().catch(() => {});
+        sub = null; // unten neu anmelden
+      }
+    }
+
+    if (!sub) {
+      // Fall 2/3: still neu anmelden (Berechtigung liegt ja vor)
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: b64ToUint8(publicKey),
+      });
+      erneuert = true;
+    }
+
+    await fetch("/api/push-anmelden", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ device: deviceId(), subscription: sub }),
+    });
+    if (erneuert) {
+      serverSync(); // Weckplan zur neuen Anmeldung hochladen
+      const status = document.getElementById("pushStatus");
+      if (status) status.textContent =
+        "✅ Aktiv! Anmeldung wurde automatisch erneuert.";
+    }
+  } catch (e) {}
+}
+
+// ---------- Feedback per Sprache (Testphase) ----------
+function aktiverTab() {
+  const nav = document.querySelector("nav button.active");
+  return nav ? nav.id.replace("nav-", "") : "?";
+}
+function fbOeffnen() {
+  document.getElementById("fbPanel").classList.remove("hidden");
+  document.getElementById("fbStatus").textContent = "";
+}
+function fbSchliessen() {
+  document.getElementById("fbPanel").classList.add("hidden");
+}
+function fbSprechen() {
+  // laeuft jetzt ueber den globalen Controller
+  const status = document.getElementById("fbStatus");
+  status.textContent = "🎤 Ich höre zu …";
+  gvOneShot(null, (text) => {
+    const alt = document.getElementById("fbText").value;
+    document.getElementById("fbText").value = (alt ? alt + " " : "") + text;
+    status.textContent = "Passt das so? Dann ✓ Absenden.";
+  });
+}
+async function fbSenden() {
+  const text = document.getElementById("fbText").value.trim();
+  const status = document.getElementById("fbStatus");
+  if (text.length < 3) { status.textContent = "Bitte erst etwas sagen/tippen."; return; }
+  status.textContent = "Sende …";
+  try {
+    const r = await fetch("/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, tab: aktiverTab(), device: deviceId() }),
+    });
+    const data = await r.json();
+    if (data.success) {
+      document.getElementById("fbText").value = "";
+      status.textContent = "💚 Danke! Ist angekommen.";
+      speak("Danke für dein Feedback!", true);
+      setTimeout(fbSchliessen, 1500);
+    } else {
+      status.textContent = "Senden fehlgeschlagen – " + (data.error || "");
+    }
+  } catch (e) {
+    status.textContent =
+      fehlermeldungRecherche(location.protocol, 0);
+  }
+}
+
+// ---------- Alles loeschen (Datenschutz) ----------
+async function loescheAlles() {
+  if (!confirm("Wirklich ALLE Daten löschen?\n\nProfil, Termine, " +
+      "Routinen, Verbrauch und Favoriten werden auf diesem Gerät UND " +
+      "auf dem Erinnerungs-Server unwiderruflich entfernt.")) return;
+  try {
+    await fetch("/api/wecker", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ device: deviceId(), loeschen: true }),
+    });
+  } catch (e) {}
+  try { localStorage.clear(); } catch (e) {}
+  try { indexedDB.deleteDatabase("ka"); } catch (e) {}
+  alert("Alles gelöscht. Die App startet jetzt frisch.");
+  location.reload();
+}
+
+// ---------- Familienprofil ----------
+function personenAequivalent(m) {
+  const a = Number(m.alter) || 30;
+  const w = m.geschlecht === "w";
+  if (a <= 3) return 0.5;
+  if (a <= 6) return 0.62;
+  if (a <= 9) return 0.75;
+  if (a <= 12) return w ? 0.8 : 0.85;
+  if (a <= 14) return w ? 0.9 : 1.1;
+  if (a <= 18) return w ? 0.95 : 1.2;
+  if (a <= 64) return w ? 0.85 : 1.0;
+  return w ? 0.75 : 0.9;
+}
+function summePE() {
+  return mitglieder.reduce((s, m) => s + personenAequivalent(m), 0);
+}
+function mitgliederNamen() { return mitglieder.map((m) => m.name); }
+
+function portionFactor() {
+  if (mitglieder.length)
+    return Math.max(summePE() / 3.2, 0.3);
+  const a = parseInt(document.getElementById("adults").value || 2);
+  const k = parseInt(document.getElementById("kids").value || 0);
+  return (a * 1.0 + k * 0.6) / 3.2;
+}
+
+function addMember() {
+  const name = (document.getElementById("memberName").value || "")
+    .trim().slice(0, 30);
+  const alter = Math.min(Math.max(parseInt(
+    document.getElementById("memberAlter").value) || 0, 0), 99);
+  const geschlecht = document.getElementById("memberGeschlecht").value;
+  if (!name) return;
+  const allergien = [...document.querySelectorAll(".palg:checked")]
+    .map((c) => c.value);
+  const ernaehrung = [...document.querySelectorAll(".pdiet:checked")]
+    .map((c) => c.value);
+  if (!mitgliederNamen().includes(name))
+    mitglieder.push({ name, alter, geschlecht, allergien, ernaehrung });
+  document.getElementById("memberName").value = "";
+  document.getElementById("memberAlter").value = "";
+  document.querySelectorAll(".palg").forEach((c) => { c.checked = false; });
+  document.querySelectorAll(".pdiet").forEach((c) => { c.checked = false; });
+  tSaveAll();
+  renderMembers();
+}
+function renderMembers() {
+  const box = document.getElementById("memberList");
+  box.innerHTML = "";
+  mitglieder.forEach((m, i) => {
+    const chip = document.createElement("span");
+    chip.className = "tag";
+    chip.style.cssText = "font-size:.95rem;padding:6px 10px;cursor:pointer";
+    const alg = (m.allergien && m.allergien.length)
+      ? " ⚠" + m.allergien.join(",") : "";
+    const ern = (m.ernaehrung && m.ernaehrung.length)
+      ? " 🥗" + m.ernaehrung.map((d) => DIET_LABELS[d] || d).join(",") : "";
+    chip.textContent =
+      `${m.name} (${m.alter}, ${m.geschlecht === "w" ? "♀" : "♂"})` +
+      `${alg}${ern} ✕`;
+    chip.title = "Antippen zum Entfernen";
+    chip.onclick = () => { mitglieder.splice(i, 1); tSaveAll(); renderMembers(); };
+    box.appendChild(chip);
+  });
+  fuellePersonenSelects();
+  renderKochModusSelect();
+  syncFamilieAnzeige();
+}
+
+// BUGFIX: Die Zahlenfelder "Erwachsene/Kinder" oben blieben stur
+// auf 2/2 stehen, egal was im Familienprofil stand. Sobald ein
+// Profil existiert, werden die Felder jetzt daraus befuellt (ab
+// 14 Jahren = Erwachsenen-Portion) und der Hinweis sagt klar,
+// dass das Profil die Grundlage ist.
+function syncFamilieAnzeige() {
+  const info = document.getElementById("famAutoInfo");
+  if (!mitglieder.length) {
+    if (info) info.textContent = "Daraus berechne ich automatisch die " +
+      "Mengen für Rezepte und Einkaufsliste.";
+    return;
+  }
+  const erw = mitglieder.filter((m) => (m.alter || 0) >= 14).length;
+  const kin = mitglieder.length - erw;
+  const a = document.getElementById("adults");
+  const k = document.getElementById("kids");
+  if (a) a.value = Math.max(erw, 0) || 1;
+  if (k) k.value = Math.max(kin, 0);
+  if (info) info.textContent = `Nach eurem Familienprofil: ${erw} ` +
+    `Erwachsene und ${kin} ${kin === 1 ? "Kind" : "Kinder"} ` +
+    `(${summePE().toFixed(1)} Essens-Äquivalente) – das Profil ist ` +
+    `die Grundlage für alle Mengen.`;
+}
+function fuellePersonenSelects() {
+  ["tPerson", "tVerantwortlich", "rPerson"].forEach((id) => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const alt = sel.value;
+    sel.innerHTML = "";
+    const namen = id === "tVerantwortlich"
+      ? [""].concat(mitgliederNamen()) : mitgliederNamen().concat(["Familie"]);
+    namen.forEach((n) => {
+      const o = document.createElement("option");
+      o.value = n; o.textContent = n === "" ? "– offen –" : n;
+      sel.appendChild(o);
+    });
+    if (namen.includes(alt)) sel.value = alt;
+  });
+}
+
+// ---------- Sprach-Erfassung mit Rueckfrage-Dialog ----------
+// Ablauf: "Termin" sagen (oder Knopf) -> Termin diktieren ->
+// die App fragt nach: Beginn vor Ort oder Abfahrtszeit? ->
+// ggf. Anfahrtsminuten -> Zusammenfassung -> "Ja" speichert.
+// Die Entscheidungslogik ist ein PURER Automat (terminDialogNext)
+// und damit ohne Browser testbar.
+
+function parseJaNein(text) {
+  const t = String(text).toLowerCase();
+  if (/\b(ja|jawohl|genau|richtig|passt|klar|speichern|mach|gerne)\b/.test(t)) return "ja";
+  if (/\b(nein|nö|nicht|abbrechen|verwerfen|stopp|stop|falsch)\b/.test(t)) return "nein";
+  return null;
+}
+
+function parseMinutenAngabe(text) {
+  const t = String(text).toLowerCase();
+  if (/\b(keine|null|nix|nichts|ohne)\b/.test(t)) return 0;
+  if (/anderthalb|eineinhalb/.test(t)) return 90;
+  if (/dreiviertel/.test(t)) return 45;
+  if (/viertel/.test(t)) return 15;
+  if (/halbe?\s*stunde/.test(t)) return 30;
+  const m = t.match(/(\d+)/);
+  if (m) {
+    let n = parseInt(m[1], 10);
+    if (/stunde/.test(t) && n <= 12) n = n * 60;
+    return Math.min(n, 480);
+  }
+  const woerter = { eine: 60, ein: 60, fünf: 5, zehn: 10, fünfzehn: 15,
+    zwanzig: 20, dreißig: 30, vierzig: 40, sechzig: 60 };
+  for (const [w, n] of Object.entries(woerter)) {
+    if (new RegExp("\\b" + w + "\\b").test(t)) {
+      return /stunde/.test(t) && n < 13 ? n * 60 : n;
+    }
+  }
+  return null;
+}
+
+function addMinuten(hhmm, min) {
+  const [h, m] = String(hhmm).split(":").map(Number);
+  let ges = h * 60 + (m || 0) + min;
+  ges = ((ges % 1440) + 1440) % 1440;
+  const H = String(Math.floor(ges / 60)).padStart(2, "0");
+  const M = String(ges % 60).padStart(2, "0");
+  return H + ":" + M;
+}
+
+function terminZusammenfassung(t, abfahrt) {
+  let ds = t.datum;
+  try {
+    ds = new Date(t.datum + "T12:00").toLocaleDateString("de-DE",
+      { weekday: "long", day: "numeric", month: "long" });
+  } catch (e) {}
+  let s = `Also: ${t.titel} für ${t.person}, ${ds}, Beginn ${t.zeit} Uhr vor Ort`;
+  if (t.wegzeit_min > 0) {
+    s += `, Abfahrt ${addMinuten(t.zeit, -t.wegzeit_min)} Uhr`;
+  }
+  return s + ". Soll ich speichern?";
+}
+
+// ---------- Namens-Abgleich (pur & testbar) ----------
+// BUGFIX: Die Spracherkennung verhunzt Namen gern ("Zoe" wird
+// "Zoé", "So" oder "Zoll"). Deshalb wird die verstandene Person
+// unscharf gegen die Familienmitglieder abgeglichen; passt nichts,
+// fragt der Dialog gezielt nach.
+function normalisiereName(s) {
+  return String(s || "").toLowerCase()
+    .replace(/ä/g, "ae").replace(/ö/g, "oe")
+    .replace(/ü/g, "ue").replace(/ß/g, "ss")
+    .replace(/é|è|ê/g, "e").replace(/[^a-z]/g, "");
+}
+
+function editierDistanz(a, b) {
+  a = a.slice(0, 20); b = b.slice(0, 20);
+  const d = Array.from({ length: a.length + 1 },
+    (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 0; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1,
+        d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+
+function findeMitglied(gehoert, mitglieder) {
+  const g = normalisiereName(gehoert);
+  if (!g) return null;
+  let best = null, bestD = 99;
+  for (const m of mitglieder || []) {
+    const n = normalisiereName(m);
+    if (!n) continue;
+    if (n === g) return m;
+    if ((n.startsWith(g) || g.startsWith(n)) && bestD > 1) {
+      best = m; bestD = 1; continue;
+    }
+    const d = editierDistanz(g, n);
+    const limit = Math.min(n.length, g.length) <= 4 ? 1 : 2;
+    if (d <= limit && d < bestD) { best = m; bestD = d; }
+  }
+  return best;
+}
+
+// Auch ganze Saetze verstehen ("für Zoe natürlich"):
+// erst der komplette Text, dann jedes einzelne Wort.
+// Fuellwoerter werden uebersprungen (sonst matcht "den"
+// unscharf auf "Ben"), exakte Treffer schlagen unscharfe.
+const GV_STOPPWOERTER = new Set(["der","die","das","den","dem","des",
+  "ein","eine","einen","fuer","fur","ist","mit","und","von","vom",
+  "zum","zur","bei","auf","an","in","im","es","er","sie","wir",
+  "natuerlich","bitte","also","dann","doch","mal","noch"]);
+
+function findeMitgliedImSatz(text, mitglieder) {
+  const direkt = findeMitglied(text, mitglieder);
+  if (direkt) return direkt;
+  const woerter = String(text).split(/\s+/)
+    .filter((w) => w.length >= 2
+      && !GV_STOPPWOERTER.has(normalisiereName(w)));
+  // 1. Durchgang: exakte Namensgleichheit
+  for (const wort of woerter) {
+    const wn = normalisiereName(wort);
+    for (const m of mitglieder || []) {
+      if (normalisiereName(m) === wn) return m;
+    }
+  }
+  // 2. Durchgang: unscharfer Abgleich
+  for (const wort of woerter) {
+    const t = findeMitglied(wort, mitglieder);
+    if (t) return t;
+  }
+  return null;
+}
+
+function frageAbfahrt(t) {
+  return `Beginnt das um ${t.zeit} Uhr vor Ort, oder wollt ihr um ` +
+    `${t.zeit} Uhr losfahren?`;
+}
+
+function terminDialogNext(state, ev) {
+  const s = { ...state };
+  const abbruch = ev.typ === "text" &&
+    /\b(abbrechen|abbruch|vergiss es|stopp|stop)\b/.test(ev.text.toLowerCase());
+  if (abbruch) return { state: s, fertig: true, sage: "Okay, abgebrochen." };
+
+  // Überspringen: Frage mit sinnvollem Standard auslassen
+  if (ev.typ === "text" && istUeberspringen(ev.text)) {
+    if (s.phase === "warte_diktat") {
+      return { state: s, fertig: true, sage: "Okay, übersprungen." };
+    }
+    if (s.phase === "frage_person") {
+      s.phase = "frage_abfahrt"; s.wdh = 0;
+      return { state: s, sage: frageAbfahrt(s.termin) };
+    }
+    if (s.phase === "frage_abfahrt" || s.phase === "frage_wegzeit") {
+      // Standard: Zeit gilt vor Ort, Wegzeit bleibt wie erkannt
+      s.abfahrt = false;
+      s.phase = "frage_speichern"; s.wdh = 0;
+      return { state: s, aktion: "formular",
+        sage: terminZusammenfassung(s.termin, false) };
+    }
+    if (s.phase === "frage_speichern") {
+      return { state: s, fertig: true,
+        sage: "Okay – der Termin steht im Formular, speichern per Knopf." };
+    }
+  }
+
+  if (s.phase === "warte_diktat" && ev.typ === "text") {
+    s.phase = "warte_parse";
+    return { state: s, aktion: "parse", text: ev.text,
+      sage: "Einen Moment, ich übersetze." };
+  }
+
+  if (s.phase === "warte_parse") {
+    if (ev.typ === "geparst") {
+      const t = { ...ev.termin };
+      const mit = ev.mitglieder || [];
+      const pTreffer = findeMitglied(t.person, mit);
+      if (pTreffer) t.person = pTreffer;
+      const vTreffer = findeMitglied(t.verantwortlich, mit);
+      if (vTreffer) t.verantwortlich = vTreffer;
+      s.termin = t;
+      s.mitglieder = mit;
+      s.wdh = 0;
+      if (!pTreffer && mit.length && t.person !== "Familie") {
+        s.phase = "frage_person";
+        return { state: s, aktion: "formular",
+          sage: `Ich habe als Person „${t.person}“ verstanden. ` +
+            `Für wen ist der Termin? Ich kenne: ${mit.join(", ")}.` };
+      }
+      s.phase = "frage_abfahrt";
+      return { state: s, aktion: "formular",
+        sage: `${t.titel} für ${t.person}. ` + frageAbfahrt(t) };
+    }
+    if (ev.typ === "parsefehler") {
+      s.wdh = (s.wdh || 0) + 1;
+      if (s.wdh >= 2) return { state: s, fertig: true,
+        sage: "Das klappt gerade nicht – nutzt bitte das Formular." };
+      s.phase = "warte_diktat";
+      return { state: s,
+        sage: ev.msg + " Sag den Termin bitte noch einmal." };
+    }
+  }
+
+  if (s.phase === "frage_person" && ev.typ === "text") {
+    const t = ev.text.toLowerCase();
+    if (/\b(passt|stimmt|richtig|korrekt|so lassen|lass so)\b/.test(t)) {
+      s.phase = "frage_abfahrt"; s.wdh = 0;
+      return { state: s, sage: frageAbfahrt(s.termin) };
+    }
+    const treffer = findeMitgliedImSatz(ev.text, s.mitglieder || []);
+    if (treffer) {
+      s.termin = { ...s.termin, person: treffer };
+      s.phase = "frage_abfahrt"; s.wdh = 0;
+      return { state: s, aktion: "formular",
+        sage: `Alles klar, ${treffer}. ` + frageAbfahrt(s.termin) };
+    }
+    s.wdh = (s.wdh || 0) + 1;
+    if (s.wdh >= 2) { // nicht festbeissen: gehoerten Namen behalten
+      s.phase = "frage_abfahrt"; s.wdh = 0;
+      return { state: s, sage: `Ich lasse „${s.termin.person}“ stehen – ` +
+        `ihr könnt es im Formular ändern. ` + frageAbfahrt(s.termin) };
+    }
+    return { state: s, sage: "Wen meinst du? Ich kenne: " +
+      (s.mitglieder || []).join(", ") + ". Oder sag: passt." };
+  }
+
+  if (s.phase === "frage_abfahrt" && ev.typ === "text") {
+    const t = ev.text.toLowerCase();
+    if (/\b(vor ?ort|beginn|anfang|start|beginnt)\b/.test(t)) {
+      s.abfahrt = false;
+      if (s.termin.wegzeit_min > 0) {
+        s.phase = "frage_speichern";
+        return { state: s, aktion: "formular",
+          sage: terminZusammenfassung(s.termin, false) };
+      }
+      s.phase = "frage_wegzeit";
+      return { state: s, sage: "Plant ihr Anfahrtszeit ein? " +
+        "Sag die Minuten, oder: keine." };
+    }
+    if (/\b(losfahren|abfahrt|abfahren|fahren|los)\b/.test(t)) {
+      s.abfahrt = true;
+      if (s.termin.wegzeit_min > 0) {
+        s.termin = { ...s.termin,
+          zeit: addMinuten(s.termin.zeit, s.termin.wegzeit_min) };
+        s.phase = "frage_speichern";
+        return { state: s, aktion: "formular",
+          sage: terminZusammenfassung(s.termin, true) };
+      }
+      s.phase = "frage_wegzeit";
+      return { state: s, sage: "Wie lange dauert die Anfahrt? Sag die Minuten." };
+    }
+    s.wdh = (s.wdh || 0) + 1;
+    if (s.wdh >= 2) { // im Zweifel: Zeit gilt vor Ort
+      s.abfahrt = false;
+      s.phase = "frage_speichern";
+      return { state: s, aktion: "formular",
+        sage: "Ich nehme die Zeit als Beginn vor Ort. " +
+          terminZusammenfassung(s.termin, false) };
+    }
+    return { state: s, sage: "Sag bitte: vor Ort – oder: losfahren." };
+  }
+
+  if (s.phase === "frage_wegzeit" && ev.typ === "text") {
+    const min = parseMinutenAngabe(ev.text);
+    if (min === null) {
+      s.wdh = (s.wdh || 0) + 1;
+      if (s.wdh >= 3) { s.termin = { ...s.termin, wegzeit_min: 0 };
+        s.phase = "frage_speichern";
+        return { state: s, aktion: "formular",
+          sage: terminZusammenfassung(s.termin, s.abfahrt) }; }
+      return { state: s, sage: "Wie viele Minuten? Oder sag: keine." };
+    }
+    s.termin = { ...s.termin, wegzeit_min: min };
+    if (s.abfahrt && min > 0) {
+      s.termin.zeit = addMinuten(s.termin.zeit, min);
+    }
+    s.phase = "frage_speichern";
+    return { state: s, aktion: "formular",
+      sage: terminZusammenfassung(s.termin, s.abfahrt) };
+  }
+
+  if (s.phase === "frage_speichern" && ev.typ === "text") {
+    const jn = parseJaNein(ev.text);
+    if (jn === "ja") return { state: s, aktion: "speichern", fertig: true };
+    if (jn === "nein") return { state: s, fertig: true,
+      sage: "Okay, nicht gespeichert. Das Formular ist ausgefüllt – " +
+        "ihr könnt es anpassen." };
+    s.wdh = (s.wdh || 0) + 1;
+    if (s.wdh >= 3) return { state: s, fertig: true,
+      sage: "Ich lasse den Termin im Formular – speichern könnt ihr per Knopf." };
+    return { state: s, sage: "Ja zum Speichern – oder Nein zum Verwerfen?" };
+  }
+
+  return { state: s };
+}
+
+function fuelleTerminFormular(t) {
+  document.getElementById("tTitel").value = t.titel;
+  setSelect("tPerson", t.person);
+  setSelect("tVerantwortlich", t.verantwortlich);
+  document.getElementById("tDatum").value = t.datum;
+  document.getElementById("tZeit").value = t.zeit;
+  document.getElementById("tDauer").value = t.dauer_min;
+  document.getElementById("tWegzeit").value = t.wegzeit_min;
+  document.getElementById("tKategorie").value = t.kategorie;
+  pruefeKollisionLive();
+}
+
+function startTerminDialog(diktat) {
+  const status = document.getElementById("terminVoiceStatus");
+  const melde = (text) => { if (status) status.textContent = text; };
+  let st = { phase: "warte_diktat", wdh: 0, abfahrt: false, termin: null };
+
+  async function parseServer(text) {
+    melde("Verstanden: „" + text + "“ – übersetze …");
+    try {
+      const heute = new Date();
+      const r = await fetch("/api/termin-parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: text,
+          heute: heute.toISOString().slice(0, 10),
+          wochentag: heute.toLocaleDateString("de-DE", { weekday: "long" }),
+          mitglieder: mitgliederNamen(),
+        }),
+      });
+      const data = await r.json();
+      if (!data.success) schritt({ typ: "parsefehler", msg: data.error });
+      else schritt({ typ: "geparst", termin: data.termin,
+        mitglieder: mitgliederNamen() });
+    } catch (e) {
+      schritt({ typ: "parsefehler",
+        msg: "Die Übersetzung ist gerade nicht erreichbar." });
+    }
+  }
+
+  function schritt(ev) {
+    const r = terminDialogNext(st, ev);
+    st = r.state;
+    if (r.aktion === "parse") parseServer(r.text);
+    if (r.aktion === "formular" && st.termin) fuelleTerminFormular(st.termin);
+    if (r.aktion === "speichern" && st.termin) {
+      fuelleTerminFormular(st.termin);
+      saveTermin(); // spricht selbst "Termin ... gespeichert"
+    }
+    if (r.sage) { melde(r.sage); speak(r.sage, true); }
+    if (r.fertig) GlobalVoice.dialog = null;
+  }
+
+  gvStart();
+  GlobalVoice.dialog = { onInput: (text) => schritt({ typ: "text", text }) };
+  if (diktat) {
+    schritt({ typ: "text", text: diktat });
+  } else {
+    melde("🎤 Ich höre … sprich deinen Termin");
+    speak("Ich höre. Sprich deinen Termin.", true);
+  }
+}
+
+// Kompatibilitaets-Huelle: der Knopf im Formular ruft weiter
+// terminVoiceStart() auf.
+function terminVoiceStart() { startTerminDialog(null); }
+function setSelect(id, wert) {
+  const sel = document.getElementById(id);
+  if (!wert) return;
+  if (![...sel.options].some((o) => o.value === wert)) {
+    const o = document.createElement("option");
+    o.value = wert; o.textContent = wert;
+    sel.appendChild(o);
+  }
+  sel.value = wert;
+}
+
+// ---------- Kollisionspruefung ----------
+function minuten(hhmm) {
+  const [h, m] = String(hhmm).split(":").map(Number);
+  return h * 60 + (m || 0);
+}
+function terminFenster(t) {
+  const start = minuten(t.zeit) - (t.wegzeitMin || 0);
+  return [start, minuten(t.zeit) + t.dauerMin];
+}
+function findeKollisionen(neu) {
+  const treffer = [];
+  const [nVon, nBis] = terminFenster(neu);
+  const beteiligt = [neu.person, neu.verantwortlich].filter(Boolean);
+
+  termine.forEach((t) => {
+    if (t.id === neu.id || t.datum !== neu.datum) return;
+    const andere = [t.person, t.verantwortlich].filter(Boolean);
+    if (!beteiligt.some((p) => andere.includes(p) || p === "Familie"
+        || andere.includes("Familie"))) return;
+    const [von, bis] = terminFenster(t);
+    if (nVon < bis && von < nBis)
+      treffer.push(`Termin „${t.titel}“ (${t.zeit}, ${t.person})`);
+  });
+
+  const wt = (new Date(neu.datum + "T12:00").getDay() + 6) % 7;
+  routinen.forEach((r) => {
+    if (!r.tage.includes(wt)) return;
+    if (!beteiligt.includes(r.person)) return;
+    if (nVon < minuten(r.bis) && minuten(r.von) < nBis)
+      treffer.push(`Routine „${r.label}“ von ${r.person} (${r.von}–${r.bis})`);
+  });
+  return treffer;
+}
+function pruefeKollisionLive() {
+  const neu = formularTermin();
+  const box = document.getElementById("tKollision");
+  if (!neu) { box.textContent = ""; return; }
+  const k = findeKollisionen(neu);
+  box.textContent = k.length
+    ? "⚠️ Kollision mit: " + k.join(" und ") : "";
+  if (k.length) speak("Achtung, Kollision mit " + k[0], true);
+}
+
+// ---------- Termin speichern ----------
+function formularTermin() {
+  const titel = document.getElementById("tTitel").value.trim();
+  const datum = document.getElementById("tDatum").value;
+  const zeit = document.getElementById("tZeit").value;
+  if (!titel || !datum || !zeit) return null;
+  return {
+    id: "t" + Date.now(),
+    titel: titel.slice(0, 60),
+    person: document.getElementById("tPerson").value || "Familie",
+    verantwortlich: document.getElementById("tVerantwortlich").value || "",
+    datum: datum,
+    zeit: zeit,
+    dauerMin: Math.max(5, parseInt(document.getElementById("tDauer").value) || 60),
+    wegzeitMin: Math.max(0, parseInt(document.getElementById("tWegzeit").value) || 0),
+    kategorie: document.getElementById("tKategorie").value,
+    bestaetigt: {},
+    zuletztErinnert: {},
+  };
+}
+function saveTermin() {
+  const neu = formularTermin();
+  if (!neu) {
+    speak("Bitte mindestens Titel, Datum und Uhrzeit angeben.", true);
+    return;
+  }
+  const k = findeKollisionen(neu);
+  if (k.length && !confirm("⚠️ Kollision mit:\n" + k.join("\n") +
+      "\n\nTrotzdem speichern?")) return;
+  termine.push(neu);
+  termine.sort((a, b) => (a.datum + a.zeit).localeCompare(b.datum + b.zeit));
+  tSaveAll();
+  document.getElementById("tTitel").value = "";
+  document.getElementById("tKollision").textContent = "";
+  renderTermineTab();
+  speak(`Termin ${neu.titel} gespeichert.`, true);
+}
+
+// ---------- Routinen ----------
+function renderTageBoxen() {
+  const box = document.getElementById("rTage");
+  if (box.childElementCount) return;
+  TAGE_KURZ.forEach((t, i) => {
+    const l = document.createElement("label");
+    l.style.cssText = "display:inline-flex;margin-right:8px";
+    const c = document.createElement("input");
+    c.type = "checkbox"; c.value = i; c.className = "rtag";
+    if (i < 5) c.checked = true;
+    l.appendChild(c); l.appendChild(document.createTextNode(" " + t));
+    box.appendChild(l);
+  });
+}
+function addRoutine() {
+  const person = document.getElementById("rPerson").value;
+  const label = document.getElementById("rLabel").value.trim() || "Abwesend";
+  const tage = [...document.querySelectorAll(".rtag:checked")]
+    .map((c) => parseInt(c.value));
+  const von = document.getElementById("rVon").value;
+  const bis = document.getElementById("rBis").value;
+  if (!person || !tage.length || !von || !bis) return;
+  routinen.push({ id: "r" + Date.now(), person, label: label.slice(0, 30),
+    tage, von, bis });
+  document.getElementById("rLabel").value = "";
+  tSaveAll();
+  renderTermineTab();
+}
+function renderRoutinen() {
+  const box = document.getElementById("routineList");
+  box.innerHTML = "";
+  routinen.forEach((r, i) => {
+    const div = document.createElement("div");
+    div.className = "entry";
+    const span = document.createElement("span");
+    span.textContent = `${r.person}: ${r.label} – ` +
+      r.tage.map((t) => TAGE_KURZ[t]).join(",") + ` ${r.von}–${r.bis}`;
+    const del = document.createElement("button");
+    del.className = "btn ghost"; del.textContent = "✕";
+    del.onclick = () => { routinen.splice(i, 1); tSaveAll(); renderTermineTab(); };
+    div.appendChild(span); div.appendChild(del);
+    box.appendChild(div);
+  });
+}
+
+// ---------- Wochen-Matrix ----------
+function wocheWechseln(richtung) {
+  matrixOffset = richtung === 0 ? 0 : matrixOffset + richtung;
+  renderMatrix();
+}
+function montagVon(offset) {
+  const d = new Date();
+  const tag = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - tag + offset * 7);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+function isoTag(d) { return d.toISOString().slice(0, 10); }
+
+function renderMatrix() {
+  const START = 7, ENDE = 21, PX = 36;
+  const grid = document.getElementById("matrixGrid");
+  grid.innerHTML = "";
+  grid.style.cssText =
+    `display:grid;grid-template-columns:44px repeat(7,minmax(86px,1fr));` +
+    `gap:4px;min-width:680px`;
+  const montag = montagVon(matrixOffset);
+  document.getElementById("matrixWoche").textContent =
+    " Woche ab " + montag.toLocaleDateString("de-DE",
+      { day: "2-digit", month: "2-digit" });
+
+  const zeitCol = document.createElement("div");
+  zeitCol.style.cssText = `position:relative;height:${(ENDE-START)*PX+24}px`;
+  for (let h = START; h <= ENDE; h++) {
+    const z = document.createElement("div");
+    z.className = "muted";
+    z.style.cssText = `position:absolute;top:${(h-START)*PX+18}px;` +
+      `font-size:.7rem;right:4px`;
+    z.textContent = h + ":00";
+    zeitCol.appendChild(z);
+  }
+  grid.appendChild(zeitCol);
+
+  const heuteIso = isoTag(new Date());
+  for (let d = 0; d < 7; d++) {
+    const tagDatum = new Date(montag);
+    tagDatum.setDate(montag.getDate() + d);
+    const tagIso = isoTag(tagDatum);
+    const col = document.createElement("div");
+    col.style.cssText =
+      `position:relative;height:${(ENDE-START)*PX+24}px;border-radius:8px;` +
+      `background:${tagIso === heuteIso ? "#f3ead6" : "#fbf7ee"}`;
+    const head = document.createElement("div");
+    head.style.cssText = "text-align:center;font-size:.72rem;font-weight:700";
+    head.textContent = TAGE_KURZ[d] + " " +
+      tagDatum.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+    col.appendChild(head);
+
+    const block = (vonMin, bisMin, farbe, text, blass) => {
+      const von = Math.max(vonMin, START * 60);
+      const bis = Math.min(bisMin, ENDE * 60);
+      if (bis <= von) return;
+      const b = document.createElement("div");
+      b.style.cssText =
+        `position:absolute;left:3px;right:3px;border-radius:6px;` +
+        `top:${(von - START * 60) / 60 * PX + 18}px;` +
+        `height:${Math.max((bis - von) / 60 * PX - 2, 12)}px;` +
+        `background:${farbe};overflow:hidden;font-size:.62rem;` +
+        `padding:1px 4px;color:${blass ? "#56708a" : "#fff"};` +
+        `opacity:${blass ? ".85" : "1"}`;
+      b.textContent = text;
+      b.title = text;
+      col.appendChild(b);
+    };
+
+    routinen.forEach((r) => {
+      if (r.tage.includes(d))
+        block(minuten(r.von), minuten(r.bis), ROUTINE_FARBE,
+          r.person + " " + r.label, true);
+    });
+    termine.forEach((t) => {
+      if (t.datum === tagIso)
+        block(minuten(t.zeit), minuten(t.zeit) + t.dauerMin,
+          KATEGORIEN[t.kategorie].farbe,
+          t.zeit + " " + t.titel + " (" + t.person + ")", false);
+    });
+    grid.appendChild(col);
+  }
+}
+
+// ---------- Terminliste ----------
+function renderTerminListe() {
+  const box = document.getElementById("terminList");
+  box.innerHTML = "";
+  const jetzt = new Date();
+  const kommende = termine.filter((t) =>
+    new Date(t.datum + "T" + t.zeit).getTime() + t.dauerMin * 60000 >
+    jetzt.getTime() - 86400000);
+  if (!kommende.length) {
+    box.innerHTML = '<p class="muted">Noch keine Termine erfasst.</p>';
+    return;
+  }
+  kommende.forEach((t) => {
+    const idx = termine.indexOf(t);
+    const div = document.createElement("div");
+    div.className = "entry";
+    const dot = document.createElement("span");
+    dot.style.cssText = `display:inline-block;width:12px;height:12px;` +
+      `border-radius:50%;background:${KATEGORIEN[t.kategorie].farbe};` +
+      `margin-right:6px;flex-shrink:0`;
+    const span = document.createElement("span");
+    span.style.flex = "1";
+    const dat = new Date(t.datum + "T" + t.zeit).toLocaleDateString("de-DE",
+      { weekday: "short", day: "2-digit", month: "2-digit" });
+    span.textContent = `${dat} ${t.zeit} – ${t.titel} (${t.person}` +
+      (t.verantwortlich ? `, übernimmt: ${t.verantwortlich}` : "") + ")";
+    const del = document.createElement("button");
+    del.className = "btn ghost"; del.textContent = "✕";
+    del.onclick = () => { termine.splice(idx, 1); tSaveAll(); renderTermineTab(); };
+    div.appendChild(dot); div.appendChild(span); div.appendChild(del);
+    box.appendChild(div);
+  });
+}
+
+function renderTermineTab() {
+  renderTageBoxen();
+  fuellePersonenSelects();
+  renderRoutinen();
+  renderTerminListe();
+  renderMatrix();
+}
+
+// ---------- Erinnerungs-Maschine ----------
+function checkErinnerungen() {
+  if (aktiveErinnerung) return;
+  const jetzt = Date.now();
+  for (const t of termine) {
+    const start = new Date(t.datum + "T" + t.zeit).getTime()
+      - (t.wegzeitMin || 0) * 60000;
+    if (start < jetzt - 60000) continue;
+    const kat = KATEGORIEN[t.kategorie];
+    for (const min of kat.vorlauf) {
+      const stage = String(min);
+      if (t.bestaetigt[stage]) continue;
+      const faellig = start - min * 60000;
+      if (jetzt < faellig) continue;
+      const zuletzt = t.zuletztErinnert[stage] || 0;
+      if (jetzt - zuletzt < kat.wiederholMin * 60000) continue;
+      t.zuletztErinnert[stage] = jetzt;
+      tSaveAll();
+      zeigeErinnerung(t, stage, min);
+      return;
+    }
+  }
+}
+function zeigeErinnerung(t, stage, min) {
+  aktiveErinnerung = { id: t.id, stage };
+  const wann = min >= 60
+    ? Math.round(min / 60) + " Stunden" : min + " Minuten";
+  const weg = t.wegzeitMin ? ` (inkl. ${t.wegzeitMin} Min. Wegzeit)` : "";
+  const text = `${KATEGORIEN[t.kategorie].label}: ${t.titel} für ${t.person} ` +
+    `in ${wann}${weg}` +
+    (t.verantwortlich ? ` – ${t.verantwortlich} übernimmt` : "");
+  document.getElementById("reminderText").textContent = "⏰ " + text;
+  document.getElementById("reminderBanner").classList.remove("hidden");
+  speak("Erinnerung! " + text + ". Bitte mit OK bestätigen.", true);
+  // BUGFIX: Auf Android-Chrome ist "new Notification()" verboten
+  // (wirft immer) - dort geht es nur ueber den Service Worker.
+  if ("Notification" in window && Notification.permission === "granted") {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.ready.then((reg) =>
+        reg.showNotification("Familien-Assistent",
+          { body: text, icon: "/icon.svg" })
+      ).catch(() => {
+        try { new Notification("Familien-Assistent", { body: text }); }
+        catch (e) {}
+      });
+    } else {
+      try { new Notification("Familien-Assistent", { body: text }); }
+      catch (e) {}
+    }
+  }
+}
+function reminderOk() {
+  if (aktiveErinnerung) {
+    const t = termine.find((x) => x.id === aktiveErinnerung.id);
+    if (t) { t.bestaetigt[aktiveErinnerung.stage] = true; tSaveAll(); }
+    try {
+      fetch("/api/wecker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ device: deviceId(),
+          bestaetige: aktiveErinnerung.id + "_" + aktiveErinnerung.stage }),
+      }).catch(() => {});
+    } catch (e) {}
+    aktiveErinnerung = null;
+  }
+  document.getElementById("reminderBanner").classList.add("hidden");
+}
+
+// ---------- Start ----------
+(function initTermine() {
+  mitglieder = tLoad("ka_mitglieder", []);
+  // Migration: alte Namens-Strings -> Profil-Objekte; fehlende
+  // Felder (allergien, ernaehrung) defensiv ergaenzen.
+  mitglieder = mitglieder.map((m) => {
+    const obj = typeof m === "string"
+      ? { name: m, alter: 30, geschlecht: "w" } : m;
+    if (!Array.isArray(obj.allergien)) obj.allergien = [];
+    if (!Array.isArray(obj.ernaehrung)) obj.ernaehrung = [];
+    return obj;
+  });
+  routinen = tLoad("ka_routinen", []);
+  termine = tLoad("ka_termine", []);
+  familienStile = tLoad("ka_stile", []); // weiche Stil-Vorlieben laden
+  renderMembers();
+  if ("Notification" in window && Notification.permission === "default") {
+    setTimeout(() => { try { Notification.requestPermission(); } catch (e) {} },
+      4000);
+  }
+  ["tDatum", "tZeit", "tDauer", "tWegzeit", "tPerson", "tVerantwortlich"]
+    .forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("change", pruefeKollisionLive);
+    });
+  setInterval(checkErinnerungen, 30000);
+  setTimeout(checkErinnerungen, 3000);
+  // Lokal geoeffnet (Doppelklick auf die Datei)? Dann klar sagen,
+  // was hier nicht geht, statt kryptischer Einzel-Fehlermeldungen.
+  // Geführte Ersteinrichtung beim allerersten Start (v11)
+  try {
+    if (!localStorage.getItem(OB_FLAG)) onboardingOeffnen();
+  } catch (e) {}
+  if (location.protocol === "file:") {
+    // v10.2: Nutzerfreundlich wie frueher - AUTOMATISCH zur
+    // Online-Version. Das Banner erklaert kurz warum, dann geht
+    // es ohne einen einzigen Klick weiter.
+    const b = document.getElementById("lokalBanner");
+    if (b) b.classList.remove("hidden");
+    setTimeout(() => {
+      location.replace("https://familienassistent.net/");
+    }, 1500);
+  }
+  // Globale Sprachsteuerung: sofort zuhoeren, wenn die
+  // Mikrofon-Berechtigung schon erteilt ist
+  gvAutoStart();
+  // Service Worker fuer installierbare App + Push registrieren
+  // (FUSION v10: inkl. deiner Update-Logik - neue sw.js laedt die
+  //  Seite genau einmal frisch, plus dauerhafte Speichererlaubnis)
+  if ("serviceWorker" in navigator) {
+    let swRefreshing = false;
+    const swHatteController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (swRefreshing || !swHatteController) return;
+      swRefreshing = true;
+      window.location.reload();
+    });
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+    if (navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist().catch(() => {});
+    }
+    // Push-Anmeldung pruefen und ggf. automatisch erneuern
+    setTimeout(() => { try { pruefePushAbo(); } catch (e) {} }, 6000);
+  }
+})();
+
+// =====================================================
+// VERBRAUCHSGUETER-PLANER (Phase E1)
+// Startwerte = kuratierte Schaetzungen (Statistik/DGE/
+// Herstellerangaben). Die App LERNT dann den echten
+// Verbrauch eures Haushalts aus jedem Kauf ("faktor").
+// =====================================================
+// rate-Typen: pe = pro Personen-Aequivalent | linear =
+// basis + proPerson | gruppe = pro Kopf mit Alters-/
+// Geschlechts-Filter. Wert = Packungen pro Woche.
+const VERBRAUCH = [
+  // --- Drogerie ---
+  { id:"klopapier", name:"Toilettenpapier (10er)", laden:"Drogerie",
+    rate:{ typ:"linear", basis:0, proPerson:0.1 } },
+  { id:"kuechenrolle", name:"Küchenrolle (4er)", laden:"Drogerie",
+    rate:{ typ:"linear", basis:0.18, proPerson:0.02 } },
+  { id:"taschentuecher", name:"Taschentücher (Großpack)", laden:"Drogerie",
+    rate:{ typ:"linear", basis:0.04, proPerson:0.025 } },
+  { id:"seife", name:"Handseife", laden:"Drogerie",
+    rate:{ typ:"linear", basis:0.1, proPerson:0.05 } },
+  { id:"duschgel", name:"Duschgel", laden:"Drogerie",
+    rate:{ typ:"gruppe", proKopf:0.22, minAlter:4 } },
+  { id:"shampoo", name:"Shampoo", laden:"Drogerie",
+    rate:{ typ:"gruppe", proKopf:0.13, minAlter:2 } },
+  { id:"zahnpasta", name:"Zahnpasta", laden:"Drogerie",
+    rate:{ typ:"linear", basis:0, proPerson:0.11 } },
+  { id:"zahnbuersten", name:"Zahnbürsten (4er)", laden:"Drogerie",
+    rate:{ typ:"linear", basis:0, proPerson:0.031 } },
+  { id:"waschmittel", name:"Waschmittel (20 WL)", laden:"Drogerie",
+    rate:{ typ:"linear", basis:0.1, proPerson:0.05 } },
+  { id:"spuelmittel", name:"Spülmittel", laden:"Drogerie",
+    rate:{ typ:"linear", basis:0.2, proPerson:0.03 } },
+  { id:"spuelmaschinentabs", name:"Spülmaschinen-Tabs (40er)",
+    laden:"Drogerie", rate:{ typ:"linear", basis:0.06, proPerson:0.025 } },
+  { id:"muellbeutel", name:"Müllbeutel (20er)", laden:"Drogerie",
+    rate:{ typ:"linear", basis:0.1, proPerson:0.025 } },
+  { id:"allzweck", name:"Allzweckreiniger", laden:"Drogerie",
+    rate:{ typ:"linear", basis:0.12, proPerson:0.01 } },
+  { id:"deo", name:"Deo", laden:"Drogerie",
+    rate:{ typ:"gruppe", proKopf:0.12, minAlter:11 } },
+  { id:"damenhygiene", name:"Damenhygiene", laden:"Drogerie",
+    rate:{ typ:"gruppe", proKopf:0.25, minAlter:12, maxAlter:52,
+           geschlecht:"w" } },
+  { id:"windeln", name:"Windeln (50er)", laden:"Drogerie",
+    rate:{ typ:"gruppe", proKopf:0.7, maxAlter:3 } },
+  { id:"feuchttuecher", name:"Feuchttücher", laden:"Drogerie",
+    rate:{ typ:"gruppe", proKopf:0.7, maxAlter:3 } },
+  { id:"milch", name:"Milch (4×1 L)", laden:"Supermarkt",
+    rate:{ typ:"pe", proPE:0.25 } },
+  { id:"butter", name:"Butter (250 g)", laden:"Supermarkt",
+    rate:{ typ:"pe", proPE:0.5 } },
+  { id:"eier", name:"Eier (10er)", laden:"Supermarkt",
+    rate:{ typ:"pe", proPE:0.35 } },
+  { id:"brot", name:"Brot (Laib)", laden:"Supermarkt",
+    rate:{ typ:"pe", proPE:0.5 } },
+  { id:"toast", name:"Toastbrot", laden:"Supermarkt",
+    rate:{ typ:"pe", proPE:0.3 } },
+  { id:"kaese", name:"Käse (200 g)", laden:"Supermarkt",
+    rate:{ typ:"pe", proPE:0.7 } },
+  { id:"joghurt", name:"Joghurt (4er)", laden:"Supermarkt",
+    rate:{ typ:"pe", proPE:0.6 } },
+  { id:"muesli", name:"Müsli/Flocken", laden:"Supermarkt",
+    rate:{ typ:"pe", proPE:0.2 } },
+  { id:"nudeln", name:"Nudeln (500 g)", laden:"Supermarkt",
+    rate:{ typ:"pe", proPE:0.4 } },
+  { id:"reis", name:"Reis (1 kg)", laden:"Supermarkt",
+    rate:{ typ:"pe", proPE:0.15 } },
+  { id:"mehl", name:"Mehl (1 kg)", laden:"Supermarkt",
+    rate:{ typ:"linear", basis:0.2, proPerson:0.02 } },
+  { id:"zucker", name:"Zucker (1 kg)", laden:"Supermarkt",
+    rate:{ typ:"linear", basis:0.12, proPerson:0.01 } },
+  { id:"kaffee", name:"Kaffee (500 g)", laden:"Supermarkt",
+    rate:{ typ:"gruppe", proKopf:0.25, minAlter:18 } },
+  { id:"oel", name:"Speiseöl", laden:"Supermarkt",
+    rate:{ typ:"linear", basis:0.12, proPerson:0.015 } },
+];
+
+let vState = { items: {}, liste: [] };
+
+function vbRate(item) {
+  const r = item.rate;
+  if (r.typ === "pe") return r.proPE * summePE();
+  if (r.typ === "linear")
+    return r.basis + r.proPerson * mitglieder.length;
+  if (r.typ === "gruppe") {
+    const n = mitglieder.filter((m) =>
+      (r.minAlter == null || m.alter >= r.minAlter) &&
+      (r.maxAlter == null || m.alter <= r.maxAlter) &&
+      (!r.geschlecht || m.geschlecht === r.geschlecht)).length;
+    return r.proKopf * n;
+  }
+  return 0;
+}
+function vbIntervalTage(item) {
+  const rate = vbRate(item);
+  if (rate <= 0) return 0;
+  return Math.min(Math.max(7 / rate, 3), 180);
+}
+function vbStatus(item) {
+  if (!vState.items[item.id])
+    vState.items[item.id] = { zuletzt: Date.now(), faktor: 1,
+      inListe: false, snoozeUntil: 0 };
+  return vState.items[item.id];
+}
+function vbReichtNochTage(item) {
+  const s = vbStatus(item);
+  const intervall = vbIntervalTage(item) * s.faktor;
+  return Math.round((s.zuletzt + intervall * 86400000 - Date.now()) / 86400000);
+}
+function vbSave() {
+  try { localStorage.setItem("ka_verbrauch", JSON.stringify(vState)); }
+  catch (e) {}
+  serverSync();
+}
+
+function vbInListe(id) {
+  const item = VERBRAUCH.find((x) => x.id === id);
+  const s = vbStatus(item);
+  s.inListe = true;
+  vState.liste.push({ id: id, name: item.name, laden: item.laden });
+  vbSave(); renderVerbrauch();
+}
+function vbZurueckstellen(id) {
+  const item = VERBRAUCH.find((x) => x.id === id);
+  const s = vbStatus(item);
+  const basis = vbIntervalTage(item) * s.faktor;
+  s.snoozeUntil = Date.now() + basis * 0.2 * 86400000;
+  s.faktor = Math.min(s.faktor * 1.1, 3);
+  vbSave(); renderVerbrauch();
+}
+function vbGekauft(eintragIdx) {
+  const eintrag = vState.liste[eintragIdx];
+  if (eintrag && eintrag.id) {
+    const item = VERBRAUCH.find((x) => x.id === eintrag.id);
+    const s = vbStatus(item);
+    const tatsaechlich = (Date.now() - s.zuletzt) / 86400000;
+    const basis = vbIntervalTage(item);
+    if (basis > 0 && tatsaechlich > 1) {
+      s.faktor = Math.min(Math.max(
+        s.faktor * 0.7 + (tatsaechlich / basis) * 0.3, 0.4), 3);
+    }
+    s.zuletzt = Date.now();
+    s.inListe = false;
+    s.snoozeUntil = 0;
+  }
+  vState.liste.splice(eintragIdx, 1);
+  vbSave(); renderVerbrauch();
+}
+function vbVoiceAdd() {
+  // evtl. laufenden Einkaufs-Modus beenden (Mikro-Konflikt vermeiden)
+  if (typeof vbVoiceActive !== "undefined" && vbVoiceActive)
+    vbVoiceCheckoffStop();
+  // laeuft ueber den globalen Controller - keine Zweit-Instanz
+  gvOneShot("Welcher Artikel?", einkaufHinzufuegen);
+}
+
+// --- Anzeige ---
+function renderVerbrauch() {
+  const info = document.getElementById("vbInfo");
+  if (!info) return;
+  info.textContent = mitglieder.length
+    ? `Berechnet für euer Profil: ${mitglieder.length} Personen ` +
+      `(${summePE().toFixed(1)} Essens-Äquivalente). Die App lernt euren ` +
+      `echten Verbrauch mit jedem Einkauf dazu.`
+    : "Lege zuerst euer Familienprofil an (Reiter Familie) – dann plane " +
+      "ich Mengen und Zeitpunkte automatisch.";
+
+  const evtl = document.getElementById("vbEvtl");
+  evtl.innerHTML = "";
+  let evtlCount = 0;
+  if (mitglieder.length) {
+    VERBRAUCH.forEach((item) => {
+      if (vbIntervalTage(item) <= 0) return;
+      const s = vbStatus(item);
+      if (s.inListe || Date.now() < s.snoozeUntil) return;
+      if (vbReichtNochTage(item) > 2) return;
+      evtlCount++;
+      const div = document.createElement("div");
+      div.className = "entry";
+      const span = document.createElement("span");
+      span.style.flex = "1";
+      span.textContent = item.name + " (" + item.laden + ")";
+      const ja = document.createElement("button");
+      ja.className = "btn"; ja.style.padding = "7px 10px";
+      ja.textContent = "In die Liste";
+      ja.onclick = () => vbInListe(item.id);
+      const nein = document.createElement("button");
+      nein.className = "btn ghost"; nein.style.padding = "7px 10px";
+      nein.textContent = "Zurückstellen";
+      nein.onclick = () => vbZurueckstellen(item.id);
+      div.appendChild(span); div.appendChild(ja); div.appendChild(nein);
+      evtl.appendChild(div);
+    });
+  }
+  if (!evtlCount)
+    evtl.innerHTML = '<p class="muted">Gerade nichts fällig – ich melde ' +
+      'mich, wenn etwas zur Neige gehen müsste.</p>';
+
+  const ul = document.getElementById("vbListe");
+  ul.innerHTML = "";
+  if (!vState.liste.length)
+    ul.innerHTML = '<p class="muted">Leer. Artikel kommen aus „bald ' +
+      'leer“, per Sprache oder aus „Alle Artikel“.</p>';
+  vState.liste.forEach((e, idx) => {
+    const li = document.createElement("li");
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.onchange = () => vbGekauft(idx);
+    const span = document.createElement("span");
+    span.textContent = e.name + (e.laden ? " – " + e.laden : "");
+    li.appendChild(cb); li.appendChild(span);
+    ul.appendChild(li);
+  });
+
+  const alle = document.getElementById("vbAlle");
+  alle.innerHTML = "";
+  if (mitglieder.length) {
+    VERBRAUCH.forEach((item) => {
+      if (vbIntervalTage(item) <= 0) return;
+      const s = vbStatus(item);
+      const tage = vbReichtNochTage(item);
+      const div = document.createElement("div");
+      div.className = "entry";
+      const span = document.createElement("span");
+      span.style.flex = "1";
+      span.textContent = item.name + " – reicht noch ca. " +
+        (tage > 0 ? tage + " Tage" : "ist fällig");
+      const leer = document.createElement("button");
+      leer.className = "btn ghost"; leer.style.padding = "6px 10px";
+      leer.textContent = s.inListe ? "auf Liste ✓" : "Jetzt leer";
+      leer.disabled = s.inListe;
+      leer.onclick = () => vbInListe(item.id);
+      div.appendChild(span); div.appendChild(leer);
+      alle.appendChild(div);
+    });
+  }
+}
+
+(function initVerbrauch() {
+  vState = tLoad("ka_verbrauch", { items: {}, liste: [] });
+  if (!vState.items) vState.items = {};
+  if (!vState.liste) vState.liste = [];
+})();
+
+// =====================================================
+// NEU: EINKAUFS-MODUS – freihändig per Sprache abhaken
+// Hakt Artikel der Verbrauchs-Einkaufsliste per Stimme ab und
+// nutzt dafuer die bestehende Lernfunktion vbGekauft() (Zyklus
+// passt sich an). Vollständig eigenständig, eigener Erkenner –
+// veraendert KEINE vorhandene Logik.
+// =====================================================
+let vbVoiceRec = null;
+let vbVoiceActive = false;
+let vbVoiceTtsUntil = 0;
+
+const VB_FUELLWORTER =
+  /\b(okay|ok|oka|fertig|erledigt|gekauft|hab ich|habe|hab|haben wir|ja|drin|dazu|eingepackt|im wagen|gibts|gibt es|noch|den|die|das|der|ein|eine|einen)\b/g;
+
+function vbNorm(s) {
+  let x = " " + String(s).toLowerCase()
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/[^a-zäöüß ]/g, " ")
+    .replace(VB_FUELLWORTER, " ")
+    .replace(/\s+/g, " ").trim() + " ";
+  const syn = {
+    " klopapier ": " toilettenpapier ", " klo papier ": " toilettenpapier ",
+    " küchenpapier ": " küchenrolle ", " zewa ": " küchenrolle ",
+    " tempo ": " taschentücher ", " tempos ": " taschentücher ",
+    " zahncreme ": " zahnpasta ", " spüli ": " spülmittel ",
+    " geschirrspülmittel ": " spülmittel ", " müllsäcke ": " müllbeutel ",
+    " mülltüten ": " müllbeutel ", " kaffeebohnen ": " kaffee ",
+    " kaffeepulver ": " kaffee "
+  };
+  for (const k in syn) x = (" " + x + " ").split(k).join(syn[k]).trim();
+  return x.trim();
+}
+
+function vbKurzName(n) {
+  return String(n).replace(/\([^)]*\)/g, "").trim();
+}
+
+function vbMatchScore(spoken, itemName) {
+  const a = vbNorm(spoken), b = vbNorm(itemName);
+  if (!a || !b) return 0;
+  if (a === b) return 100;
+  const at = a.split(" "), bt = b.split(" ");
+  let hits = 0;
+  bt.forEach((t) => {
+    if (t.length >= 3 && at.some((x) => x === t)) hits += 2;          // exakter Wort-Treffer
+    else if (t.length >= 4 && at.some((x) => x.includes(t) || t.includes(x)))
+      hits += 1;                                                       // Teil-Treffer
+  });
+  return hits;
+}
+
+function vbVoiceSay(text) {
+  // Fenster setzen, in dem die eigene Sprachausgabe ignoriert wird (Echo-Schutz)
+  vbVoiceTtsUntil = Date.now() + Math.max(2500, text.length * 90) + 1200;
+  try { speak(text, true); } catch (e) {}
+}
+
+function vbVoiceCheckoffButton() {
+  const btn = document.getElementById("vbVoiceBtn");
+  if (!btn) return;
+  btn.textContent = vbVoiceActive
+    ? "⏹ Einkaufs-Modus beenden"
+    : "🛒 Freihändig abhaken (Einkaufs-Modus)";
+}
+
+function vbVoiceHandle(said) {
+  if (!vState.liste.length) {
+    vbVoiceSay("Die Liste ist leer.");
+    vbVoiceCheckoffStop();
+    return;
+  }
+  const scored = vState.liste
+    .map((e, idx) => ({ idx, name: e.name, score: vbMatchScore(said, e.name) }))
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score);
+  if (!scored.length) return; // nichts Passendes -> still ignorieren (Lärmschutz)
+  if (scored.length > 1 && scored[0].score === scored[1].score) {
+    vbVoiceSay("Mehrere passen: " +
+      scored.slice(0, 3).map((s) => vbKurzName(s.name)).join(", ") +
+      ". Bitte genauer sagen.");
+    return;
+  }
+  const hit = scored[0];
+  const name = vState.liste[hit.idx].name;
+  vbGekauft(hit.idx); // BESTEHENDE Lernfunktion: Zyklus anpassen + entfernen + neu rendern
+  if (!vState.liste.length) {
+    vbVoiceSay(vbKurzName(name) + ", abgehakt. Alles erledigt!");
+    vbVoiceCheckoffStop();
+  } else {
+    vbVoiceSay(vbKurzName(name) + ", abgehakt.");
+  }
+}
+
+function vbVoiceCheckoffStart() {
+  // FUSION v10: globalen Sprach-Controller pausieren - der
+  // Einkaufs-Modus bekommt das Mikrofon exklusiv
+  GlobalVoice.aktiv = false;
+  GlobalVoice.dialog = null;
+  if (recognition) { try { recognition.abort(); } catch (e) {} }
+  gvChip("🎤 Einkaufs-Modus aktiv", "an");
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const status = document.getElementById("vbVoiceStatus");
+  if (!SR) {
+    if (status) status.textContent =
+      "Spracherkennung wird von diesem Browser nicht unterstützt.";
+    return;
+  }
+  if (!vState.liste.length) {
+    if (status) status.textContent =
+      "Die Einkaufsliste ist leer – erst Artikel aufnehmen.";
+    return;
+  }
+  vbVoiceRec = new SR();
+  vbVoiceRec.lang = "de-DE";
+  vbVoiceRec.continuous = true;
+  vbVoiceRec.interimResults = false;
+  vbVoiceRec.onresult = (ev) => {
+    if (Date.now() < vbVoiceTtsUntil) return; // eigenes Sprechen ignorieren
+    const said = ev.results[ev.results.length - 1][0].transcript.toLowerCase();
+    vbVoiceHandle(said);
+  };
+  vbVoiceRec.onerror = (e) => {
+    if (e.error === "aborted") return;
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+      vbVoiceActive = false;
+      vbVoiceCheckoffButton();
+      if (status) status.textContent =
+        "Mikrofon nicht erlaubt – hake Artikel per Häkchen ab.";
+    }
+  };
+  vbVoiceRec.onend = () => {
+    if (vbVoiceActive) { try { vbVoiceRec.start(); } catch (e) {} }
+  };
+  vbVoiceActive = true;
+  try { vbVoiceRec.start(); } catch (e) {}
+  vbVoiceCheckoffButton();
+  if (status) status.textContent =
+    "🎤 Hört zu … sag z. B. „Milch okay“. Zum Beenden den Knopf drücken.";
+  vbVoiceSay("Einkaufs-Modus an. Sag mir, was im Wagen ist.");
+}
+
+function vbVoiceCheckoffStop() {
+  if (!vbVoiceActive && !vbVoiceRec) return;
+  vbVoiceActive = false;
+  if (vbVoiceRec) {
+    try { vbVoiceRec.abort(); } catch (e) {}
+    vbVoiceRec = null;
+  }
+  vbVoiceCheckoffButton();
+  const status = document.getElementById("vbVoiceStatus");
+  if (status) status.textContent = "Einkaufs-Modus beendet.";
+  // FUSION v10: globalen Sprach-Controller wieder uebernehmen lassen
+  setTimeout(() => { try { gvStart(); } catch (e) {} }, 400);
+}
+
+function vbVoiceCheckoffToggle() {
+  if (vbVoiceActive) vbVoiceCheckoffStop();
+  else vbVoiceCheckoffStart();
+}
+</script>
+<script src="/install.js" defer></script>
+<footer id="rechtsFooter">
+  <a href="/impressum.html">Impressum</a> ·
+  <a href="/datenschutz.html">Datenschutz</a>
+</footer>
+</body>
+</html>
