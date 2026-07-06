@@ -1,0 +1,45 @@
+# Netlify-Konfiguration fuer den Familien-Assistenten
+
+[functions]
+  directory = "netlify/functions"
+
+# Schoene Adressen /api/... auf die Funktionen umleiten
+[[redirects]]
+  from = "/api/rezept"
+  to = "/.netlify/functions/rezept"
+  status = 200
+
+[[redirects]]
+  from = "/api/termin-parse"
+  to = "/.netlify/functions/termin-parse"
+  status = 200
+
+[[redirects]]
+  from = "/api/termine"
+  to = "/.netlify/functions/termine"
+  status = 200
+
+[[redirects]]
+  from = "/api/vapid"
+  to = "/.netlify/functions/vapid"
+  status = 200
+
+[[redirects]]
+  from = "/api/push-anmelden"
+  to = "/.netlify/functions/push-anmelden"
+  status = 200
+
+[[redirects]]
+  from = "/api/wecker"
+  to = "/.netlify/functions/wecker"
+  status = 200
+
+[[redirects]]
+  from = "/api/feedback"
+  to = "/.netlify/functions/feedback"
+  status = 200
+
+
+# Zeitgeber: prueft alle 5 Minuten, ob Wecksignale faellig sind
+[functions."wecker-cron"]
+  schedule = "*/5 * * * *"
