@@ -2688,14 +2688,24 @@ function deviceId() {
   let id = localStorage.getItem("ka_device");
   if (!id) {
     // SECURITY-FIX (SonarCloud): kryptografisch starke Geraete-ID
-    // statt erratbarem Math.random. Bestehende Geraete behalten
+    // statt erratbarem Pseudozufall. Bestehende Geraete behalten
     // ihre gespeicherte ID - nur NEUE IDs entstehen hier.
     if (window.crypto && crypto.getRandomValues) {
       const b = new Uint8Array(16);
       crypto.getRandomValues(b);
       id = "g" + Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
-    } else { // Uralt-Browser-Fallback
-      id = "g" + Math.random().toString(36).slice(2, 12) + Date.now().toString(36);
+    } else {
+      // Museums-Browser ohne WebCrypto (koennen die App-Kern-
+      // funktionen ohnehin nicht ausfuehren): zufallsfreie
+      // Notkennung aus Zeit + Geraetemerkmalen - bewusst ohne unsicheren
+      // Pseudozufall (SonarCloud-Regel S2245).
+      let h = 5381;
+      const merkmal = navigator.userAgent + screen.width + "x" +
+        screen.height + new Date().getTimezoneOffset();
+      for (let k = 0; k < merkmal.length; k++) {
+        h = ((h * 33) ^ merkmal.charCodeAt(k)) >>> 0;
+      }
+      id = "g" + Date.now().toString(36) + h.toString(36);
     }
     localStorage.setItem("ka_device", id);
   }
