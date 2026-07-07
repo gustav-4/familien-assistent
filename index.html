@@ -423,6 +423,7 @@
           <button class="btn" type="button" onclick="syncVerbinden()">Verbinden</button>
         </div>
         <div id="syncVerbunden" class="hidden" style="margin-top:8px">
+          <button class="btn" type="button" onclick="syncEinladen()">📨 Partner einladen</button>
           <button class="btn ghost" type="button" onclick="syncTrennen()">Trennen</button>
         </div>
         <div id="syncStatus" class="muted" style="margin-top:6px"></div>
@@ -773,6 +774,9 @@
         <button class="btn ghost" type="button"
           onclick="wocheWechseln(1)">Woche ›</button>
         <span class="muted" id="matrixWoche"></span>
+        <button class="btn" type="button" style="margin-left:8px"
+                onclick="wpPlanen()">✨ Woche planen</button>
+        <div id="wpInfo" class="muted" style="margin-top:6px"></div>
       </div>
       <div style="overflow-x:auto">
         <div id="matrixGrid"></div>
@@ -1476,7 +1480,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION10";
+const APP_VERSION = "FUSION11";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -1637,6 +1641,9 @@ function erkenneKommando(text) {
     .replace(/[.,!?]+$/g, "");
   if (/^(stopp|stop|sei still|ruhe|leise)$/.test(t)) return { typ: "still" };
   if (/^(?:app[- ]?)?version$/.test(t)) return { typ: "version" };
+  if (/^(?:plane?|erstelle)\s+(?:mir\s+)?(?:die\s+|meine\s+|eine?n?\s+)?woche(?:nplan)?$|^wochenplan$/.test(t)) {
+    return { typ: "wochenplan" };
+  }
   if (/^(?:einführung|einfuehrung|anleitung|tour|einrichtung)$/.test(t)) {
     return { typ: "einfuehrung" };
   }
@@ -1710,6 +1717,7 @@ function gvRoute(said) {
   const k = erkenneKommando(said);
   if (!k) return; // Alltagsgespraech ignorieren
   if (k.typ === "still") { window.speechSynthesis.cancel(); return; }
+  if (k.typ === "wochenplan") { wpPlanen(); return; }
   if (k.typ === "version") {
     speak("Es läuft Version " + APP_VERSION + ".", true);
     return;
@@ -1775,6 +1783,112 @@ function gvRoute(said) {
     startTerminDialog(k.rest && k.rest.length > 3 ? k.rest : null);
   }
 }
+
+// ---------- Wochenplan-Automatik (Plus-Kernfeature) ----------
+let wpLaeuft = false;
+async function wpPlanen() {
+  if (wpLaeuft) return;
+  const info = document.getElementById("wpInfo");
+  wpLaeuft = true;
+  if (info) info.textContent = "⏳ Ich plane eure Woche …";
+  speak("Einen Moment, ich plane eure Abendessen für die ganze " +
+    "Woche – passend zu allen Ernährungsformen der Familie.", true);
+  try {
+    const r = await fetch("/api/rezept", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        modus: "wochenplan",
+        device: deviceId(),
+        code: (typeof syncCode !== "undefined" && syncCode) || "",
+        unvertraeglichkeiten: selectedIntolerances(),
+        ernaehrungsformen: ernaehrungsformen,
+        stile: familienStile,
+        minuten_min: 15,
+        minuten_max: 60,
+      }),
+    });
+    if (r.status === 402) {
+      let d = null;
+      try { d = await r.json(); } catch (e) {}
+      const m = (d && d.error) || "Der kostenlose Monats-Wochenplan " +
+        "ist aufgebraucht.";
+      if (info) info.textContent = "💎 " + m;
+      speak(m, true);
+      return;
+    }
+    if (!r.ok) {
+      if (info) info.textContent = "❌ Planung fehlgeschlagen (" +
+        r.status + ") – bitte nochmal versuchen.";
+      speak("Die Planung hat leider nicht geklappt. Versuch es " +
+        "gleich nochmal.", true);
+      return;
+    }
+    const d = await r.json();
+    const plan = (d && d.plan) || [];
+    if (!plan.length) {
+      if (info) info.textContent = "❌ Kein sicheres Ergebnis.";
+      return;
+    }
+    // 7 Abendessen als Termine der ANGEZEIGTEN Woche (18:00)
+    const montag = montagVon(matrixOffset);
+    const basis = Date.now();
+    plan.forEach((g, idx) => {
+      const tag = new Date(montag);
+      tag.setDate(montag.getDate() + idx);
+      termine.push({
+        id: "wp" + basis + "_" + idx,
+        titel: "🍽 " + g.name,
+        person: "Familie",
+        verantwortlich: "",
+        datum: isoTag(tag),
+        zeit: "18:00",
+        dauerMin: Math.max(30, (g.timeMin || 30) + 15),
+        wegzeitMin: 0,
+        kategorie: "",
+        bestaetigt: {},
+        zuletztErinnert: {},
+      });
+    });
+    termine.sort((a, b) => (a.datum + a.zeit).localeCompare(b.datum + b.zeit));
+    tSaveAll(); // speichert lokal + Familien-Sync
+
+    // Eine konsolidierte Einkaufsliste in Familienmengen
+    const f = (typeof portionFactor === "function") ? portionFactor() : 1;
+    const summen = {};
+    plan.forEach((g) => (g.ingredients || []).forEach((z) => {
+      const schluessel = (z.name + "|" + z.unit).toLowerCase();
+      summen[schluessel] = summen[schluessel] ||
+        { name: z.name, unit: z.unit, qty: 0 };
+      summen[schluessel].qty += z.qty * f;
+    }));
+    let artikel = 0;
+    Object.values(summen).forEach((s, idx) => {
+      const menge = s.qty >= 10 ? Math.round(s.qty)
+        : Math.round(s.qty * 10) / 10;
+      vState.liste.push({
+        id: "wp" + basis + "_z" + idx,
+        name: (menge + " " + s.unit + " " + s.name).trim(),
+        laden: "",
+      });
+      artikel++;
+    });
+    vbSave();
+    try { renderMatrix(); } catch (e) {}
+    try { renderVerbrauch(); } catch (e) {}
+    if (info) info.textContent = "✅ " + plan.length +
+      " Abendessen geplant, " + artikel + " Artikel auf der Einkaufsliste.";
+    speak("Fertig! " + plan.length + " Abendessen stehen im Wochenplan, " +
+      "und die Einkaufsliste hat " + artikel +
+      " Artikel in euren Familienmengen. Guten Appetit!", true);
+  } catch (e) {
+    if (info) info.textContent = "❌ Keine Verbindung.";
+    speak("Ich erreiche den Server gerade nicht.", true);
+  } finally {
+    wpLaeuft = false;
+  }
+}
+
 
 // =====================================================
 // FAMILIEN-SYNC (Plus) - Ende-zu-Ende-verschluesselt
@@ -1858,7 +1972,8 @@ async function syncSenden() {
     const r = await fetch("/api/termine", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: syncCode, blob, stand }),
+      body: JSON.stringify({ code: syncCode, blob, stand,
+        device: deviceId() }),
     });
     if (r.status === 402) { syncTrennen(true); return; }
     if (r.ok) {
@@ -1943,6 +2058,26 @@ async function syncVerbinden() {
     if (info) info.textContent = "❌ Keine Verbindung.";
   }
 }
+function syncEinladungsLink() {
+  // Code im URL-FRAGMENT (#): erreicht niemals Server oder Logs
+  return location.origin + "/#sync=" + encodeURIComponent(syncCode);
+}
+async function syncEinladen() {
+  if (!syncCode) return;
+  const url = syncEinladungsLink();
+  const text = "Tippe diesen Link an, dann verbindet sich dein " +
+    "Familien-Assistent automatisch mit unserer Familie: " + url;
+  if (navigator.share) {
+    try { await navigator.share({ title: "Familien-Assistent", text }); return; }
+    catch (e) { /* abgebrochen -> Fallback */ }
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    speak("Der Einladungs-Link ist kopiert. Schick ihn per " +
+      "WhatsApp oder S M S an den Partner.", true);
+  } catch (e) { prompt("Link manuell kopieren:", url); }
+}
+
 function syncTrennen(wegenPlus) {
   syncCode = "";
   syncStand = 0;
@@ -2784,6 +2919,7 @@ async function rechercheRezept(istWiederholung) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         device: deviceId(),
+        code: (typeof syncCode !== "undefined" && syncCode) || "",
         wunsch: wunsch,
         unvertraeglichkeiten: selectedIntolerances(),
         ernaehrungsformen: ernaehrungsformen,
@@ -4001,6 +4137,16 @@ function reminderOk() {
   setInterval(checkErinnerungen, 30000);
   setTimeout(checkErinnerungen, 3000);
   try { syncAnzeige(); syncAbholen(); } catch (e) {}
+  try {
+    const m = location.hash.match(/sync=([A-Za-z2-9-]+)/);
+    if (m && !syncCode) {
+      const feld = document.getElementById("syncCodeEingabe");
+      if (feld) feld.value = decodeURIComponent(m[1]);
+      history.replaceState(null, "", location.pathname); // Code aus Adresszeile
+      goTab("familie");
+      syncVerbinden();
+    }
+  } catch (e) {}
   const vEl = document.getElementById("appVersion");
   if (vEl) vEl.textContent = "Version " + APP_VERSION;
 

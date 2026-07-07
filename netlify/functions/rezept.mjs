@@ -50,7 +50,132 @@ async function pruefeTageskontingent(device) {
 }
 
 const MODEL = process.env.LLM_MODEL || "claude-haiku-4-5-20251001";
+import crypto from "node:crypto";
+
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
+
+/** Muss identisch zu termine.mjs bleiben (Plus-Kanal-Hash). */
+function kanalVonCode(code) {
+  const c = String(code || "").trim().toUpperCase();
+  if (!/^FAM-[A-Z2-9]{5}-[A-Z2-9]{5}$/.test(c)) return null;
+  return crypto.createHash("sha256").update("ka1|" + c)
+    .digest("hex").slice(0, 32);
+}
+
+async function redisEinzel(command) {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+  try {
+    const r = await fetch(url, {
+      method: "POST",
+      headers: { Authorization: "Bearer " + token,
+        "Content-Type": "application/json" },
+      body: JSON.stringify(command),
+    });
+    if (!r.ok) return null;
+    return (await r.json()).result;
+  } catch (e) { return null; }
+}
+
+/** Genereller Modellaufruf mit Zeitbudget (fuer den Wochenplan). */
+async function rufeModell(apiKey, prompt, headers) {
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), 20000);
+  try {
+    const resp = await fetch(ANTHROPIC_URL, {
+      method: "POST",
+      signal: ctrl.signal,
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 6000,
+        temperature: 0.8,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+    clearTimeout(timeout);
+    if (!resp.ok) {
+      console.error("Wochenplan-LLM-Fehler", resp.status);
+      return { httpFehler: { statusCode: 502, headers,
+        body: JSON.stringify({ success: false,
+          error: "Die Wochenplanung ist gerade nicht erreichbar. " +
+            "Bitte gleich nochmal versuchen." }) } };
+    }
+    const data = await resp.json();
+    return { text: (data.content || [])
+      .filter((c) => c.type === "text").map((c) => c.text).join("\n") };
+  } catch (e) {
+    clearTimeout(timeout);
+    return { httpFehler: { statusCode: 504, headers,
+      body: JSON.stringify({ success: false,
+        error: "Die Wochenplanung hat zu lange gebraucht. " +
+          "Bitte nochmal versuchen." }) } };
+  }
+}
+
+function wochenplanPrompt(p) {
+  const allergTxt = p.unvertraeglichkeiten.length
+    ? p.unvertraeglichkeiten.join(", ") : "keine";
+  const dietTxt = p.ernaehrungsformen.length
+    ? p.ernaehrungsformen.join(", ") : "keine Einschränkung";
+  const stilTxt = p.stile.length ? p.stile.join(", ") : "keine besondere";
+  return `Du bist ein erfahrener Familienkoch. Plane GENAU 7 \
+unterschiedliche, alltagstaugliche ABENDESSEN fuer eine Familienwoche \
+(Montag bis Sonntag), abwechslungsreich ueber die Woche.
+
+HARTE REGELN (NICHT VERHANDELBAR – Verstoss = Gericht unbrauchbar):
+- AUSGESCHLOSSENE ALLERGENE: ${allergTxt}. Verwende KEINE Zutat, die \
+dieses Allergen enthaelt – auch keine versteckten Quellen (z.B. \
+Sellerie in Bruehe, Gluten in Sojasauce, Laktose in Butter/Sahne/Kaese).
+- ERNAEHRUNGSFORM (fuer ALLE 7 Gerichte zwingend): ${dietTxt}. \
+vegetarisch = kein Fleisch und kein Fisch/Meerestier. \
+pescetarisch = kein Fleisch (Fisch erlaubt). \
+vegan = keine Tierprodukte. \
+lowcarb = keine Nudeln/Reis/Kartoffeln/Brot als Hauptbeilage.
+
+WEICHE PRAEFERENZ: Stil ${stilTxt}.
+ZEITRAHMEN je Gericht: ${p.minuten_min} bis ${p.minuten_max} Minuten.
+
+AUSGABEFORMAT: Antworte AUSSCHLIESSLICH mit gueltigem JSON, ohne \
+Markdown, ohne Kommentar:
+{
+  "plan": [
+    {
+      "name": "Name des Gerichts",
+      "timeMin": 30,
+      "ingredients": [
+        { "name": "Zutat", "qty": 200, "unit": "g" }
+      ]
+    }
+  ]
+}
+Mengen fuer 2 Erwachsene + 2 Kinder. Einheiten nur: g, kg, ml, l, \
+EL, TL, Stueck, Prise, Dose, Bund.`;
+}
+
+function normalizePlanItem(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const name = String(raw.name || "").trim().slice(0, 80);
+  if (!name) return null;
+  let timeMin = Number.parseInt(raw.timeMin, 10);
+  if (!Number.isFinite(timeMin) || timeMin < 5 || timeMin > 180) timeMin = 30;
+  const zutaten = (Array.isArray(raw.ingredients) ? raw.ingredients : [])
+    .map((z) => {
+      const zName = String((z && z.name) || "").trim().slice(0, 60);
+      const qty = Number(z && z.qty);
+      const unit = String((z && z.unit) || "").trim().slice(0, 12);
+      if (!zName || !Number.isFinite(qty) || qty <= 0 || qty > 5000)
+        return null;
+      return { name: zName, qty, unit };
+    }).filter(Boolean).slice(0, 15);
+  if (!zutaten.length) return null;
+  return { name, timeMin, ingredients: zutaten };
+}
 
 // ---- Erlaubte Vokabulare (muessen mit dem Frontend uebereinstimmen) ----
 const ALLERGEN_CODES = ["gluten","laktose","nuesse","ei","erdnuss","soja",
@@ -330,9 +455,63 @@ export const handler = async (event) => {
       error: "Ungültige Anfrage." }) };
   }
 
-  // Tageskontingent VOR dem teuren KI-Aufruf pruefen
+  // Plus-Status (Familien-Code) VOR allen Kontingenten aufloesen
   const device = String((body && body.device) || "").slice(0, 64);
-  const kontingent = await pruefeTageskontingent(device);
+  const kanal = kanalVonCode(body && body.code);
+  const plusOk = kanal
+    ? Boolean(await redisEinzel(["GET", "plus:" + kanal])) : false;
+
+  // ===== WOCHENPLAN-AUTOMATIK (Plus-Kernfeature) =====
+  if (body && body.modus === "wochenplan") {
+    if (!plusOk) {
+      // Kostprobe fuer Free: 1 Plan pro Monat und Geraet
+      const monat = new Date().toISOString().slice(0, 7);
+      const frei = await redisEinzel(["SET",
+        "wpfrei:" + device + ":" + monat, "1", "NX", "EX", "2764800"]);
+      if (frei !== "OK") {
+        return { statusCode: 402, headers, body: JSON.stringify({
+          success: false, limit: "monat",
+          error: "Euer kostenloser Wochenplan diesen Monat ist " +
+            "aufgebraucht. Mit Familien-Plus (29 €/Jahr, " +
+            "Founder-Angebot) plant ihr unbegrenzt – kurze E-Mail an " +
+            "info@gustav-4.de genügt." }) };
+      }
+    }
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) return { statusCode: 500, headers, body: JSON.stringify({
+      success: false, error: "Server nicht konfiguriert." }) };
+    const p = {
+      unvertraeglichkeiten: saubereListe(body.unvertraeglichkeiten,
+        ALLERGEN_CODES),
+      ernaehrungsformen: saubereListe(body.ernaehrungsformen, DIET_CODES),
+      stile: (Array.isArray(body.stile) ? body.stile : [])
+        .map((s) => String(s).slice(0, 20)).slice(0, 6),
+      minuten_min: Math.min(120, Math.max(5,
+        Number.parseInt(body.minuten_min, 10) || 15)),
+      minuten_max: Math.min(180, Math.max(10,
+        Number.parseInt(body.minuten_max, 10) || 60)),
+    };
+    const antwortKI = await rufeModell(apiKey, wochenplanPrompt(p), headers);
+    if (antwortKI.httpFehler) return antwortKI.httpFehler;
+    const json = extractJson(antwortKI.text);
+    const roh = json && Array.isArray(json.plan) ? json.plan : [];
+    // Schema haerten + deterministischer Sicherheitsfilter (wie Rezepte)
+    const plan = roh.map(normalizePlanItem).filter(Boolean)
+      .filter((g) => !verletztAllergen(g, p.unvertraeglichkeiten))
+      .filter((g) => !verletztDiet(g, p.ernaehrungsformen))
+      .slice(0, 7);
+    if (plan.length < 5) {
+      return { statusCode: 502, headers, body: JSON.stringify({
+        success: false, error: "Die Wochenplanung hat kein sicheres " +
+          "Ergebnis geliefert. Bitte gleich nochmal versuchen." }) };
+    }
+    return { statusCode: 200, headers,
+      body: JSON.stringify({ success: true, plan }) };
+  }
+
+  // Tageskontingent VOR dem teuren KI-Aufruf pruefen (Plus: aufgehoben)
+  const kontingent = plusOk ? { erlaubt: true }
+    : await pruefeTageskontingent(device);
   if (!kontingent.erlaubt) {
     return { statusCode: 429, headers, body: JSON.stringify({
       success: false, limit: true,

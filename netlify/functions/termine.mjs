@@ -98,6 +98,20 @@ export const handler = async (event) => {
         const plus = await redis(["GET", "plus:" + kanal]);
         if (!plus) return antwort(402, { success: false, plus: false,
           error: "Dieser Familien-Code ist nicht freigeschaltet." });
+        // Geraete-Limit: max. 5 Handys pro Familie (pseudonymer Hash)
+        const gid = cleanId(körper.device);
+        if (gid) {
+          const gKey = "syncgeraete:" + kanal;
+          const gHash = crypto.createHash("sha256")
+            .update("g1|" + gid).digest("hex").slice(0, 16);
+          await redis(["SADD", gKey, gHash]);
+          const anzahl = Number(await redis(["SCARD", gKey])) || 0;
+          if (anzahl > 5) {
+            await redis(["SREM", gKey, gHash]);
+            return antwort(403, { success: false, error:
+              "Geräte-Limit erreicht (5 Handys pro Familie)." });
+          }
+        }
         const blob = String(körper.blob || "");
         if (!blob || blob.length > 250000)
           return antwort(413, { success: false,

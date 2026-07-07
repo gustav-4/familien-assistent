@@ -52,6 +52,28 @@ export const handler = async (event) => {
       body: JSON.stringify({ success: false }) };
   try {
     const body = JSON.parse(event.body || "{}");
+
+    // LOESCHEN (Betreiber): einzelner Eintrag oder alles
+    if (body.loeschen_eintrag !== undefined || body.loeschen === "alle") {
+      const soll = process.env.ADMIN_TOKEN;
+      if (!soll || body.admin_token !== soll)
+        return { statusCode: 401, headers,
+          body: JSON.stringify({ success: false, error: "Kein Zugriff" }) };
+      if (body.loeschen === "alle") {
+        await redis(["DEL", "feedback"]);
+      } else {
+        // Exakten Rohtext-Eintrag entfernen (erste Fundstelle)
+        await redis(["LREM", "feedback", "1",
+          String(body.loeschen_eintrag).slice(0, 2000)]);
+      }
+      // Digest-Zaehler angleichen: alles bis hier gilt als gesehen,
+      // sonst bliebe der Mo/Do-Push nach dem Aufraeumen stumm
+      const laenge = Number(await redis(["LLEN", "feedback"])) || 0;
+      await redis(["SET", "digest:cursor", String(laenge)]);
+      return { statusCode: 200, headers,
+        body: JSON.stringify({ success: true, verbleibend: laenge }) };
+    }
+
     const text = String(body.text || "").trim().slice(0, 600);
     if (text.length < 3)
       return { statusCode: 400, headers,
