@@ -642,6 +642,13 @@
     <button class="btn ghost" id="stdToggle" type="button"
             onclick="toggleStdRezepte()">📖 Standard-Rezepte anzeigen</button>
     <div id="recipeList" class="hidden"></div>
+      <div class="muted" style="font-size:.8rem;margin-top:8px">
+        ℹ️ Jedes Rezept wird doppelt gegen eure Allergie- und
+        Ernährungsangaben geprüft. Laut geltender Rechtslage weisen
+        wir dennoch darauf hin: Werft bei Allergien beim Einkauf
+        bitte einen kurzen Blick auf die Zutatenliste der Produkte –
+        unsere Vorschläge ersetzen keine medizinische Beratung.
+      </div>
     <button class="btn big" id="toShopBtn" disabled
             onclick="buildShoppingList();goTab('einkauf')">
       Einkaufsliste erstellen</button>
@@ -1480,7 +1487,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION12";
+const APP_VERSION = "FUSION13";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -1877,8 +1884,11 @@ async function wpPlanen() {
     vbSave();
     try { renderMatrix(); } catch (e) {}
     try { renderVerbrauch(); } catch (e) {}
-    if (info) info.textContent = "✅ " + plan.length +
-      " Abendessen geplant, " + artikel + " Artikel auf der Einkaufsliste.";
+    if (info) info.innerHTML = "✅ " + plan.length +
+      " Abendessen geplant, " + artikel + " Artikel auf der Einkaufsliste. " +
+      "<span style=\"font-size:.8rem\">ℹ️ Doppelt gegen eure " +
+      "Angaben geprüft – bei Allergien bitte zusätzlich kurz die " +
+      "Zutatenliste der Produkte checken.</span>";
     speak("Fertig! " + plan.length + " Abendessen stehen im Wochenplan, " +
       "und die Einkaufsliste hat " + artikel +
       " Artikel in euren Familienmengen. Guten Appetit!", true);
