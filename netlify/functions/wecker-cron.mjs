@@ -94,6 +94,38 @@ async function sendeWecksignal(sub, keys) {
   return r.status;
 }
 
+/** Digest-Zeitfenster: Montag + Donnerstag, 18-Uhr-Stunde (Berlin). */
+export function digestFaellig(jetztMs) {
+  const teile = new Intl.DateTimeFormat("de-DE", {
+    timeZone: "Europe/Berlin", weekday: "short",
+    hour: "2-digit", hour12: false,
+  }).formatToParts(new Date(jetztMs));
+  const wd = (teile.find((p) => p.type === "weekday") || {}).value || "";
+  const h = Number((teile.find((p) => p.type === "hour") || {}).value);
+  return (wd.startsWith("Mo") || wd.startsWith("Do")) && h === 18;
+}
+
+/** Feedback-Digest an den Betreiber (2x woechentlich, max. 1 Push/Tag). */
+async function feedbackDigest(keys, jetzt, bericht) {
+  const owner = process.env.OWNER_DEVICE;
+  if (!owner || !digestFaellig(jetzt)) return;
+  const heute = new Date(jetzt).toISOString().slice(0, 10);
+  // Tages-Sperre: verhindert Doppel-Push innerhalb des 18-Uhr-Fensters
+  const [sperre] = await redisPipeline([
+    ["SET", "digest:gesendet:" + heute, "1", "NX", "EX", "90000"]]);
+  if (sperre !== "OK") return;
+  const [len, cursorRaw, subRaw] = await redisPipeline([
+    ["LLEN", "feedback"], ["GET", "digest:cursor"], ["GET", "sub:" + owner]]);
+  const neu = Math.max(0, Number(len || 0) - Number(cursorRaw || 0));
+  bericht.digest = { neu };
+  if (!neu || !subRaw) return;
+  // Anzahl fuer den Service Worker hinterlegen + Cursor vorruecken
+  await redisPipeline([
+    ["SET", "ff:digest:" + owner, String(neu), "EX", "21600"],
+    ["SET", "digest:cursor", String(len)]]);
+  bericht.digest.status = await sendeWecksignal(JSON.parse(subRaw), keys);
+}
+
 export const handler = async () => {
   const bericht = { geraete: 0, signale: 0, tot: 0,
     schluesselFehler: 0, fehler: [] };
@@ -102,6 +134,9 @@ export const handler = async () => {
     const geraete = ((await redis(["SMEMBERS", "geraete"])) || [])
       .slice(0, 500);
     bericht.geraete = geraete.length;
+    const jetzt0 = Date.now();
+    try { await feedbackDigest(keys, jetzt0, bericht); }
+    catch (e) { bericht.fehler.push("digest: " + String(e.message || e).slice(0, 60)); }
     if (!geraete.length) {
       console.log("WECKER-CRON", JSON.stringify(bericht));
       return { statusCode: 200, body: JSON.stringify(bericht) };

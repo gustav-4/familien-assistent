@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Feedback-Postfach – Familien-Assistent</title>
+<style>
+  :root { --accent:#c4704b; --bg:#f7f1e6; --card:#fffdf8; --muted:#8a7f6f; }
+  body { font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:var(--bg); color:#3a3630; margin:0; padding:16px; }
+  main { max-width:680px; margin:0 auto; }
+  .karte { background:var(--card); border-radius:12px; padding:14px 16px;
+    margin-bottom:12px; box-shadow:0 2px 10px rgba(120,100,70,.12); }
+  h1 { color:#a85a38; font-size:1.3rem; margin:4px 0 12px; }
+  input { padding:10px; border:1px solid #ccc; border-radius:8px;
+    width:220px; max-width:60%; }
+  button { padding:10px 14px; border:0; border-radius:8px;
+    background:var(--accent); color:#fff; font-weight:bold; cursor:pointer; }
+  .muted { color:var(--muted); font-size:.85rem; }
+  .eintrag { border-left:4px solid var(--accent); padding:8px 10px;
+    margin:8px 0; background:#faf6ee; border-radius:6px; }
+  .eintrag .kopf { font-size:.8rem; color:var(--muted); }
+  code { background:#eee6d8; padding:2px 6px; border-radius:6px; }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>📬 Feedback-Postfach</h1>
+
+  <div class="karte">
+    <label for="tok"><b>Zugangs-Token:</b></label>
+    <input type="password" id="tok" placeholder="ADMIN_TOKEN">
+    <button type="button" onclick="laden()">Laden</button>
+    <p class="muted">Der Token wird nur auf diesem Gerät gemerkt. Er muss
+    dem Wert der Netlify-Umgebungsvariable <code>ADMIN_TOKEN</code>
+    entsprechen.</p>
+  </div>
+
+  <div class="karte">
+    <b>Deine Gerätekennung</b> (für die Umgebungsvariable
+    <code>OWNER_DEVICE</code>, damit der Digest-Push <i>dieses</i> Handy
+    erreicht – dort öffnen!):<br>
+    <code id="devid">–</code>
+    <button type="button" style="padding:6px 10px" onclick="kopiere()">Kopieren</button>
+    <p class="muted">Digest-Zeitplan: Montag &amp; Donnerstag, 18-Uhr-Stunde –
+    nur wenn es seit dem letzten Mal neue Einträge gibt.</p>
+  </div>
+
+  <div class="karte">
+    <div id="status" class="muted">Noch nichts geladen.</div>
+    <div id="liste"></div>
+  </div>
+
+  <p class="muted"><a href="/">‹ Zurück zur App</a></p>
+</main>
+<script>
+function kopiere() {
+  const t = document.getElementById("devid").textContent;
+  try { navigator.clipboard.writeText(t); alert("Kopiert: " + t); }
+  catch (e) { prompt("Manuell kopieren:", t); }
+}
+(function initToken() {
+  try {
+    document.getElementById("devid").textContent =
+      localStorage.getItem("ka_device") || "(App auf diesem Gerät zuerst öffnen)";
+    const t = localStorage.getItem("ka_admin_token");
+    if (t) { document.getElementById("tok").value = t; laden(); }
+  } catch (e) {}
+})();
+async function laden() {
+  const status = document.getElementById("status");
+  const liste = document.getElementById("liste");
+  const tok = document.getElementById("tok").value.trim();
+  if (!tok) { status.textContent = "Bitte Token eingeben."; return; }
+  try { localStorage.setItem("ka_admin_token", tok); } catch (e) {}
+  status.textContent = "Lade …";
+  liste.innerHTML = "";
+  try {
+    const r = await fetch("/api/feedback?token=" + encodeURIComponent(tok));
+    if (r.status === 401) { status.textContent = "❌ Falscher Token."; return; }
+    if (!r.ok) { status.textContent = "❌ Server-Fehler " + r.status; return; }
+    const d = await r.json();
+    status.textContent = "✅ " + d.anzahl + " Einträge (neueste zuerst):";
+    for (const e of d.eintraege) {
+      const div = document.createElement("div");
+      div.className = "eintrag";
+      const kopf = document.createElement("div");
+      kopf.className = "kopf";
+      kopf.textContent = (e.zeit || "?").replace("T", " ").slice(0, 16) +
+        " · Bereich: " + (e.bereich || "?") +
+        " · Gerät: " + String(e.geraet || "?").slice(0, 10) + "…";
+      const text = document.createElement("div");
+      text.textContent = e.text || "";
+      div.appendChild(kopf);
+      div.appendChild(text);
+      liste.appendChild(div);
+    }
+  } catch (e) {
+    status.textContent = "❌ Keine Verbindung.";
+  }
+}
+</script>
+</body>
+</html>

@@ -79,7 +79,13 @@ export const handler = async (event) => {
       if (!device) return antwort(400, { error: "device fehlt" });
       const raw = await redis(["GET", "wecker:" + device]);
       const plan = raw ? JSON.parse(raw) : { eintraege: [] };
-      return antwort(200, { refs: anzeigeRefs(plan, Date.now()) });
+      // Feedback-Digest (nur fuer das Betreiber-Geraet hinterlegt):
+      // Zahl einmalig abholen und zuruecksetzen (GETDEL)
+      let digest = 0;
+      try {
+        digest = Number(await redis(["GETDEL", "ff:digest:" + device])) || 0;
+      } catch (e) { /* aeltere Redis ohne GETDEL: dann kein Digest */ }
+      return antwort(200, { refs: anzeigeRefs(plan, Date.now()), digest });
     }
 
     if (event.httpMethod === "POST") {

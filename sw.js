@@ -9,7 +9,7 @@
  * dieses Strings reicht, damit der Browser die sw.js als
  * geändert erkennt und den Update-Zyklus (Weg A) auslöst.
  */
-const VERSION = "app-fusion8";
+const VERSION = "app-fusion9";
 
 self.addEventListener("install", (e) => self.skipWaiting());
 
@@ -78,6 +78,20 @@ self.addEventListener("push", (e) => {
           gezeigt++;
         }
       }
+      // Feedback-Digest fuer den Betreiber
+      try {
+        const dNeu = Number(data && data.digest) || 0;
+        if (dNeu > 0) {
+          await self.registration.showNotification("Familien-Assistent", {
+            body: "📬 " + dNeu + " neue Rückmeldung" +
+              (dNeu === 1 ? "" : "en") + " – Postfach öffnen",
+            tag: "ka-feedback",
+            icon: "/icon.svg",
+            data: { url: "/feedback-admin.html" },
+          });
+          gezeigt++;
+        }
+      } catch (err) {}
     } catch (err) { /* faellt unten in den Fallback */ }
     if (gezeigt === 0) {
       try { await fallbackNotification(); } catch (err) {}
@@ -95,9 +109,10 @@ self.addEventListener("notificationclick", (e) => {
       body: JSON.stringify({ device: d.device, bestaetige: d.ref }),
     }).catch(() => {}));
   } else {
+    const ziel = d.url || "/";
     e.waitUntil(clients.matchAll({ type: "window" }).then((wins) => {
-      if (wins.length) return wins[0].focus();
-      return clients.openWindow("/");
+      if (ziel === "/" && wins.length) return wins[0].focus();
+      return clients.openWindow(ziel);
     }));
   }
 });

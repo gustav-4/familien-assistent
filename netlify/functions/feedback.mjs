@@ -24,6 +24,29 @@ async function redis(command) {
 
 export const handler = async (event) => {
   const headers = { "Content-Type": "application/json" };
+
+  // LESEN (Betreiber-Postfach): GET ?token=ADMIN_TOKEN
+  if (event.httpMethod === "GET") {
+    const soll = process.env.ADMIN_TOKEN;
+    const ist = (event.queryStringParameters || {}).token || "";
+    if (!soll || ist !== soll)
+      return { statusCode: 401, headers,
+        body: JSON.stringify({ success: false, error: "Kein Zugriff" }) };
+    try {
+      const roh = (await redis(["LRANGE", "feedback", "0", "199"])) || [];
+      const eintraege = roh.map((s) => {
+        try { return JSON.parse(s); } catch (e) { return { text: s }; }
+      });
+      return { statusCode: 200, headers,
+        body: JSON.stringify({ success: true,
+          anzahl: eintraege.length, eintraege }) };
+    } catch (e) {
+      return { statusCode: 500, headers,
+        body: JSON.stringify({ success: false,
+          error: String(e.message || e).slice(0, 100) }) };
+    }
+  }
+
   if (event.httpMethod !== "POST")
     return { statusCode: 405, headers,
       body: JSON.stringify({ success: false }) };
