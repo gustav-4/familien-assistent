@@ -17,6 +17,38 @@
 // Gateway-Timeout. Haiku schafft das Fenster zuverlaessig.
 // Wer Sonnet-Qualitaet will: LLM_MODEL setzen UND auf eine
 // Hintergrund-Architektur wechseln (Ausbaustufe, auf Wunsch).
+// KOSTEN-DECKEL (Phase 0): Tageskontingent pro Geraet. Schuetzt
+// vor unbegrenzten API-Kosten. Ohne Upstash-Zugangsdaten oder bei
+// Redis-Stoerung laeuft die Recherche ungebremst weiter
+// (Verfuegbarkeit schlaegt Sperre).
+const TAGESLIMIT = Number(process.env.RECHERCHE_TAGESLIMIT || 5);
+
+async function pruefeTageskontingent(device) {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token || !device) return { erlaubt: true };
+  try {
+    const heute = new Date().toISOString().slice(0, 10);
+    const key = `rl:rezept:${device}:${heute}`;
+    const resp = await fetch(url + "/pipeline", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + token,
+        "Content-Type": "application/json" },
+      body: JSON.stringify([["INCR", key], ["EXPIRE", key, "93600", "NX"]]),
+    });
+    if (!resp.ok) return { erlaubt: true };
+    const data = await resp.json();
+    const anzahl = Number(data && data[0] && data[0].result);
+    if (Number.isFinite(anzahl) && anzahl > TAGESLIMIT) {
+      return { erlaubt: false, anzahl };
+    }
+    return { erlaubt: true, anzahl };
+  } catch (e) {
+    console.error("Kontingent-Pruefung fehlgeschlagen", e);
+    return { erlaubt: true };
+  }
+}
+
 const MODEL = process.env.LLM_MODEL || "claude-haiku-4-5-20251001";
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
@@ -297,6 +329,18 @@ export const handler = async (event) => {
     return { statusCode: 400, headers, body: JSON.stringify({ success: false,
       error: "Ungültige Anfrage." }) };
   }
+
+  // Tageskontingent VOR dem teuren KI-Aufruf pruefen
+  const device = String((body && body.device) || "").slice(0, 64);
+  const kontingent = await pruefeTageskontingent(device);
+  if (!kontingent.erlaubt) {
+    return { statusCode: 429, headers, body: JSON.stringify({
+      success: false, limit: true,
+      error: "Euer Tageskontingent von " + TAGESLIMIT + " KI-Recherchen " +
+        "ist erreicht – morgen gibt es frische Ideen! (Der Deckel " +
+        "schützt die App vor Missbrauch.)" }) };
+  }
+
 
   let minMin = parseInt(body.minuten_min, 10);
   let minMax = parseInt(body.minuten_max, 10);

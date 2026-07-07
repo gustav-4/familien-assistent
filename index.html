@@ -304,6 +304,11 @@
     <p>Nach kurzer Zeit wird es selbstverständlich – und dann spart
     sie euch jeden Tag Denkarbeit, Zettelwirtschaft und das
     „Ach-Mist-vergessen“-Gefühl. <b>Es wird sich für euch lohnen. 💛</b></p>
+    <div class="ob-funk">💬 <b>Euer Draht zu uns – der Feedback-Knopf:</b>
+    Unten in der App findet ihr „Feedback geben“. Fehlt euch etwas,
+    klemmt ein Ablauf oder habt ihr eine Idee? <b>Bitte nutzt ihn!</b>
+    Jede Rückmeldung fließt direkt in die Weiterentwicklung – ihr
+    formt diese App mit.</div>
    </div>
 
   </div>
@@ -1796,7 +1801,9 @@ const OB_SAG = [
   "Und zum Schluss ganz ehrlich: Die App hilft nur, wenn ihr sie " +
     "auch benutzt. Gebt euch ein paar Tage – dann wird es " +
     "selbstverständlich, und es wird sich für euch lohnen! " +
-    "Tippt auf: Los geht's.",
+    "Und noch eine Bitte: Nutzt den Feedback-Knopf unten in der App " +
+    "für Wünsche und Probleme – ihr formt die App mit. " +
+    "Tippt jetzt auf: Los geht's.",
 ];
 
 
@@ -2563,6 +2570,7 @@ async function rechercheRezept(istWiederholung) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        device: deviceId(),
         wunsch: wunsch,
         unvertraeglichkeiten: selectedIntolerances(),
         ernaehrungsformen: ernaehrungsformen,
@@ -2572,6 +2580,18 @@ async function rechercheRezept(istWiederholung) {
         vermeide: bisherigeNamen,
       }),
     });
+    if (r.status === 429) {
+      // Tageskontingent erreicht - freundlich erklaeren statt Fehler
+      let d = null;
+      try { d = await r.json(); } catch (e) {}
+      const meldung = (d && d.error) ||
+        "Das Tageskontingent an KI-Recherchen ist erreicht – morgen " +
+        "gibt es frische Ideen!";
+      status.textContent = "⏳ " + meldung;
+      speak(meldung, true);
+      btn.disabled = false;
+      return;
+    }
     if (!r.ok) {
       status.textContent = fehlermeldungRecherche(location.protocol, r.status);
       btn.disabled = false;
