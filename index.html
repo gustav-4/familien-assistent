@@ -412,6 +412,22 @@
       die Mengen für Rezepte und Einkaufsliste.</p>
       <button class="btn ghost" type="button" onclick="onboardingOeffnen()">
         📖 Einführung &amp; Einrichtung erneut ansehen</button>
+      <div class="karte" style="margin-top:10px">
+        <b>👨‍👩‍👧 Familien-Sync</b> <span class="muted">(Plus)</span><br>
+        <span class="muted">Termine, Mitglieder &amp; Listen auf allen
+        Handys der Familie – Ende-zu-Ende-verschlüsselt: Der Code ist
+        der Schlüssel, unser Server sieht nur unlesbares Chiffrat.</span>
+        <div id="syncFormular" style="margin-top:8px">
+          <input type="text" id="syncCodeEingabe"
+                 placeholder="FAM-XXXXX-XXXXX" style="max-width:190px">
+          <button class="btn" type="button" onclick="syncVerbinden()">Verbinden</button>
+        </div>
+        <div id="syncVerbunden" class="hidden" style="margin-top:8px">
+          <button class="btn ghost" type="button" onclick="syncTrennen()">Trennen</button>
+        </div>
+        <div id="syncStatus" class="muted" style="margin-top:6px"></div>
+        <div id="syncInfo" class="muted" style="margin-top:6px"></div>
+      </div>
       <div style="margin-top:12px">
         <label style="display:block;margin-bottom:6px"><b>Euer
         Familienprofil</b> – Grundlage für Rezeptmengen, Ernährungsform,
@@ -1460,7 +1476,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION9";
+const APP_VERSION = "FUSION10";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -1759,6 +1775,193 @@ function gvRoute(said) {
     startTerminDialog(k.rest && k.rest.length > 3 ? k.rest : null);
   }
 }
+
+// =====================================================
+// FAMILIEN-SYNC (Plus) - Ende-zu-Ende-verschluesselt
+// Der Familien-Code ist zugleich der Schluessel. Der Server
+// sieht nur Chiffrat + Zeitstempel unter einem Code-Hash -
+// das Versprechen "Klartexte nur auf euren Geraeten" bleibt wahr.
+// =====================================================
+let syncCode = "";
+try { syncCode = localStorage.getItem("ka_sync_code") || ""; } catch (e) {}
+let syncStand = 0;
+try { syncStand = Number(localStorage.getItem("ka_sync_stand")) || 0; } catch (e) {}
+let syncTimer = null;
+let syncAktivSendung = false;
+
+async function syncSchluessel(code) {
+  const enc = new TextEncoder();
+  const basis = await crypto.subtle.importKey("raw",
+    enc.encode(String(code).trim().toUpperCase()), "PBKDF2", false,
+    ["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt: enc.encode("ka-familien-sync-v1"),
+      iterations: 150000, hash: "SHA-256" },
+    basis, { name: "AES-GCM", length: 256 }, false,
+    ["encrypt", "decrypt"]);
+}
+function syncB64(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+}
+function syncB64zurueck(s) {
+  return Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+}
+async function syncVerschluesseln(objekt, code) {
+  const key = await syncSchluessel(code);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key,
+    new TextEncoder().encode(JSON.stringify(objekt)));
+  return syncB64(iv) + "." + syncB64(ct);
+}
+async function syncEntschluesseln(blob, code) {
+  const [ivB, ctB] = String(blob).split(".");
+  const key = await syncSchluessel(code);
+  const klar = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: syncB64zurueck(ivB) }, key,
+    syncB64zurueck(ctB));
+  return JSON.parse(new TextDecoder().decode(klar));
+}
+
+function syncDaten() {
+  return { termine, routinen, mitglieder, verbrauch: vState };
+}
+function syncUebernehmen(d) {
+  if (!d || typeof d !== "object") return;
+  if (Array.isArray(d.termine)) termine = d.termine;
+  if (Array.isArray(d.routinen)) routinen = d.routinen;
+  if (Array.isArray(d.mitglieder)) mitglieder = d.mitglieder;
+  if (d.verbrauch && typeof d.verbrauch === "object") vState = d.verbrauch;
+  try {
+    localStorage.setItem("ka_termine", JSON.stringify(termine));
+    localStorage.setItem("ka_routinen", JSON.stringify(routinen));
+    localStorage.setItem("ka_mitglieder", JSON.stringify(mitglieder));
+    localStorage.setItem("ka_verbrauch", JSON.stringify(vState));
+  } catch (e) {}
+  try { renderMembers(); } catch (e) {}
+  try { renderTermineTab(); } catch (e) {}
+  try { renderVerbrauch(); } catch (e) {}
+  syncAnzeige();
+}
+
+// Nach jeder lokalen Aenderung: gebuendelt (2,5 s) hochladen
+function syncGeplant() {
+  if (!syncCode) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(syncSenden, 2500);
+}
+async function syncSenden() {
+  if (!syncCode || syncAktivSendung) return;
+  syncAktivSendung = true;
+  try {
+    const stand = Date.now();
+    const blob = await syncVerschluesseln(syncDaten(), syncCode);
+    const r = await fetch("/api/termine", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: syncCode, blob, stand }),
+    });
+    if (r.status === 402) { syncTrennen(true); return; }
+    if (r.ok) {
+      syncStand = stand;
+      try { localStorage.setItem("ka_sync_stand", String(stand)); } catch (e) {}
+      syncAnzeige();
+    }
+  } catch (e) { /* Netzfehler: naechster Anlauf beim Poll */ }
+  finally { syncAktivSendung = false; }
+}
+async function syncAbholen() {
+  if (!syncCode) return;
+  try {
+    const r = await fetch("/api/termine?code=" +
+      encodeURIComponent(syncCode));
+    if (r.status === 402) { syncTrennen(true); return; }
+    if (!r.ok) return;
+    const d = await r.json();
+    if (d.blob && Number(d.stand) > syncStand) {
+      const obj = await syncEntschluesseln(d.blob, syncCode);
+      syncStand = Number(d.stand);
+      try { localStorage.setItem("ka_sync_stand", String(syncStand)); } catch (e) {}
+      syncUebernehmen(obj);
+    }
+  } catch (e) {}
+}
+
+function syncAnzeige() {
+  const s = document.getElementById("syncStatus");
+  const verbunden = document.getElementById("syncVerbunden");
+  const formular = document.getElementById("syncFormular");
+  if (!s) return;
+  if (syncCode) {
+    if (verbunden) verbunden.classList.remove("hidden");
+    if (formular) formular.classList.add("hidden");
+    s.textContent = "✅ Verbunden: " + syncCode.slice(0, 9) + "…" +
+      (syncStand ? " (Stand " +
+        new Date(syncStand).toLocaleTimeString("de-DE",
+          { hour: "2-digit", minute: "2-digit" }) + ")" : "");
+  } else {
+    if (verbunden) verbunden.classList.add("hidden");
+    if (formular) formular.classList.remove("hidden");
+    s.textContent = "";
+  }
+}
+async function syncVerbinden() {
+  const eingabe = document.getElementById("syncCodeEingabe");
+  const info = document.getElementById("syncInfo");
+  const code = String((eingabe && eingabe.value) || "").trim().toUpperCase();
+  if (!/^FAM-[A-Z2-9]{5}-[A-Z2-9]{5}$/.test(code)) {
+    if (info) info.textContent =
+      "Bitte einen gültigen Code im Format FAM-XXXXX-XXXXX eingeben.";
+    return;
+  }
+  if (info) info.textContent = "Prüfe Code …";
+  try {
+    const r = await fetch("/api/termine?code=" + encodeURIComponent(code));
+    if (r.status === 402) {
+      if (info) info.innerHTML = "Dieser Code ist noch nicht " +
+        "freigeschaltet. Familien-Plus (unbegrenzte KI-Recherche + " +
+        "Familien-Sync) gibt es zum Founder-Preis von 29 €/Jahr – " +
+        "<a href=\"mailto:info@gustav-4.de?subject=Familien-Plus\">" +
+        "kurze E-Mail genügt</a>.";
+      return;
+    }
+    if (!r.ok) { if (info) info.textContent =
+      "❌ Server-Fehler " + r.status + " – bitte nochmal versuchen."; return; }
+    const d = await r.json();
+    syncCode = code;
+    try { localStorage.setItem("ka_sync_code", code); } catch (e) {}
+    syncStand = 0;
+    if (d.blob) {
+      await syncAbholen(); // vorhandenen Familienstand uebernehmen
+    } else {
+      await syncSenden();  // erster im Kanal: lokalen Stand hochladen
+    }
+    if (info) info.textContent = "";
+    syncAnzeige();
+    speak("Familien-Sync ist verbunden. Termine und Listen werden " +
+      "jetzt verschlüsselt geteilt.", true);
+  } catch (e) {
+    if (info) info.textContent = "❌ Keine Verbindung.";
+  }
+}
+function syncTrennen(wegenPlus) {
+  syncCode = "";
+  syncStand = 0;
+  try {
+    localStorage.removeItem("ka_sync_code");
+    localStorage.removeItem("ka_sync_stand");
+  } catch (e) {}
+  syncAnzeige();
+  const info = document.getElementById("syncInfo");
+  if (wegenPlus && info) info.textContent =
+    "Die Freischaltung dieses Codes ist abgelaufen.";
+}
+
+// Poll: jede Minute + sofort beim Zurueckkehren in die App
+setInterval(syncAbholen, 60000);
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) syncAbholen();
+});
+
 
 // ---------- App per Sprache beenden ----------
 // Ehrlicher Hinweis: Ein Browser-Tab darf sich aus Sicherheits-
@@ -2713,6 +2916,7 @@ function tSaveAll() {
     localStorage.setItem("ka_termine", JSON.stringify(termine));
   } catch (e) {}
   serverSync();
+  syncGeplant();
 }
 function deviceId() {
   let id = localStorage.getItem("ka_device");
@@ -3796,6 +4000,7 @@ function reminderOk() {
     });
   setInterval(checkErinnerungen, 30000);
   setTimeout(checkErinnerungen, 3000);
+  try { syncAnzeige(); syncAbholen(); } catch (e) {}
   const vEl = document.getElementById("appVersion");
   if (vEl) vEl.textContent = "Version " + APP_VERSION;
 
@@ -3950,6 +4155,7 @@ function vbSave() {
   try { localStorage.setItem("ka_verbrauch", JSON.stringify(vState)); }
   catch (e) {}
   serverSync();
+  try { syncGeplant(); } catch (e) {}
 }
 
 function vbInListe(id) {

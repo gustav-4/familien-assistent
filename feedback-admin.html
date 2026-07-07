@@ -49,6 +49,14 @@
   </div>
 
   <div class="karte">
+    <b>💎 Familien-Plus: neuen Code erzeugen</b>
+    <p class="muted">Nach Zahlungseingang klicken – den Code per E-Mail
+    an die Familie senden. Der Code ist zugleich ihr Schlüssel.</p>
+    <button type="button" onclick="plusCode()">Code erzeugen</button>
+    <code id="plusErgebnis"></code>
+  </div>
+
+  <div class="karte">
     <div id="status" class="muted">Noch nichts geladen.</div>
     <div id="liste"></div>
   </div>
@@ -69,6 +77,21 @@ function kopiere() {
     if (t) { document.getElementById("tok").value = t; laden(); }
   } catch (e) {}
 })();
+async function plusCode() {
+  const ziel = document.getElementById("plusErgebnis");
+  const tok = document.getElementById("tok").value.trim();
+  if (!tok) { ziel.textContent = "Erst Token eingeben."; return; }
+  ziel.textContent = "…";
+  try {
+    const r = await fetch("/api/termine", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plus_freischalten: true, admin_token: tok }),
+    });
+    const d = await r.json();
+    ziel.textContent = d.success ? d.code : ("❌ " + (d.error || r.status));
+  } catch (e) { ziel.textContent = "❌ Keine Verbindung."; }
+}
 async function laden() {
   const status = document.getElementById("status");
   const liste = document.getElementById("liste");
