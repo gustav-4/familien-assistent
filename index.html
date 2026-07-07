@@ -1457,6 +1457,11 @@ document.addEventListener("click", function ttsUnlock() {
 // startet das Zuhoeren direkt beim App-Aufruf - App oeffnen
 // und lossprechen.
 // =====================================================
+// Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
+// Footer + Sprachbefehl "Version" beantworten "Welche Version
+// laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
+const APP_VERSION = "FUSION8";
+
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
 // SYSTEM bei jedem Erkennungs-Neustart und laesst sich per Web-App
@@ -1615,6 +1620,7 @@ function erkenneKommando(text) {
   const t = String(text).toLowerCase().trim()
     .replace(/[.,!?]+$/g, "");
   if (/^(stopp|stop|sei still|ruhe|leise)$/.test(t)) return { typ: "still" };
+  if (/^(?:app[- ]?)?version$/.test(t)) return { typ: "version" };
   if (/^(?:einführung|einfuehrung|anleitung|tour|einrichtung)$/.test(t)) {
     return { typ: "einfuehrung" };
   }
@@ -1688,6 +1694,10 @@ function gvRoute(said) {
   const k = erkenneKommando(said);
   if (!k) return; // Alltagsgespraech ignorieren
   if (k.typ === "still") { window.speechSynthesis.cancel(); return; }
+  if (k.typ === "version") {
+    speak("Es läuft Version " + APP_VERSION + ".", true);
+    return;
+  }
   if (k.typ === "einfuehrung") { onboardingOeffnen(); return; }
   if (k.typ === "mikro_aus") {
     GlobalVoice.aktiv = false; // verhindert jeden Neustart
@@ -3786,6 +3796,9 @@ function reminderOk() {
     });
   setInterval(checkErinnerungen, 30000);
   setTimeout(checkErinnerungen, 3000);
+  const vEl = document.getElementById("appVersion");
+  if (vEl) vEl.textContent = "Version " + APP_VERSION;
+
   // Lokal geoeffnet (Doppelklick auf die Datei)? Dann klar sagen,
   // was hier nicht geht, statt kryptischer Einzel-Fehlermeldungen.
   // Geführte Ersteinrichtung beim allerersten Start (v11)
@@ -4231,7 +4244,7 @@ function vbVoiceCheckoffToggle() {
 <script src="/install.js" defer></script>
 <footer id="rechtsFooter">
   <a href="/impressum.html">Impressum</a> ·
-  <a href="/datenschutz.html">Datenschutz</a>
+  <a href="/datenschutz.html">Datenschutz</a> · <span id="appVersion"></span>
 </footer>
 </body>
 </html>
