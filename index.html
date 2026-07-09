@@ -2351,6 +2351,14 @@ function obFertig(uebersprungen) {
   try { localStorage.setItem(OB_FLAG, "1"); } catch (e) {}
   const o = document.getElementById("onboarding");
   if (o) o.classList.add("hidden");
+  // Mikrofon-Berechtigung direkt nach der Einführung einholen:
+  // Der Klick auf "Los geht's" ist die Nutzer-Geste, die Browser
+  // dafür verlangen - besser Moment gibt es nicht.
+  try {
+    if (typeof gvStart === "function" && !GlobalVoice.gestartet) {
+      gvStart();
+    }
+  } catch (e) {}
   if (!uebersprungen) {
     speak("Fertig eingerichtet! Sagt zum Beispiel: Rezept – und euren " +
       "Wunsch. Oder: Hilfe.", true);
