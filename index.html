@@ -436,6 +436,9 @@
                 style="margin-top:6px;max-width:230px"></select>
         <button class="btn ghost" type="button"
                 onclick="stimmeProbe()">▶ Probe hören</button>
+        <br><span class="muted">Klangfarbe:</span>
+        <select id="klangWahl" onchange="klangGewaehlt()"
+                style="margin-top:4px;max-width:230px"></select>
       </div>
       </div>
       <div style="margin-top:12px">
@@ -1354,6 +1357,29 @@ function unmuteMic() {
 // (bekannter speechSynthesis-Fehler). Deshalb wird der Text jetzt
 // in kurze Saetze/Stuecke zerlegt und als Kette gesprochen - jedes
 // Stueck bleibt unter der kritischen Laenge.
+// ---------- TTS-Säuberung ----------
+// Die Vorlese-Stimme soll SPRECHEN, nicht beschreiben: Icons/Emojis
+// fliegen raus (sonst sagt sie "Bratpfanne und Spiegelei"), und
+// eingeklammerte Einschübe werden zu natürlichen Komma-Einschüben
+// (sonst verfaellt die Stimme in seltsame Klammer-Betonung).
+// Die SICHTBARE Sprechblase zeigt weiterhin den Originaltext.
+function ttsSaeubern(text) {
+  let t = String(text);
+  // (Einschub) -> , Einschub,
+  t = t.replace(/\s*\(([^()]{1,120})\)/g, ", $1,");
+  // Emojis, Piktogramme, Dingbats, Pfeile, Varianten-Selektoren
+  t = t.replace(/[\u{1F000}-\u{1FAFF}\u{2300}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}\u{2049}\u{203C}]/gu, " ");
+  // Zier-/Steuerzeichen, die Stimmen vorlesen oder verschlucken
+  t = t.replace(/[«»‹›„“”·•▪◦✓✔✗♀♂👍]/g, " ");
+  // Satzzeichen-Hygiene nach den Ersetzungen
+  t = t.replace(/\s+,/g, ",").replace(/,{2,}/g, ",");
+  t = t.replace(/,\s*([.!?])/g, "$1");
+  t = t.replace(/\s{2,}/g, " ").trim();
+  t = t.replace(/^,\s*/, "").replace(/,\s*$/, ".");
+  return t;
+}
+
+
 function speakChunks(text) {
   const stuecke = [];
   const saetze = String(text).match(/[^.!?…]+[.!?…]*\s*/g) || [String(text)];
@@ -1415,6 +1441,45 @@ if (window.speechSynthesis && window.speechSynthesis.addEventListener) {
     stimmenAuswahlFuellen();
   });
 }
+// ---------- Klangfarben (Tonhoehe/Tempo-Presets) ----------
+const KLANGFARBEN = {
+  standard:   { pitch: 1.0,  rate: 0.95,
+    name: "Natürlich",       probe: "Hallo! Ich bin die natürliche Klangfarbe." },
+  ruhig:      { pitch: 0.85, rate: 0.92,
+    name: "Ruhig & tief",    probe: "Hallo! Ich spreche ruhig und gelassen mit euch." },
+  freundlich: { pitch: 1.15, rate: 0.97,
+    name: "Hell & freundlich", probe: "Hallo! Ich bin die helle, freundliche Klangfarbe!" },
+  flott:      { pitch: 1.05, rate: 1.15,
+    name: "Flott & munter",  probe: "Hallo! Mit mir geht alles ein bisschen flotter!" },
+};
+function klangAktuell() {
+  let k = "standard";
+  try { k = localStorage.getItem("ka_klang") || "standard"; } catch (e) {}
+  return KLANGFARBEN[k] || KLANGFARBEN.standard;
+}
+function klangGewaehlt() {
+  const sel = document.getElementById("klangWahl");
+  if (!sel) return;
+  try { localStorage.setItem("ka_klang", sel.value); } catch (e) {}
+  const k = KLANGFARBEN[sel.value] || KLANGFARBEN.standard;
+  speak(k.probe + " So lese ich eure Rezepte vor.", true);
+}
+function klangAuswahlFuellen() {
+  const sel = document.getElementById("klangWahl");
+  if (!sel) return;
+  let akt = "standard";
+  try { akt = localStorage.getItem("ka_klang") || "standard"; } catch (e) {}
+  sel.innerHTML = "";
+  Object.keys(KLANGFARBEN).forEach((key) => {
+    const o = document.createElement("option");
+    o.value = key;
+    o.textContent = KLANGFARBEN[key].name;
+    if (key === akt) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+
 function stimmeAktuelle() {
   let uri = "";
   try { uri = localStorage.getItem("ka_stimme") || ""; } catch (e) {}
@@ -1455,7 +1520,8 @@ function stimmeProbe() {
 
 function speak(text, interrupt) {
   try {
-    gvSprechblase(text); // Text IMMER auch anzeigen
+    gvSprechblase(text); // Sprechblase zeigt ORIGINAL
+    text = ttsSaeubern(text); // gesprochen wird die Saubere Fassung
     muteMic();
     if (interrupt) window.speechSynthesis.cancel();
 
@@ -1495,8 +1561,11 @@ function speak(text, interrupt) {
       const u = new SpeechSynthesisUtterance(stueck);
       const sv = stimmeAktuelle();
       if (sv) u.voice = sv;
+      const kf = klangAktuell();
+      u.pitch = kf.pitch;
+      u.rate = kf.rate;
       u.lang = "de-DE";
-      u.rate = 0.95;
+      // Lesetempo kommt aus der Klangfarbe (Basis frueher: 0.95)
       u.onstart = () => { gestartet = true; ttsStartete = true;
         ttsActive = true; };
       u.onend = finish;
@@ -1551,7 +1620,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION15";
+const APP_VERSION = "FUSION15B";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -4262,7 +4331,7 @@ function reminderOk() {
     });
   setInterval(checkErinnerungen, 30000);
   setTimeout(checkErinnerungen, 3000);
-  try { stimmenAuswahlFuellen(); } catch (e) {}
+  try { stimmenAuswahlFuellen(); klangAuswahlFuellen(); } catch (e) {}
   try { syncAnzeige(); syncAbholen(); } catch (e) {}
   try {
     const m = location.hash.match(/sync=([A-Za-z2-9-]+)/);
