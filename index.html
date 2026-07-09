@@ -428,6 +428,15 @@
         </div>
         <div id="syncStatus" class="muted" style="margin-top:6px"></div>
         <div id="syncInfo" class="muted" style="margin-top:6px"></div>
+      <div class="karte" style="margin-top:10px">
+        <b>🔊 Vorlese-Stimme</b><br>
+        <span class="muted">Welche Stimme soll euch beim Kochen
+        begleiten? Antippen = Hörprobe.</span><br>
+        <select id="stimmeWahl" onchange="stimmeGewaehlt()"
+                style="margin-top:6px;max-width:230px"></select>
+        <button class="btn ghost" type="button"
+                onclick="stimmeProbe()">▶ Probe hören</button>
+      </div>
       </div>
       <div style="margin-top:12px">
         <label style="display:block;margin-bottom:6px"><b>Euer
@@ -1391,6 +1400,59 @@ function gvSprechblase(text) {
 let ttsStartete = false;      // hat der Browser JE eine Ansage gestartet?
 let ttsNotausTimer = null;    // Zwangs-Entstummung (Deadlock-Schutz)
 
+// ---------- Vorlese-Stimme (waehlbar, Geraete-Stimmen) ----------
+let stimmenCache = [];
+function stimmenLaden() {
+  try {
+    stimmenCache = (window.speechSynthesis.getVoices() || [])
+      .filter((v) => String(v.lang).toLowerCase().startsWith("de"));
+  } catch (e) { stimmenCache = []; }
+  return stimmenCache;
+}
+if (window.speechSynthesis && window.speechSynthesis.addEventListener) {
+  window.speechSynthesis.addEventListener("voiceschanged", () => {
+    stimmenLaden();
+    stimmenAuswahlFuellen();
+  });
+}
+function stimmeAktuelle() {
+  let uri = "";
+  try { uri = localStorage.getItem("ka_stimme") || ""; } catch (e) {}
+  if (!uri) return null;
+  if (!stimmenCache.length) stimmenLaden();
+  return stimmenCache.find((v) => v.voiceURI === uri) || null;
+}
+function stimmenAuswahlFuellen() {
+  const sel = document.getElementById("stimmeWahl");
+  if (!sel) return;
+  const stimmen = stimmenLaden();
+  let uri = "";
+  try { uri = localStorage.getItem("ka_stimme") || ""; } catch (e) {}
+  sel.innerHTML = "";
+  const std = document.createElement("option");
+  std.value = "";
+  std.textContent = "Standard-Stimme des Geräts";
+  sel.appendChild(std);
+  stimmen.forEach((v) => {
+    const o = document.createElement("option");
+    o.value = v.voiceURI;
+    o.textContent = v.name + " (" + v.lang + ")";
+    if (v.voiceURI === uri) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+function stimmeGewaehlt() {
+  const sel = document.getElementById("stimmeWahl");
+  if (!sel) return;
+  try { localStorage.setItem("ka_stimme", sel.value); } catch (e) {}
+  stimmeProbe();
+}
+function stimmeProbe() {
+  speak("Hallo! So klinge ich beim Vorlesen eurer Rezepte. " +
+    "Guten Appetit!", true);
+}
+
+
 function speak(text, interrupt) {
   try {
     gvSprechblase(text); // Text IMMER auch anzeigen
@@ -1431,6 +1493,8 @@ function speak(text, interrupt) {
     let gestartet = false;
     for (const stueck of speakChunks(text)) {
       const u = new SpeechSynthesisUtterance(stueck);
+      const sv = stimmeAktuelle();
+      if (sv) u.voice = sv;
       u.lang = "de-DE";
       u.rate = 0.95;
       u.onstart = () => { gestartet = true; ttsStartete = true;
@@ -1487,7 +1551,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION14";
+const APP_VERSION = "FUSION15";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -1872,11 +1936,11 @@ async function wpPlanen() {
     }));
     let artikel = 0;
     Object.values(summen).forEach((s, idx) => {
-      const menge = s.qty >= 10 ? Math.round(s.qty)
-        : Math.round(s.qty * 10) / 10;
+      const eintragText = smartQty(
+        { name: s.name, qty: s.qty, unit: s.unit }, 1);
       vState.liste.push({
         id: "wp" + basis + "_z" + idx,
-        name: (menge + " " + s.unit + " " + s.name).trim(),
+        name: eintragText,
         laden: "",
       });
       artikel++;
@@ -2185,7 +2249,15 @@ function obZeige() {
   const weiter = document.getElementById("obWeiterBtn");
   if (weiter) weiter.textContent =
     obIndex === OB_SCHRITTE - 1 ? "🚀 Los geht's!" : "Weiter ›";
-  if (obOffen && OB_SAG[obIndex]) speak(OB_SAG[obIndex], true);
+  if (obOffen) {
+    // Kompletten sichtbaren Seitentext vorlesen (Wunsch: nicht nur
+    // Zusammenfassung). Knoepfe/Navigation bleiben stumm.
+    const el = document.querySelector(
+      '.ob-step[data-ob="' + obIndex + '"]');
+    let volltext = el ? el.innerText.replace(/\s+/g, " ").trim() : "";
+    if (volltext.length > 1200) volltext = volltext.slice(0, 1200);
+    speak(volltext || (OB_SAG[obIndex] || ""), true);
+  }
 }
 
 function onboardingOeffnen() {
@@ -2444,7 +2516,7 @@ function renderFavoriten() {
     cook.className = "btn green";
     cook.textContent = "🍳 Nochmal kochen";
     cook.onclick = () => {
-      selectedRecipe = r;
+      selectedRecipe = r._skaliert ? r : skaliereRezept(r, portionFactor());
       document.getElementById("toShopBtn").disabled = false;
       buildShoppingList();
       goTab("einkauf");
@@ -2532,7 +2604,7 @@ function rezeptVorstellungsText(r, f) {
 
 function rezeptVorstellen(r) {
   try {
-    speak(rezeptVorstellungsText(r, portionFactor()), true);
+    speak(rezeptVorstellungsText(selectedRecipe, 1), true);
   } catch (e) {
     speak(`${r.name} ausgewählt. Zum Loskochen sagt: Kochen.`, true);
   }
@@ -2580,7 +2652,7 @@ function renderRecipes() {
     div.innerHTML = `<h2>${r.name}</h2>` +
       `<p class="muted">${r.time} &nbsp; ${tags}</p>${hinweisHtml}`;
     div.onclick = () => {
-      selectedRecipe = r;
+      selectedRecipe = r._skaliert ? r : skaliereRezept(r, portionFactor());
       document.getElementById("toShopBtn").disabled = false;
       renderRecipes();
       rezeptVorstellen(r);
@@ -2599,7 +2671,7 @@ function renderRecipes() {
     div.innerHTML = `<h2>${r.name}</h2>` +
       `<p class="muted">${r.time} &nbsp; ${tags}</p>`;
     div.onclick = () => {
-      selectedRecipe = r;
+      selectedRecipe = r._skaliert ? r : skaliereRezept(r, portionFactor());
       document.getElementById("toShopBtn").disabled = false;
       renderRecipes();
       rezeptVorstellen(r);
@@ -2644,6 +2716,48 @@ function renderRecipes() {
 // =====================================================
 // INTELLIGENTE MENGEN-RUNDUNG
 // =====================================================
+// Skalierte MENGE als Zahl+Einheit (fuer Text-Ersetzungen)
+function smartMenge(ing, f) {
+  const voll = smartQty(ing, f);
+  const name = String(ing.name);
+  return voll.endsWith(name)
+    ? voll.slice(0, voll.length - name.length).trim() : voll;
+}
+function zahlVarianten(q) {
+  const a = String(q);
+  const b = a.replace(".", ",");
+  return a === b ? [a] : [a, b];
+}
+/** Rezept EINMAL aufs Familienprofil festschreiben. Ersetzt auch
+ * Mengenangaben in der Schritt-Prosa ("Koche 200 g Reis" ->
+ * skalierte Menge), damit Vorstellung, Liste und Kochen
+ * durchgehend DIESELBEN Zahlen sprechen. */
+function skaliereRezept(r, f) {
+  const kopie = JSON.parse(JSON.stringify(r));
+  kopie._skaliert = true;
+  (kopie.ingredients || []).forEach((ing) => {
+    const neu = smartMenge(ing, f);
+    (kopie.steps || []).forEach((s) => {
+      ["text", "announce"].forEach((feld) => {
+        if (!s[feld]) return;
+        zahlVarianten(ing.qty).forEach((z) => {
+          const re = new RegExp(
+            "\\b" + z.replace(",", "[.,]") + "\\s*" + ing.unit + "\\b", "g");
+          s[feld] = s[feld].replace(re, neu);
+        });
+      });
+    });
+    // Zutat selbst festschreiben (Anzeige danach mit Faktor 1)
+    const m = neu.match(/^([\d.,]+)\s*(.*)$/);
+    if (m) {
+      ing.qty = Number(m[1].replace(",", "."));
+      if (m[2]) ing.unit = m[2];
+    }
+  });
+  return kopie;
+}
+
+
 function smartQty(ing, f) {
   const q = ing.qty * f;
   const unit = ing.unit;
@@ -2679,7 +2793,7 @@ function smartQty(ing, f) {
 
 function buildShoppingList() {
   if (!selectedRecipe) return;
-  const f = portionFactor();
+  const f = selectedRecipe._skaliert ? 1 : portionFactor();
   const ul = document.getElementById("shopList");
   ul.innerHTML = "";
   selectedRecipe.ingredients.forEach(ing => {
@@ -2787,7 +2901,7 @@ function renderStep() {
   document.getElementById("stepText").textContent =
     `Schritt ${stepIndex + 1} von ${steps.length}: ${steps[stepIndex].text}`;
   // Mengenangaben zum Schritt einblenden (skaliert aufs Familienprofil)
-  const zt = zutatenImSchritt(steps[stepIndex], selectedRecipe, portionFactor());
+  const zt = zutatenImSchritt(steps[stepIndex], selectedRecipe, selectedRecipe._skaliert ? 1 : portionFactor());
   document.getElementById("stepZutaten").textContent =
     zt.length ? "📏 " + zt.join("  ·  ") : "";
   document.getElementById("timerBox").classList.add("hidden");
@@ -2801,7 +2915,7 @@ function showStep() {
 
   renderStep();
   // Begleitspur inkl. Mengen - blockiert nichts
-  const ztSpruch = zutatenImSchritt(step, selectedRecipe, portionFactor());
+  const ztSpruch = zutatenImSchritt(step, selectedRecipe, selectedRecipe._skaliert ? 1 : portionFactor());
   speak(step.text + (ztSpruch.length
     ? " Mengen: " + ztSpruch.join(", ") + "." : ""));
 
@@ -4148,6 +4262,7 @@ function reminderOk() {
     });
   setInterval(checkErinnerungen, 30000);
   setTimeout(checkErinnerungen, 3000);
+  try { stimmenAuswahlFuellen(); } catch (e) {}
   try { syncAnzeige(); syncAbholen(); } catch (e) {}
   try {
     const m = location.hash.match(/sync=([A-Za-z2-9-]+)/);
