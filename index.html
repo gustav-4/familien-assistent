@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -1327,7 +1327,10 @@ let timerInterval = null;
 let reminderTimeout = null;
 let recognition = null;
 let listening = false;
-const REMINDER_SEC = 45;
+// Erinnerungs-Abstaende (Feedback 23.07.: "kommt so oft ... nervt"):
+// progressiv statt starr - je laenger ohne Reaktion, desto seltener.
+const REMINDER_STUFEN = [90, 150, 240];
+let reminderStufe = 0;
 
 // =====================================================
 // SPRACHAUSGABE (Text-to-Speech, im Browser eingebaut)
@@ -1335,6 +1338,32 @@ const REMINDER_SEC = 45;
 let ttsActive = false;
 let ttsCooldownUntil = 0;
 let micMuted = false;
+
+// ---------- Bildschirm wachhalten (Feedback 23.07.) ----------
+// Beim Kochen darf das Handy nicht in den Ruhezustand fallen -
+// mit Teigfingern entsperren ist der Tod des Kochmodus.
+let wakeLockHandle = null;
+async function wakeLockAn() {
+  try {
+    if (!navigator.wakeLock || wakeLockHandle) return;
+    wakeLockHandle = await navigator.wakeLock.request("screen");
+    wakeLockHandle.addEventListener("release", () => {
+      wakeLockHandle = null;
+    });
+  } catch (e) { wakeLockHandle = null; /* Gerät kann es nicht: egal */ }
+}
+function wakeLockAus() {
+  try {
+    if (wakeLockHandle) wakeLockHandle.release();
+  } catch (e) {}
+  wakeLockHandle = null;
+}
+// Nach Tab-Wechsel/Displaysperre gibt das System die Sperre frei -
+// beim Zurueckkehren in den Kochmodus erneut anfordern.
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && cookingVisible()) wakeLockAn();
+});
+
 
 function cookingVisible() {
   return !document.getElementById("tab-kochen").classList.contains("hidden");
@@ -1620,7 +1649,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION15B";
+const APP_VERSION = "FUSION16";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -1696,7 +1725,9 @@ function gvStart() {
       listening = false;
       // Automatische Ruhepause: lange nichts gehoert und kein
       // Dialog offen -> nicht neu starten (= kein Systemton mehr)
-      if (GlobalVoice.aktiv && !GlobalVoice.dialog
+      // Ruhepause NICHT im Kochmodus (Feedback 23.07.: "muss weiter
+      // aktiv bleiben") - beim Kochen sind die Hände belegt.
+      if (GlobalVoice.aktiv && !GlobalVoice.dialog && !cookingVisible()
           && Date.now() - gvLetztesErgebnis > GV_RUHE_MS) {
         GlobalVoice.aktiv = false;
         gvChip("🎤 Ruhepause – tippen zum Weiterhören", "aus");
@@ -1809,7 +1840,9 @@ function erkenneKommando(text) {
   if (m) return { typ: "termin", rest: m[1].trim() };
   m = t.match(/^(?:einkauf|einkaufen|kaufe|kaufen|besorge|besorgen|auf die liste)[:,]?\s*(.*)$/);
   if (m) return { typ: "einkauf", rest: m[1].trim() };
-  m = t.match(/^(?:gehe?|wechs(?:le|el)|zeige?|öffne)\s+(?:zu[rm]?\s+|zu\s+|die\s+|den\s+|das\s+)?([a-zäöüß]+)/);
+  // Fuellwoerter/Artikel beliebig oft ueberspringen ("gehe zu den
+  // terminen", "wechsle zur einkaufsliste", "zeige mir die rezepte")
+  m = t.match(/^(?:gehe?|wechs(?:le|el)|zeige?|öffne)\s+(?:(?:zu[rm]?|mir|bitte|die|den|das|dem|der)\s+)*([a-zäöüß]+)/);
   if (m && GV_TAB_WOERTER[m[1]]) return { typ: "nav", ziel: GV_TAB_WOERTER[m[1]] };
   return null;
 }
@@ -2949,6 +2982,7 @@ function startCooking() {
   favBtn.textContent = "⭐ Das war lecker – als Favorit speichern";
   speak(`Los geht's mit ${selectedRecipe.name}. Sag jeweils fertig, ` +
         `wenn ein Schritt geschafft ist.`, true);
+  wakeLockAn(); // Bildschirm bleibt an, solange gekocht wird
   showStep(); // laeuft sofort - unabhaengig von der Ansage
 }
 
@@ -2998,8 +3032,16 @@ function showStep() {
 
   // Timer/Erinnerung starten SOFORT (v3) - nicht erst nach der Ansage
   if (step.timer) startTimer(step);
-  else armReminder();
+  else armReminder(true); // neuer Schritt -> Abstand zurueck auf 90 s
 }
+
+// Wann soll die Restzeit angesagt werden? (pur & testbar)
+function restzeitAnsageFaellig(rest) {
+  if (rest > 300) return rest % 120 === 0;   // > 5 Min: alle 2 Minuten
+  if (rest >= 60) return rest % 60 === 0;    // 1-5 Min: jede Minute
+  return rest === 30 || rest === 10;         // Endspurt: 30 s und 10 s
+}
+
 
 function startTimer(step) {
   let remaining = step.timer;
@@ -3016,7 +3058,9 @@ function startTimer(step) {
     render();
     // Wunsch: Erinnerungsstimme meldet sich alle 45 Sekunden -
     // auch waehrend ein Koch-Timer laeuft (kurze Restzeit-Ansage)
-    if (remaining > 15 && remaining % 45 === 0) {
+    // Gestaffelte Restzeit-Ansagen (Feedback 23.07.: "sonst nervts")
+    // > 5 Min: alle 2 Min · 1-5 Min: jede Minute · < 1 Min: 30 s + 10 s
+    if (restzeitAnsageFaellig(remaining)) {
       const mm = Math.floor(remaining / 60);
       const ss = remaining % 60;
       speak("Noch " + (mm ? mm + (mm === 1 ? " Minute" : " Minuten") +
@@ -3026,18 +3070,22 @@ function startTimer(step) {
       clearInterval(timerInterval);
       box.textContent = "⏱ 0:00 – Zeit ist um!";
       speak(step.announce || "Die Zeit ist um.", true);
-      armReminder();
+      armReminder(true); // Timer vorbei -> Abstand zurueck auf 90 s
     }
   }, 1000);
 }
 
-function armReminder() {
+function armReminder(neuStarten) {
   clearTimeout(reminderTimeout);
+  if (neuStarten) reminderStufe = 0;
+  const sek = REMINDER_STUFEN[Math.min(reminderStufe,
+    REMINDER_STUFEN.length - 1)];
   reminderTimeout = setTimeout(() => {
     speak("Kleine Erinnerung: Sag fertig oder erledigt, wenn du soweit " +
           "bist. Sag wiederhole, wenn ich den Schritt nochmal sagen soll.");
+    reminderStufe++;
     armReminder();
-  }, REMINDER_SEC * 1000);
+  }, sek * 1000);
 }
 
 let lastConfirm = 0;
@@ -3213,6 +3261,7 @@ function flashStep() {
 }
 
 function clearTimers() {
+  wakeLockAus(); // Kochen beendet -> Bildschirm darf wieder schlafen
   clearInterval(timerInterval);
   clearTimeout(reminderTimeout);
 }
