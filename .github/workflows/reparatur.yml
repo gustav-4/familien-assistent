@@ -1,0 +1,87 @@
+name: QA-Reparatur
+
+# Wird NICHT von Hand gestartet, sondern vom Freigabe-Knopf im
+# QA-Postfach auf dem Handy (repository_dispatch).
+#   qa-reparatur -> Tor 1: bauen, testen, gegenpruefen, berichten
+#   qa-live      -> Tor 2: gepruefte Reparatur nach main uebernehmen
+on:
+  repository_dispatch:
+    types: [qa-reparatur, qa-live]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  reparatur:
+    name: Tor 1 - Reparatur bauen und pruefen
+    if: github.event.action == 'qa-reparatur'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+
+      - name: Reparaturvorschlag erzeugen und anwenden
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          BEFUND: ${{ github.event.client_payload.befund }}
+        run: node tests/reparatur.mjs --befund="$BEFUND"
+
+      - name: Harte Tests
+        id: tests
+        continue-on-error: true
+        run: |
+          node --check sw.js
+          for f in netlify/functions/*.mjs; do node --check "$f"; done
+          node tests/run.js
+
+      - name: Red-Team gegen die Reparatur
+        id: rt
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node tests/redteam.mjs --runden=1 --budget=8
+
+      - name: Reparatur als Pull Request ablegen
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: qa/reparatur
+          title: "QA-Reparatur (automatisch erzeugt, geprueft)"
+          commit-message: "QA-Reparatur nach Freigabe"
+          body: |
+            Automatisch erzeugte Reparatur nach Freigabe im QA-Postfach.
+
+            * Tests: ${{ steps.tests.outcome }}
+            * Red-Team: ${{ steps.rt.outcome }}
+
+            Berichte liegen unter `tests/berichte/`.
+            **Live geht das erst mit dem zweiten Freigabe-Knopf.**
+          delete-branch: false
+
+      - name: Bericht ans Handy melden
+        if: always()
+        env:
+          QA_TOKEN: ${{ secrets.QA_TOKEN }}
+        run: node tests/melde.mjs --anlass=reparatur
+          --tests=${{ steps.tests.outcome }} --rt=${{ steps.rt.outcome }}
+
+  live:
+    name: Tor 2 - Reparatur live schalten
+    if: github.event.action == 'qa-live'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Geprueften Zweig nach main uebernehmen
+        run: |
+          git config user.name "QA-Automatik"
+          git config user.email "qa@familienassistent.net"
+          if git show-ref --verify --quiet refs/remotes/origin/qa/reparatur; then
+            git merge --no-ff origin/qa/reparatur -m "QA: Reparatur live (Freigabe erteilt)"
+            git push origin main
+            echo "Merge erfolgt - Netlify deployt automatisch."
+          else
+            echo "Kein Reparatur-Zweig vorhanden - nichts zu tun."
+          fi
