@@ -43,6 +43,14 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node tests/redteam.mjs --runden=1 --budget=8
 
+      - name: Berichte sichern (vor dem Pull Request)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reparatur-berichte
+          path: tests/berichte/
+          if-no-files-found: warn
+
       - name: Reparatur als Pull Request ablegen
         uses: peter-evans/create-pull-request@v6
         with:
