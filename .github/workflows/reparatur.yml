@@ -51,6 +51,13 @@ jobs:
           path: tests/berichte/
           if-no-files-found: warn
 
+      - name: Bericht ans Handy melden
+        if: always()
+        env:
+          QA_TOKEN: ${{ secrets.QA_TOKEN }}
+        run: node tests/melde.mjs --anlass=reparatur
+          --tests=${{ steps.tests.outcome }} --rt=${{ steps.rt.outcome }}
+
       - name: Reparatur als Pull Request ablegen
         uses: peter-evans/create-pull-request@v6
         with:
@@ -67,12 +74,6 @@ jobs:
             **Live geht das erst mit dem zweiten Freigabe-Knopf.**
           delete-branch: false
 
-      - name: Bericht ans Handy melden
-        if: always()
-        env:
-          QA_TOKEN: ${{ secrets.QA_TOKEN }}
-        run: node tests/melde.mjs --anlass=reparatur
-          --tests=${{ steps.tests.outcome }} --rt=${{ steps.rt.outcome }}
 
   live:
     name: Tor 2 - Reparatur live schalten
