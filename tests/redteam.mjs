@@ -21,6 +21,10 @@ import { execFileSync } from "node:child_process";
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 const WURZEL = path.resolve(HIER, "..");
 const MODELL = process.env.REDTEAM_MODELL || "claude-fable-5";
+// Wenn das Red-Team-Modell nichts liefert (z. B. Budget im Nachdenken
+// verbraucht), uebernimmt ein bewaehrtes Modell - lieber ein Angriff
+// von einem anderen Modell als gar keiner.
+const RUECKFALL = process.env.REDTEAM_RUECKFALL || "claude-sonnet-4-6";
 const RUNDEN = Number((process.argv.find((a) => a.startsWith("--runden=")) || "").split("=")[1] || 1);
 const BERICHTE = path.join(HIER, "berichte");
 if (!fs.existsSync(BERICHTE)) fs.mkdirSync(BERICHTE, { recursive: true });
@@ -58,7 +62,7 @@ function appQuelltext() {
   return bloecke.map((b) => b.slice(8, -9)).join("\n;\n");
 }
 
-async function frageRedTeam(auszug, bekannteNamen, rundenNr) {
+async function frageRedTeam(auszug, bekannteNamen, rundenNr, modell) {
   const anweisung = `Du bist Red-Team-Tester fuer eine deutsche Familien-App.
 Deine Aufgabe: Finde Fehler, die dem Entwickler entgangen sind.
 
@@ -97,8 +101,11 @@ Regeln:
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: MODELL,
-      max_tokens: 2000,
+      model: modell || MODELL,
+      // Grosszuegig: manche Modelle denken erst ausfuehrlich nach und
+      // geben den eigentlichen Text erst danach aus. Ein zu knappes
+      // Budget liefert dann eine LEERE Antwort (HTTP 200, kein Text).
+      max_tokens: 8000,
       temperature: 1,
       messages: [{ role: "user", content: anweisung }],
     }),
@@ -108,8 +115,31 @@ Regeln:
       + " " + (await antwort.text()).slice(0, 200));
   }
   const daten = await antwort.json();
-  return (daten.content || [])
-    .filter((c) => c.type === "text").map((c) => c.text).join("\n");
+  return textAusAntwort(daten);
+}
+
+/**
+ * Holt den Text aus einer Modellantwort - unabhaengig davon, welche
+ * Blocktypen das Modell liefert (text, thinking, ...). Protokolliert
+ * ausserdem, WARUM eine Antwort leer war. Exportiert = testbar.
+ */
+export function textAusAntwort(daten, protokoll) {
+  const log = protokoll || ((s) => console.log("  " + s));
+  const bloecke = Array.isArray(daten && daten.content) ? daten.content : [];
+  const text = bloecke
+    .map((c) => (c && typeof c.text === "string") ? c.text : "")
+    .filter(Boolean)
+    .join("\n");
+  if (!text) {
+    log("Diagnose: stop_reason=" + (daten && daten.stop_reason)
+      + " · Bloecke=" + JSON.stringify(bloecke.map((c) => c && c.type))
+      + " · Tokens=" + JSON.stringify(daten && daten.usage));
+    if (daten && daten.stop_reason === "max_tokens") {
+      log("Ursache: Token-Budget aufgebraucht, bevor Text kam. "
+        + "max_tokens erhoehen oder Auszug verkleinern.");
+    }
+  }
+  return text;
 }
 
 /**
@@ -176,17 +206,27 @@ async function hauptlauf() {
   }
 
   let alleZeilen = [];
+  const benutzteModelle = new Set();
   for (let r = 1; r <= RUNDEN; r++) {
-    const roh = await frageRedTeam(auszug, bekannt.map((b) => b.slice(8, -1)), r);
-    const code = saeubereCode(roh);
+    const namen = bekannt.map((b) => b.slice(8, -1));
+    let roh = await frageRedTeam(auszug, namen, r, MODELL);
+    let code = saeubereCode(roh);
+    let quelle = MODELL;
+    if (!code) {
+      console.log(`  Runde ${r}: ${MODELL} lieferte nichts Verwertbares `
+        + `(${roh.length} Zeichen) - Rueckfall auf ${RUECKFALL}.`);
+      roh = await frageRedTeam(auszug, namen, r, RUECKFALL);
+      code = saeubereCode(roh);
+      quelle = RUECKFALL;
+    }
     const anzahl = code ? code.split("\n").length : 0;
-    console.log(`  Runde ${r}: ${roh.length} Zeichen Antwort, `
+    console.log(`  Runde ${r} (${quelle}): ${roh.length} Zeichen Antwort, `
       + `${anzahl} verwertbare Testfaelle.`);
-    if (!anzahl) {
+    if (!anzahl && roh) {
       console.log("  Antwortanfang zur Diagnose: "
         + roh.slice(0, 200).replace(/\n/g, " | "));
     }
-    if (code) alleZeilen.push(code);
+    if (code) { alleZeilen.push(code); benutzteModelle.add(quelle); }
   }
 
   const datei = path.join(HIER, "redteam-szenarien.js");
@@ -230,7 +270,7 @@ async function hauptlauf() {
 
   const zusammenfassung = {
     zeitpunkt: new Date().toISOString(),
-    modell: MODELL,
+    modell: [...benutzteModelle].join(" + ") || MODELL,
     erzeugteTestfaelle: alleZeilen.join("\n").split("\n").length,
     bestanden: bericht.bestanden,
     verdachtsfaelle: rtFehler,
