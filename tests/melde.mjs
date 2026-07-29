@@ -26,18 +26,35 @@ function lies(datei) {
   try { return JSON.parse(fs.readFileSync(p, "utf8")); } catch (e) { return null; }
 }
 
+export async function melden(argumente) {
 const lauf = lies("letzter-lauf.json");
 const rt = lies("redteam.json");
 const heilung = lies("heilung.json");
 const reparatur = lies("reparatur.json");
 
+/** Version IMMER direkt aus der App lesen - unabhaengig davon, ob der
+ *  Testbericht sie enthaelt. Robuster als jede Zwischenstation. */
+function versionAusApp() {
+  try {
+    const html = fs.readFileSync(path.join(HIER, "..", "index.html"), "utf8");
+    return (html.match(/APP_VERSION = "([^"]+)"/) || [])[1] || "";
+  } catch (e) { return ""; }
+}
+
+// Red-Team-Faelle stehen bereits in den Verdachtsfaellen. Ohne diesen
+// Filter erscheint derselbe Befund zweimal: als Fehler UND als Verdacht.
+function ohneRedTeam(liste) {
+  return (Array.isArray(liste) ? liste : [])
+    .filter((f) => !/^RT/.test(String(f && f.name)));
+}
+
 const bericht = {
-  version: (lauf && lauf.version) || "unbekannt",
+  version: versionAusApp() || (lauf && lauf.version) || "unbekannt",
   anlass: arg("anlass", "lauf"),
   gesamt: (lauf && lauf.gesamt) || 0,
   bestanden: (lauf && lauf.bestanden) || 0,
   fehlgeschlagen: (lauf && lauf.fehlgeschlagen) || 0,
-  fehler: (lauf && lauf.fehler) || [],
+  fehler: ohneRedTeam(lauf && lauf.fehler),
   verdachtsfaelle: (rt && rt.verdachtsfaelle) || [],
   selbstheilung: (heilung && heilung.protokoll) || [],
   lauf: process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY
@@ -50,7 +67,7 @@ const bericht = {
 if (reparatur && reparatur.begruendung) {
   bericht.fehler = bericht.fehler.concat([{
     name: "Reparatur angewendet: " + reparatur.begruendung,
-    fehlertext: "Tests: " + arg("tests", "?") + " · Red-Team: " + arg("rt", "?"),
+    fehlertext: "Tests: " + arg("tests", "?") + " Â· Red-Team: " + arg("rt", "?"),
   }]);
 }
 
@@ -61,7 +78,7 @@ catch (e) { console.error("Klartext uebersprungen: " + e.message); }
 
 if (!process.env.QA_TOKEN) {
   console.error("QA_TOKEN fehlt - Meldung uebersprungen.");
-  process.exit(0);
+  return { uebersprungen: true, bericht };
 }
 
 const antwort = await fetch(ZIEL, {
@@ -70,5 +87,14 @@ const antwort = await fetch(ZIEL, {
   body: JSON.stringify({ qa_token: process.env.QA_TOKEN, bericht }),
 });
 const text = await antwort.text();
-console.log("Meldung an " + ZIEL + ": HTTP " + antwort.status + " " + text.slice(0, 200));
-process.exit(antwort.ok ? 0 : 1);
+console.log("Meldung an " + ZIEL + ": HTTP " + antwort.status + " "
+  + text.slice(0, 200));
+return { ok: antwort.ok, status: antwort.status, bericht };
+}
+
+// Nur ausfuehren, wenn direkt gestartet (nicht beim Import im Test)
+if (process.argv[1] && process.argv[1].endsWith("melde.mjs")) {
+  melden().then((e) => process.exit(e && e.ok === false ? 1 : 0))
+    .catch((e) => { console.error("Meldung fehlgeschlagen: " + e.message);
+      process.exit(1); });
+}
