@@ -1,0 +1,103 @@
+name: Qualitaetssicherung
+
+# WANN LAEUFT WAS?
+#  - Bei jedem Commit auf main: deterministische Szenarien (kostenlos,
+#    ~5 Sekunden). Schlaegt etwas fehl, ist der Commit rot markiert.
+#  - Jede Nacht 03:00 Berlin: zusaetzlich das Red-Team (Fable 5).
+#  - Von Hand startbar ueber den Reiter "Actions" -> "Run workflow".
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 1 * * *"   # 01:00 UTC = 03:00 Berlin (Sommerzeit)
+  workflow_dispatch:
+    inputs:
+      redteam:
+        description: "Red-Team-Lauf erzwingen (kostet API-Guthaben)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  szenarien:
+    name: Deterministische Szenarien
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Syntaxpruefung aller Skripte
+        run: |
+          node --check sw.js
+          node --check install.js
+          for f in netlify/functions/*.mjs; do node --check "$f"; done
+
+      - name: Szenarien ausfuehren
+        run: node tests/run.js
+
+      - name: Bericht sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testbericht
+          path: tests/berichte/
+
+  redteam:
+    name: Red-Team (Fable 5)
+    needs: szenarien
+    if: github.event_name == 'schedule' || inputs.redteam
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Angriffs-Testfaelle erzeugen und ausfuehren
+        id: rt
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node tests/redteam.mjs --runden=2 --budget=8
+
+      - name: Selbstheilung anwenden
+        run: node tests/heilung.js
+
+      - name: Reparaturvorschlag als Pull Request
+        if: always()
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: qa/selbstheilung
+          title: "QA: Selbstheilung + Red-Team-Befunde"
+          commit-message: "QA: Attrappen-Luecken geschlossen, Systemkarte synchronisiert"
+          body: |
+            Automatischer Lauf der Qualitaetssicherung.
+
+            * `tests/berichte/redteam.json` enthaelt die Verdachtsfaelle
+              des Red-Teams (Modell Fable 5).
+            * `tests/berichte/letzter-lauf.json` enthaelt den vollen Bericht.
+            * Selbstheilung hat nur Testinfrastruktur veraendert â€“
+              **kein App-Code wurde automatisch geaendert.**
+
+            Bitte Verdachtsfaelle sichten: echter Defekt -> Fix beauftragen;
+            falsche Annahme -> Testfall verwerfen.
+          delete-branch: true
+
+      - name: Bericht ans Handy melden
+        if: always()
+        env:
+          QA_TOKEN: ${{ secrets.QA_TOKEN }}
+        run: node tests/melde.mjs --anlass=nacht
+
+      - name: Bericht sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redteam-bericht
+          path: tests/berichte/
