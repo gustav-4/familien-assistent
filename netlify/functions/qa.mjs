@@ -115,6 +115,7 @@ export const handler = async (event) => {
       fehlgeschlagen: Number(b.fehlgeschlagen) || 0,
       ueberschrift: String(b.ueberschrift || "").slice(0, 200),
       klartextHinweis: String(b.klartextHinweis || "").slice(0, 200),
+      stoerung: String(b.stoerung || "").slice(0, 300),
       verdachtsfaelle: (Array.isArray(b.verdachtsfaelle) ? b.verdachtsfaelle
         : []).slice(0, 25).map(befundFeld),
       fehler: (Array.isArray(b.fehler) ? b.fehler : []).slice(0, 25)
@@ -123,8 +124,13 @@ export const handler = async (event) => {
         ? b.selbstheilung.slice(0, 20).map((s) => String(s).slice(0, 200)) : [],
       lauf: String(b.lauf || "").slice(0, 200), // Link zum GitHub-Lauf
     };
+    // Eine Stoerung (z. B. KI nicht erreichbar) oder ein Lauf ohne
+    // jede Pruefung ist IMMER meldepflichtig - sonst wiegt sich der
+    // Betreiber in falscher Sicherheit.
     const auffaellig = kompakt.fehlgeschlagen > 0
-      || kompakt.verdachtsfaelle.length > 0;
+      || kompakt.verdachtsfaelle.length > 0
+      || Boolean(kompakt.stoerung)
+      || kompakt.gesamt === 0;
     const befehle = [
       ["SET", "qa:bericht", JSON.stringify(kompakt)],
       ["LPUSH", "qa:verlauf", JSON.stringify({

@@ -104,7 +104,9 @@ function zeichne(d) {
   const echte = b.fehler || [];
   const verdacht = b.verdachtsfaelle || [];
   let ampel = "a-gruen", ampelText = "Alles in Ordnung";
-  if (echte.length) { ampel = "a-rot"; ampelText = "Fehler gefunden"; }
+  if (!b.gesamt) { ampel = "a-rot"; ampelText = "Testlauf ausgefallen"; }
+  else if (echte.length) { ampel = "a-rot"; ampelText = "Fehler gefunden"; }
+  else if (b.stoerung) { ampel = "a-gelb"; ampelText = "Unvollständig"; }
   else if (verdacht.length) { ampel = "a-gelb"; ampelText = "Zu prüfen"; }
 
   let html = "";
@@ -112,6 +114,14 @@ function zeichne(d) {
   // --- Überblick in Alltagssprache ---
   html += "<div class='karte'>" +
     "<span class='ampel " + ampel + "'>" + ampelText + "</span>" +
+    (b.stoerung
+      ? "<div style='margin-top:10px;padding:8px 10px;background:#fdf2e0;" +
+        "border:1px solid #e2c48a;border-radius:8px'>⚠️ <b>Der Prüf-" +
+        "Durchgang war gestört:</b><br><span class='muted'>" +
+        entschaerfe(b.stoerung) + "</span><br>Häufigste Ursache: " +
+        "Das KI-Guthaben ist aufgebraucht – dann funktioniert auch die " +
+        "Rezept-Recherche in der App nicht.</div>"
+      : "") +
     (b.ueberschrift ? "<p style='margin-top:10px;font-size:1.05rem'><b>" +
       entschaerfe(b.ueberschrift) + "</b></p>" : "") +
     "<p style='margin-top:6px'><b>" + b.bestanden + " von " + b.gesamt +

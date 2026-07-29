@@ -77,5 +77,35 @@ p("Unbekannte Freigabe -> 400",
     admin_token: "admin-geheim", freigabe: "alles-loeschen" }) })).statusCode === 400);
 p("Genau 2 Workflow-Starts insgesamt", dispatches.length === 2);
 
+// Stoerung ist immer meldepflichtig (kein falsches "alles gruen")
+delete speicher["ff:qa:gOWNER"];
+const rS = await handler({ httpMethod: "POST", body: JSON.stringify({
+  qa_token: "qa-geheim", bericht: { version: "FUSION24", gesamt: 76,
+    bestanden: 76, fehlgeschlagen: 0, verdachtsfaelle: [], fehler: [],
+    stoerung: "HTTP 400 kein Guthaben" } }) });
+p("Gestoerter Lauf loest Handy-Meldung aus",
+  JSON.parse(rS.body).gemeldet === true);
+delete speicher["ff:qa:gOWNER"];
+const rN = await handler({ httpMethod: "POST", body: JSON.stringify({
+  qa_token: "qa-geheim", bericht: { version: "X", gesamt: 0, bestanden: 0,
+    fehlgeschlagen: 0, verdachtsfaelle: [], fehler: [] } }) });
+p("Lauf ohne jede Pruefung loest Handy-Meldung aus",
+  JSON.parse(rN.body).gemeldet === true);
+
+// Berichtsinhalt: die Felder, die das Postfach anzeigt
+// Bericht bei Bedarf selbst erzeugen - der Test soll unabhaengig
+// von der Reihenfolge der Suiten laufen.
+const fsm = await import("node:fs");
+if (!fsm.existsSync("tests/berichte/letzter-lauf.json")) {
+  (await import("node:child_process"))
+    .execFileSync("node", ["tests/run.js", "--json"], { stdio: "ignore" });
+}
+const echterBericht = JSON.parse(
+  fsm.readFileSync("tests/berichte/letzter-lauf.json", "utf8"));
+p("Bericht traegt echte Versionsnummer",
+  /^FUSION/.test(echterBericht.version));
+p("Bericht traegt Pruefzahlen (nicht 0 von 0)",
+  echterBericht.gesamt > 50 && echterBericht.bestanden > 50);
+
 console.log(`\nQA-Server: ${ok} bestanden, ${fail} fehlgeschlagen`);
 process.exit(fail ? 1 : 0);

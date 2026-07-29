@@ -66,6 +66,16 @@ export function ausWoerterbuch(name) {
 export function ueberschrift(bericht) {
   const echte = (bericht.fehler || []).length;
   const verdacht = (bericht.verdachtsfaelle || []).length;
+  // Ehrlichkeit vor Beruhigung: ein unvollstaendiger Lauf darf NIE
+  // als "alles in Ordnung" erscheinen.
+  if (!bericht.gesamt) {
+    return "Achtung: Der Testlauf ist gar nicht durchgelaufen - "
+      + "die Ergebnisse sagen nichts aus.";
+  }
+  if (bericht.stoerung) {
+    return "Testlauf unvollstaendig: Das Pruef-Modell war nicht "
+      + "erreichbar. Die uebrigen Pruefungen sind gelaufen.";
+  }
   if (!echte && !verdacht) {
     return "Alles in Ordnung - die App verhaelt sich wie vorgesehen.";
   }

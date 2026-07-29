@@ -187,6 +187,13 @@ async function hauptlauf() {
     console.error("ANTHROPIC_API_KEY fehlt - Red-Team uebersprungen.");
     process.exit(0);
   }
+  // Grundlauf ZUERST: Damit der Bericht auch dann echte Zahlen traegt,
+  // wenn der Modellaufruf spaeter scheitert (z. B. kein Guthaben).
+  try {
+    execFileSync("node", [path.join(HIER, "run.js"), "--json"],
+      { encoding: "utf8", cwd: WURZEL });
+  } catch (e) { /* Fehlschlaege stehen im Bericht, hier egal */ }
+
   const quelle = appQuelltext();
   const teile = ZIELFUNKTIONEN
     .map((n) => funktionAusQuelle(quelle, n))
@@ -207,7 +214,9 @@ async function hauptlauf() {
 
   let alleZeilen = [];
   const benutzteModelle = new Set();
+  let stoerung = "";
   for (let r = 1; r <= RUNDEN; r++) {
+   try {
     const namen = bekannt.map((b) => b.slice(8, -1));
     let roh = await frageRedTeam(auszug, namen, r, MODELL);
     let code = saeubereCode(roh);
@@ -227,6 +236,13 @@ async function hauptlauf() {
         + roh.slice(0, 200).replace(/\n/g, " | "));
     }
     if (code) { alleZeilen.push(code); benutzteModelle.add(quelle); }
+   } catch (e) {
+    // Typische Faelle: kein Guthaben, Zeitueberschreitung, Netzfehler.
+    // Der Lauf bricht NICHT ab - der Grundlauf oben zaehlt trotzdem.
+    stoerung = String(e && e.message || e).slice(0, 300);
+    console.log("  Runde " + r + " gestoert: " + stoerung);
+    break;
+   }
   }
 
   const datei = path.join(HIER, "redteam-szenarien.js");
@@ -240,8 +256,12 @@ async function hauptlauf() {
     fs.writeFileSync(path.join(BERICHTE, "redteam.json"),
       JSON.stringify({ zeitpunkt: new Date().toISOString(), modell: MODELL,
         erzeugteTestfaelle: 0, bestanden: 0, verdachtsfaelle: [],
-        bestandsfehler: [], hinweis:
-          "Das Pruef-Modell hat keine verwertbaren Testfaelle geliefert." },
+        bestandsfehler: [],
+        stoerung,
+        hinweis: stoerung
+          ? "Das Pruef-Modell war nicht erreichbar - der Angriffslauf "
+            + "fiel aus. Die uebrigen Pruefungen sind trotzdem gelaufen."
+          : "Das Pruef-Modell hat keine verwertbaren Testfaelle geliefert." },
         null, 2));
     process.exit(0);
   }
@@ -275,6 +295,7 @@ async function hauptlauf() {
     bestanden: bericht.bestanden,
     verdachtsfaelle: rtFehler,
     bestandsfehler: eigeneFehler,
+    stoerung,
   };
   fs.writeFileSync(path.join(BERICHTE, "redteam.json"),
     JSON.stringify(zusammenfassung, null, 2));

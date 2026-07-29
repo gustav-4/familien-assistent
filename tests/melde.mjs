@@ -57,6 +57,7 @@ const bericht = {
   fehler: ohneRedTeam(lauf && lauf.fehler),
   verdachtsfaelle: (rt && rt.verdachtsfaelle) || [],
   selbstheilung: (heilung && heilung.protokoll) || [],
+  stoerung: (rt && rt.stoerung) || "",
   lauf: process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY
     ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
       + `/actions/runs/${process.env.GITHUB_RUN_ID}`
@@ -67,7 +68,7 @@ const bericht = {
 if (reparatur && reparatur.begruendung) {
   bericht.fehler = bericht.fehler.concat([{
     name: "Reparatur angewendet: " + reparatur.begruendung,
-    fehlertext: "Tests: " + arg("tests", "?") + " Â· Red-Team: " + arg("rt", "?"),
+    fehlertext: "Tests: " + arg("tests", "?") + " · Red-Team: " + arg("rt", "?"),
   }]);
 }
 

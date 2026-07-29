@@ -17,16 +17,16 @@ p("Klartext ist deutsch und ohne Fachwort",
 
 // --- Ueberschrift ---
 p("Gruen -> beruhigende Ueberschrift",
-  /Alles in Ordnung/.test(ueberschrift({ fehler: [], verdachtsfaelle: [] })));
+  /Alles in Ordnung/.test(ueberschrift({ gesamt: 76, fehler: [], verdachtsfaelle: [] })));
 p("Einzahl korrekt",
-  ueberschrift({ fehler: [{}], verdachtsfaelle: [] }) === "1 echter Fehler gefunden.");
+  ueberschrift({ gesamt: 76, fehler: [{}], verdachtsfaelle: [] }) === "1 echter Fehler gefunden.");
 p("Mehrzahl + Verdacht korrekt",
-  ueberschrift({ fehler: [{}, {}], verdachtsfaelle: [{}] })
+  ueberschrift({ gesamt: 76, fehler: [{}, {}], verdachtsfaelle: [{}] })
   === "2 echte Fehler und 1 Verdachtsfall gefunden.");
 
 // --- Ohne API-Schluessel: Woerterbuch greift trotzdem ---
 delete process.env.ANTHROPIC_API_KEY;
-const b1 = await verstaendlichMachen({
+const b1 = await verstaendlichMachen({ gesamt: 76,
   fehler: [{ name: "D1 Zutat wird festgeschrieben" }],
   verdachtsfaelle: [{ name: "RT1-01 Grenzfall" }] });
 p("Ohne Schluessel: Klartext aus Woerterbuch",
@@ -43,7 +43,7 @@ globalThis.fetch = async () => ({ ok: true, json: async () => ({
       auswirkung: "Familien kaufen zu wenig ein.",
       vorschlag: "Die Umrechnung an einer Stelle zusammenfuehren.",
       dringlichkeit: "hoch" }] }) }] }) });
-const b2 = await verstaendlichMachen({
+const b2 = await verstaendlichMachen({ gesamt: 76,
   fehler: [{ name: "D1 Zutat" }], verdachtsfaelle: [] });
 p("Modell liefert Klartext", b2.fehler[0].klartext.includes("falsche Mengen"));
 p("Modell liefert Vorschlag", b2.fehler[0].vorschlag.includes("zusammenfuehren"));
@@ -51,12 +51,20 @@ p("Dringlichkeit uebernommen", b2.fehler[0].dringlichkeit === "hoch");
 
 // --- Modellausfall: Bericht geht trotzdem raus ---
 globalThis.fetch = async () => { throw new Error("Netz weg"); };
-const b3 = await verstaendlichMachen({
+const b3 = await verstaendlichMachen({ gesamt: 76,
   fehler: [{ name: "E1 Timer" }], verdachtsfaelle: [] });
 p("Modellausfall: Woerterbuch-Klartext bleibt",
   b3.fehler[0].klartext.includes("Restzeit"));
 p("Modellausfall: ehrlicher Hinweis",
   /nicht verfuegbar/.test(b3.klartextHinweis));
+
+// --- Ehrlichkeit bei gestoerten Laeufen ---
+p("Lauf ohne Pruefungen -> deutliche Warnung, kein 'alles ok'",
+  /gar nicht durchgelaufen/.test(ueberschrift({ gesamt: 0, fehler: [], verdachtsfaelle: [] })));
+p("Gestoerter Lauf -> ehrlich als unvollstaendig benannt",
+  /unvollstaendig/.test(ueberschrift({ gesamt: 76, stoerung: "HTTP 400", fehler: [], verdachtsfaelle: [] })));
+p("Vollstaendiger gruener Lauf bleibt beruhigend",
+  /Alles in Ordnung/.test(ueberschrift({ gesamt: 76, fehler: [], verdachtsfaelle: [] })));
 
 console.log(`\nKlartext: ${ok} bestanden, ${fail} fehlgeschlagen`);
 process.exit(fail ? 1 : 0);
