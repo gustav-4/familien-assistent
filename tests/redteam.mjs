@@ -84,6 +84,8 @@ Regeln:
 - Nur die oben gezeigten Funktionen verwenden, nichts erfinden.
 - Jeder Ausdruck muss ohne Browser laufen (kein document, kein fetch).
 - Kein Markdown, keine Backticks, keine Erklaerungen - nur die Zeilen.
+- JEDER Testfall steht auf EINER Zeile (keine Zeilenumbrueche innerhalb
+  eines pruefe-Aufrufs).
 - Wenn du glaubst, ein Verhalten sei falsch, schreibe den Testfall so,
   dass er das KORREKTE Verhalten fordert (er darf also fehlschlagen).`;
 
@@ -110,16 +112,46 @@ Regeln:
     .filter((c) => c.type === "text").map((c) => c.text).join("\n");
 }
 
-function saeubereCode(roh) {
-  return roh
-    .replace(/```[a-z]*/gi, "")
-    .split("\n")
-    .map((z) => z.trim())
-    .filter((z) => z.startsWith("pruefe(") && z.endsWith(";"))
-    .join("\n");
+/**
+ * Holt alle vollstaendigen pruefe(...)-Aufrufe aus der Modellantwort.
+ * Klammerzaehlend statt zeilenweise: Ein Testfall darf sich ueber
+ * mehrere Zeilen erstrecken (Modelle formatieren gern um). Zeichen in
+ * Zeichenketten werden dabei nicht mitgezaehlt.
+ */
+export function saeubereCode(roh) {
+  const text = String(roh).replace(/```[a-z]*/gi, "");
+  const treffer = [];
+  let i = 0;
+  while ((i = text.indexOf("pruefe(", i)) !== -1) {
+    let tiefe = 0, inZeichenkette = null, entkommen = false;
+    let k = i + "pruefe".length;
+    for (; k < text.length; k++) {
+      const c = text[k];
+      if (entkommen) { entkommen = false; continue; }
+      if (inZeichenkette) {
+        if (c === "\\") entkommen = true;
+        else if (c === inZeichenkette) inZeichenkette = null;
+        continue;
+      }
+      if (c === '"' || c === "'" || c === "`") { inZeichenkette = c; continue; }
+      if (c === "(") tiefe++;
+      else if (c === ")") {
+        tiefe--;
+        if (tiefe === 0) { k++; break; }
+      }
+    }
+    if (tiefe === 0 && k > i) {
+      let aufruf = text.slice(i, k).replace(/\s+/g, " ").trim();
+      treffer.push(aufruf + ";");
+      i = k;
+    } else {
+      i += "pruefe(".length; // unvollstaendig -> weitersuchen
+    }
+  }
+  return treffer.join("\n");
 }
 
-(async () => {
+async function hauptlauf() {
   const trocken = process.argv.includes("--trocken");
   if (!process.env.ANTHROPIC_API_KEY && !trocken) {
     console.error("ANTHROPIC_API_KEY fehlt - Red-Team uebersprungen.");
@@ -148,7 +180,12 @@ function saeubereCode(roh) {
     const roh = await frageRedTeam(auszug, bekannt.map((b) => b.slice(8, -1)), r);
     const code = saeubereCode(roh);
     const anzahl = code ? code.split("\n").length : 0;
-    console.log(`  Runde ${r}: ${anzahl} Testfaelle erhalten.`);
+    console.log(`  Runde ${r}: ${roh.length} Zeichen Antwort, `
+      + `${anzahl} verwertbare Testfaelle.`);
+    if (!anzahl) {
+      console.log("  Antwortanfang zur Diagnose: "
+        + roh.slice(0, 200).replace(/\n/g, " | "));
+    }
     if (code) alleZeilen.push(code);
   }
 
@@ -160,6 +197,12 @@ function saeubereCode(roh) {
 
   if (!alleZeilen.length) {
     console.log("Keine verwertbaren Testfaelle - Lauf beendet.");
+    fs.writeFileSync(path.join(BERICHTE, "redteam.json"),
+      JSON.stringify({ zeitpunkt: new Date().toISOString(), modell: MODELL,
+        erzeugteTestfaelle: 0, bestanden: 0, verdachtsfaelle: [],
+        bestandsfehler: [], hinweis:
+          "Das Pruef-Modell hat keine verwertbaren Testfaelle geliefert." },
+        null, 2));
     process.exit(0);
   }
 
@@ -205,4 +248,12 @@ function saeubereCode(roh) {
   // Bestandsfehler sind immer ernst. Verdachtsfaelle koennen auch
   // falsche Annahmen des Red-Teams sein -> Bericht, kein harter Abbruch.
   process.exit(eigeneFehler.length ? 1 : 0);
-})();
+}
+
+// Nur ausfuehren, wenn direkt gestartet (nicht beim Import im Test)
+if (process.argv[1] && process.argv[1].endsWith("redteam.mjs")) {
+  hauptlauf().catch((e) => {
+    console.error("Red-Team abgebrochen: " + (e && e.message));
+    process.exit(1);
+  });
+}
