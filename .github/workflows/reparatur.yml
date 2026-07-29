@@ -55,6 +55,7 @@ jobs:
         if: always()
         env:
           QA_TOKEN: ${{ secrets.QA_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node tests/melde.mjs --anlass=reparatur
           --tests=${{ steps.tests.outcome }} --rt=${{ steps.rt.outcome }}
 
