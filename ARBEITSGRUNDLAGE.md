@@ -236,7 +236,27 @@ Sicherheitsfilter nach der KI**) · `buildPrompt`280 ·
 
 ---
 
-## 8. Testinfrastruktur (nach Sandbox-Reset neu zu erzeugen!)
+## 8. Testinfrastruktur (jetzt IM REPO – reset-sicher)
+
+**Alles liegt unter `tests/` und laeuft ohne Sandbox:**
+| Datei | Zweck |
+|---|---|
+| `tests/lib/browser.js` | Browser-Attrappe mit Proxy-Auffangnetz; unbekannte DOM-Eigenschaften stuerzen nicht ab, sondern werden protokolliert |
+| `tests/szenarien.js` | 56 deterministische Faelle (A–K), laufen IM eval-Kontext der App |
+| `tests/run.js` | Laeufer; `--json`, `--extra=DATEI`; Bericht in `tests/berichte/` |
+| `tests/redteam.mjs` | **Fable 5** greift 17 reine Logikfunktionen an (9 kB Auszug statt 200 kB → kostenschonend); `--trocken` ohne API |
+| `tests/heilung.js` | Selbstheilung Stufe 1: Attrappen-Luecken + Zeilennummern der Systemkarte |
+| `.github/workflows/qa.yml` | Commit → Szenarien; naechtlich 03:00 → Red-Team + Selbstheilung + Pull Request |
+
+**Rollentrennung:** Claude = Code-Modell · Fable 5 = Red-Team ·
+Mensch = Freigabe. **App-Code wird NIE automatisch geaendert** – nur
+Testinfrastruktur heilt sich selbst.
+
+**Einmalig einzurichten:** GitHub → Settings → Secrets and variables →
+Actions → `ANTHROPIC_API_KEY` anlegen (sonst ueberspringt sich das
+Red-Team folgenlos).
+
+### Historie (nicht mehr noetig)
 
 Verloren gehen bei Sandbox-Reset: `/tmp/harness3.js` + `/tmp/tests3.js`
 (47 Szenarien A–K; **Tests laufen IM eval-Kontext**, sonst sind
