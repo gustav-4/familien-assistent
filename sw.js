@@ -9,7 +9,7 @@
  * dieses Strings reicht, damit der Browser die sw.js als
  * geändert erkennt und den Update-Zyklus (Weg A) auslöst.
  */
-const VERSION = "app-fusion17";
+const VERSION = "app-fusion18";
 
 self.addEventListener("install", (e) => self.skipWaiting());
 
@@ -78,6 +78,21 @@ self.addEventListener("push", (e) => {
           gezeigt++;
         }
       }
+      // QA-Bericht fuer den Betreiber (Testautomatik)
+      try {
+        const qNeu = Number(data && data.qa) || 0;
+        if (qNeu > 0) {
+          await self.registration.showNotification("Familien-Assistent", {
+            body: "🔧 QA-Bericht: " + qNeu + " Punkt" +
+              (qNeu === 1 ? "" : "e") + " zu prüfen – tippen zum Öffnen",
+            tag: "ka-qa",
+            icon: "/icon.svg",
+            data: { url: "/qa-admin.html" },
+          });
+          gezeigt++;
+        }
+      } catch (err) {}
+
       // Feedback-Digest fuer den Betreiber
       try {
         const dNeu = Number(data && data.digest) || 0;

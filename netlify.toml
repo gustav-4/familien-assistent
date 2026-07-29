@@ -40,6 +40,11 @@
   status = 200
 
 
+[[redirects]]
+  from = "/api/qa"
+  to = "/.netlify/functions/qa"
+  status = 200
+
 # Zeitgeber: prueft alle 5 Minuten, ob Wecksignale faellig sind
 [functions."wecker-cron"]
   schedule = "*/5 * * * *"

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>QA-Postfach – Familien-Assistent</title>
+<style>
+  :root { --accent:#c4704b; --bg:#f7f1e6; --card:#fffdf8; --muted:#8a7f6f;
+          --gruen:#3f7a35; --rot:#a33; --gelb:#b8860b; }
+  body { font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:var(--bg); color:#3a3630; margin:0; padding:14px; }
+  main { max-width:640px; margin:0 auto; }
+  .karte { background:var(--card); border-radius:12px; padding:14px 16px;
+    margin-bottom:12px; box-shadow:0 2px 10px rgba(120,100,70,.12); }
+  h1 { color:#a85a38; font-size:1.25rem; margin:2px 0 10px; }
+  h2 { font-size:1rem; margin:0 0 6px; }
+  .muted { color:var(--muted); font-size:.85rem; }
+  input { padding:10px; border:1px solid #ccc; border-radius:8px;
+    width:200px; max-width:58%; }
+  button { padding:12px 16px; border:0; border-radius:10px;
+    background:var(--accent); color:#fff; font-weight:bold; cursor:pointer;
+    font-size:1rem; }
+  button.gross { display:block; width:100%; margin-top:10px;
+    padding:16px; font-size:1.05rem; }
+  button.gruen { background:var(--gruen); }
+  button.grau { background:#8a7f6f; }
+  button:disabled { opacity:.45; }
+  .ampel { display:inline-block; padding:4px 12px; border-radius:20px;
+    color:#fff; font-weight:bold; font-size:.9rem; }
+  .a-gruen { background:var(--gruen); } .a-gelb { background:var(--gelb); }
+  .a-rot { background:var(--rot); }
+  .fall { border-left:4px solid var(--gelb); background:#faf6ee;
+    padding:8px 10px; margin:8px 0; border-radius:6px; font-size:.92rem; }
+  .fall.echt { border-left-color:var(--rot); }
+  code { background:#eee6d8; padding:1px 5px; border-radius:5px;
+    font-size:.85rem; word-break:break-all; }
+  a { color:var(--accent); }
+  .zeile { display:flex; justify-content:space-between; padding:3px 0;
+    border-bottom:1px solid #eee6d8; font-size:.9rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>🔧 QA-Postfach</h1>
+
+  <div class="karte" id="loginKarte">
+    <input type="password" id="tok" placeholder="Zugangs-Token">
+    <button type="button" onclick="laden()">Öffnen</button>
+    <p class="muted">Derselbe Token wie im Feedback-Postfach
+    (Netlify-Variable <code>ADMIN_TOKEN</code>). Wird auf diesem Gerät
+    gemerkt.</p>
+  </div>
+
+  <div id="inhalt"></div>
+</main>
+
+<script>
+let aktuellerBericht = null;
+
+function tokenHolen() {
+  return (document.getElementById("tok").value || "").trim();
+}
+
+(function start() {
+  try {
+    const t = localStorage.getItem("ka_admin_token");
+    if (t) { document.getElementById("tok").value = t; laden(); }
+  } catch (e) {}
+})();
+
+async function laden() {
+  const tok = tokenHolen();
+  const ziel = document.getElementById("inhalt");
+  if (!tok) { ziel.innerHTML = "<div class='karte'>Bitte Token eingeben.</div>"; return; }
+  try { localStorage.setItem("ka_admin_token", tok); } catch (e) {}
+  ziel.innerHTML = "<div class='karte'>Lade Bericht …</div>";
+  try {
+    const r = await fetch("/api/qa?token=" + encodeURIComponent(tok));
+    if (r.status === 401) {
+      ziel.innerHTML = "<div class='karte'>❌ Token stimmt nicht.</div>";
+      return;
+    }
+    if (!r.ok) {
+      ziel.innerHTML = "<div class='karte'>❌ Server-Fehler " + r.status + "</div>";
+      return;
+    }
+    const d = await r.json();
+    aktuellerBericht = d.bericht;
+    zeichne(d);
+  } catch (e) {
+    ziel.innerHTML = "<div class='karte'>❌ Keine Verbindung.</div>";
+  }
+}
+
+function zeichne(d) {
+  const ziel = document.getElementById("inhalt");
+  const b = d.bericht;
+  if (!b) {
+    ziel.innerHTML = "<div class='karte'>Noch kein Bericht vorhanden. " +
+      "Der erste kommt nach dem nächsten nächtlichen Lauf.</div>";
+    return;
+  }
+  const echte = b.fehler || [];
+  const verdacht = b.verdachtsfaelle || [];
+  let ampel = "a-gruen", ampelText = "Alles in Ordnung";
+  if (echte.length) { ampel = "a-rot"; ampelText = "Fehler gefunden"; }
+  else if (verdacht.length) { ampel = "a-gelb"; ampelText = "Zu prüfen"; }
+
+  let html = "";
+
+  // --- Überblick in Alltagssprache ---
+  html += "<div class='karte'>" +
+    "<span class='ampel " + ampel + "'>" + ampelText + "</span>" +
+    "<p style='margin-top:10px'><b>" + b.bestanden + " von " + b.gesamt +
+    "</b> Prüfungen bestanden.<br>" +
+    (echte.length
+      ? "<span style='color:var(--rot)'><b>" + echte.length +
+        " echte Fehler</b> – die App macht etwas nicht wie vorgesehen.</span>"
+      : "Keine echten Fehler.") + "<br>" +
+    (verdacht.length
+      ? "<span style='color:var(--gelb)'><b>" + verdacht.length +
+        " Verdachtsfälle</b> vom Prüf-Modell – können echte Fehler sein " +
+        "oder falscher Alarm.</span>"
+      : "Keine Verdachtsfälle.") +
+    "</p><p class='muted'>Version " + b.version + " · " +
+    (b.zeitpunkt || "").replace("T", " ").slice(0, 16) + " Uhr" +
+    (b.lauf ? " · <a href='" + b.lauf + "'>Technisches Protokoll</a>" : "") +
+    "</p></div>";
+
+  // --- Befunde ---
+  if (echte.length || verdacht.length) {
+    html += "<div class='karte'><h2>Was genau gefunden wurde</h2>";
+    echte.forEach((f) => {
+      html += "<div class='fall echt'><b>Fehler:</b> " + entschaerfe(f.name) +
+        (f.fehlertext ? "<br><span class='muted'>" +
+          entschaerfe(f.fehlertext) + "</span>" : "") + "</div>";
+    });
+    verdacht.forEach((f) => {
+      html += "<div class='fall'><b>Verdacht:</b> " + entschaerfe(f.name) +
+        (f.fehlertext ? "<br><span class='muted'>" +
+          entschaerfe(f.fehlertext) + "</span>" : "") + "</div>";
+    });
+    html += "</div>";
+  }
+
+  // --- Freigabe-Knöpfe ---
+  html += "<div class='karte'><h2>Freigaben</h2>";
+  if (echte.length || verdacht.length) {
+    html += "<p class='muted'>Schritt 1: Reparatur beauftragen. Danach " +
+      "wird automatisch gebaut, hart getestet und vom Prüf-Modell " +
+      "gegengeprüft – du bekommst wieder eine Meldung.</p>" +
+      "<button class='gross' id='btnRep' onclick=\"freigabe('reparatur')\">" +
+      "🔧 Reparatur beauftragen</button>";
+  } else {
+    html += "<p class='muted'>Nichts zu reparieren.</p>";
+  }
+  html += "<p class='muted' style='margin-top:14px'>Schritt 2: Erst " +
+    "klicken, wenn ein Reparatur-Bericht vorliegt und gut aussieht. " +
+    "Dann geht die neue Version automatisch live.</p>" +
+    "<button class='gross gruen' id='btnLive' onclick=\"freigabe('live')\">" +
+    "🚀 Live schalten</button>";
+  html += "<div id='freigabeInfo' class='muted' style='margin-top:10px'></div>";
+  html += "</div>";
+
+  // --- Verlauf ---
+  if (d.verlauf && d.verlauf.length) {
+    html += "<div class='karte'><h2>Letzte Läufe</h2>";
+    d.verlauf.forEach((v) => {
+      html += "<div class='zeile'><span>" +
+        (v.zeitpunkt || "").replace("T", " ").slice(0, 16) + "</span><span>" +
+        v.bestanden + " ok" +
+        (v.fehlgeschlagen ? " · " + v.fehlgeschlagen + " Fehler" : "") +
+        (v.verdacht ? " · " + v.verdacht + " Verdacht" : "") +
+        "</span></div>";
+    });
+    html += "</div>";
+  }
+
+  html += "<p class='muted' style='text-align:center'>" +
+    "<button class='grau' onclick='laden()'>Aktualisieren</button></p>";
+  ziel.innerHTML = html;
+}
+
+function entschaerfe(text) {
+  const d = document.createElement("div");
+  d.textContent = String(text);
+  return d.innerHTML;
+}
+
+async function freigabe(art) {
+  const info = document.getElementById("freigabeInfo");
+  const frage = art === "reparatur"
+    ? "Reparatur automatisch bauen und testen lassen?"
+    : "Die geprüfte Version JETZT für alle Familien live schalten?";
+  if (!confirm(frage)) return;
+  const rep = document.getElementById("btnRep");
+  const live = document.getElementById("btnLive");
+  if (rep) rep.disabled = true;
+  if (live) live.disabled = true;
+  info.textContent = "Starte …";
+  try {
+    const r = await fetch("/api/qa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        admin_token: tokenHolen(),
+        freigabe: art,
+        befund: aktuellerBericht
+          ? (aktuellerBericht.fehler || []).concat(
+              aktuellerBericht.verdachtsfaelle || [])
+              .map((f) => f.name).join(" | ").slice(0, 400)
+          : "",
+      }),
+    });
+    const d = await r.json();
+    if (d.success) {
+      info.innerHTML = art === "reparatur"
+        ? "✅ Reparatur läuft. Du bekommst eine Meldung aufs Handy, " +
+          "sobald der Bericht fertig ist (meist wenige Minuten)."
+        : "✅ Live-Schaltung läuft. Die App aktualisiert sich bei den " +
+          "Familien beim nächsten Start von selbst.";
+    } else {
+      info.textContent = "❌ " + (d.error || "Start fehlgeschlagen");
+      if (rep) rep.disabled = false;
+      if (live) live.disabled = false;
+    }
+  } catch (e) {
+    info.textContent = "❌ Keine Verbindung.";
+    if (rep) rep.disabled = false;
+    if (live) live.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

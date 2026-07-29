@@ -105,6 +105,22 @@ export function digestFaellig(jetztMs) {
   return (wd.startsWith("Mo") || wd.startsWith("Do")) && h === 18;
 }
 
+/** Weckt den Betreiber, sobald ein QA-Bericht Aufmerksamkeit braucht.
+ * Der Zaehler wird vom QA-Briefkasten gesetzt und beim Abholen im
+ * wecker-GET per GETDEL geleert - deshalb genuegt EIN Signal. */
+async function qaMeldung(keys, bericht) {
+  const owner = process.env.OWNER_DEVICE;
+  if (!owner) return;
+  const [offen, subRaw] = await redisPipeline([
+    ["GET", "ff:qa:" + owner], ["GET", "sub:" + owner]]);
+  if (!offen || !subRaw) return;
+  const [gesendet] = await redisPipeline([
+    ["SET", "qa:signal:" + owner, "1", "NX", "EX", "3600"]]);
+  if (gesendet !== "OK") return; // hoechstens 1 Signal pro Stunde
+  bericht.qa = { offen: Number(offen) || 0 };
+  bericht.qa.status = await sendeWecksignal(JSON.parse(subRaw), keys);
+}
+
 /** Feedback-Digest an den Betreiber (2x woechentlich, max. 1 Push/Tag). */
 async function feedbackDigest(keys, jetzt, bericht) {
   const owner = process.env.OWNER_DEVICE;
@@ -135,6 +151,8 @@ export const handler = async () => {
       .slice(0, 500);
     bericht.geraete = geraete.length;
     const jetzt0 = Date.now();
+    try { await qaMeldung(keys, bericht); } catch (e) {
+      bericht.fehler.push("qa: " + String(e.message || e).slice(0, 60)); }
     try { await feedbackDigest(keys, jetzt0, bericht); }
     catch (e) { bericht.fehler.push("digest: " + String(e.message || e).slice(0, 60)); }
     if (!geraete.length) {

@@ -1,8 +1,8 @@
-# ARBEITSGRUNDLAGE – Familien-Assistent FUSION17
+# ARBEITSGRUNDLAGE – Familien-Assistent FUSION18
 
 Maschinell aus dem Code extrahiert (nicht aus Erinnerung). Zweck: Bei
 jeder künftigen Reparatur sofort wissen, WAS wo liegt, ohne zu suchen.
-Stand: FUSION17 / sw `app-fusion17`, index.html 4.806 Zeilen,
+Stand: FUSION18 / sw `app-fusion18`, index.html 4.806 Zeilen,
 199.155 Bytes, BOM entfernt, alle 25 Textdateien valides UTF-8.
 
 ---
@@ -169,7 +169,7 @@ Feedback: `fbOeffnen`3541 / `fbSprechen`3548 / `fbSenden`3558
 | `/api/vapid` | vapid.mjs | GET Public Key · `ensureVapid` |
 | `/api/feedback` | feedback.mjs (97 Z) | POST Feedback · **GET `?token=`** Postfach · POST Löschen (einzeln/alle) |
 | `/api/termin-parse` | termin-parse.mjs | POST Termin-Freitext → Struktur |
-| (Cron) | wecker-cron.mjs (198 Z) | Erinnerungs-Push · `digestFaellig`98 (Mo+Do, 18-Uhr-Stunde Berlin) · `feedbackDigest`109 |
+| (Cron) | wecker-cron.mjs (198 Z) | Erinnerungs-Push · `digestFaellig`98 (Mo+Do, 18-Uhr-Stunde Berlin) · `feedbackDigest`125 |
 
 **Wichtige Serverfunktionen:** `pruefeTageskontingent`26 (INCR+EXPIRE,
 ausfallsicher) · `kanalVonCode`58/45 (**identisch in rezept.mjs und
@@ -252,9 +252,29 @@ Sicherheitsfilter nach der KI**) · `buildPrompt`280 ·
 Mensch = Freigabe. **App-Code wird NIE automatisch geaendert** – nur
 Testinfrastruktur heilt sich selbst.
 
-**Einmalig einzurichten:** GitHub → Settings → Secrets and variables →
-Actions → `ANTHROPIC_API_KEY` anlegen (sonst ueberspringt sich das
-Red-Team folgenlos).
+### QA-Postfach aufs Handy (Freigabe per Knopf)
+| Baustein | Datei | Zweck |
+|---|---|---|
+| Briefkasten | `netlify/functions/qa.mjs` | POST (QA_TOKEN) nimmt Bericht an · GET (ADMIN_TOKEN) liefert ihn · POST `freigabe` startet Workflow per repository_dispatch |
+| Postfach | `qa-admin.html` | Ampel, Befunde in Alltagssprache, **zwei Knoepfe**: „Reparatur beauftragen" (Tor 1) und „Live schalten" (Tor 2) |
+| Meldung | `tests/melde.mjs` | schickt Bericht an `/api/qa` (nur bei Auffaelligkeiten) |
+| Push | `wecker-cron.mjs::qaMeldung` → `wecker.mjs` GET `qa` → `sw.js` Tag `ka-qa` | weckt das Handy, Klick oeffnet `/qa-admin.html` |
+| Reparatur | `tests/reparatur.mjs` | Code-Modell erzeugt minimalen Patch; **Leitplanken**: nur erlaubte Dateien, Suchmuster genau 1x, kein leerer Ersatz, ein Verstoss kippt das ganze Paket |
+| Ablauf | `.github/workflows/reparatur.yml` | `qa-reparatur` → patchen, testen, Red-Team, Pull Request · `qa-live` → Merge nach main → Netlify deployt |
+
+**Ablauf in einem Satz:** Nachts testet die Automatik → bei Befund
+kommt ein Push aufs Handy → ein Klick startet Reparatur samt
+Gegenpruefung → zweiter Klick schaltet live. Dazwischen passiert alles
+ohne Handgriff, aber **nie ohne die beiden Klicks**.
+
+**Einmalig einzurichten:**
+* GitHub → Settings → Secrets and variables → Actions:
+  `ANTHROPIC_API_KEY`, `QA_TOKEN` (frei erfunden, 24 Zeichen)
+* Netlify → Environment variables: `QA_TOKEN` (**gleicher Wert**),
+  `GITHUB_TOKEN` (Personal Access Token mit Rechten auf das Repo),
+  optional `GITHUB_REPO`
+* Ohne diese Werte laufen die deterministischen Szenarien weiter,
+  Red-Team und Freigabe-Knoepfe ueberspringen sich folgenlos.
 
 ### Historie (nicht mehr noetig)
 

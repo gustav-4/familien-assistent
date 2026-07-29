@@ -82,10 +82,14 @@ export const handler = async (event) => {
       // Feedback-Digest (nur fuer das Betreiber-Geraet hinterlegt):
       // Zahl einmalig abholen und zuruecksetzen (GETDEL)
       let digest = 0;
+      let qa = 0;
       try {
         digest = Number(await redis(["GETDEL", "ff:digest:" + device])) || 0;
       } catch (e) { /* aeltere Redis ohne GETDEL: dann kein Digest */ }
-      return antwort(200, { refs: anzeigeRefs(plan, Date.now()), digest });
+      try {
+        qa = Number(await redis(["GETDEL", "ff:qa:" + device])) || 0;
+      } catch (e) { /* dito */ }
+      return antwort(200, { refs: anzeigeRefs(plan, Date.now()), digest, qa });
     }
 
     if (event.httpMethod === "POST") {
