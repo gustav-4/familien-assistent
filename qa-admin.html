@@ -112,7 +112,9 @@ function zeichne(d) {
   // --- Überblick in Alltagssprache ---
   html += "<div class='karte'>" +
     "<span class='ampel " + ampel + "'>" + ampelText + "</span>" +
-    "<p style='margin-top:10px'><b>" + b.bestanden + " von " + b.gesamt +
+    (b.ueberschrift ? "<p style='margin-top:10px;font-size:1.05rem'><b>" +
+      entschaerfe(b.ueberschrift) + "</b></p>" : "") +
+    "<p style='margin-top:6px'><b>" + b.bestanden + " von " + b.gesamt +
     "</b> Prüfungen bestanden.<br>" +
     (echte.length
       ? "<span style='color:var(--rot)'><b>" + echte.length +
@@ -131,16 +133,11 @@ function zeichne(d) {
   // --- Befunde ---
   if (echte.length || verdacht.length) {
     html += "<div class='karte'><h2>Was genau gefunden wurde</h2>";
-    echte.forEach((f) => {
-      html += "<div class='fall echt'><b>Fehler:</b> " + entschaerfe(f.name) +
-        (f.fehlertext ? "<br><span class='muted'>" +
-          entschaerfe(f.fehlertext) + "</span>" : "") + "</div>";
-    });
-    verdacht.forEach((f) => {
-      html += "<div class='fall'><b>Verdacht:</b> " + entschaerfe(f.name) +
-        (f.fehlertext ? "<br><span class='muted'>" +
-          entschaerfe(f.fehlertext) + "</span>" : "") + "</div>";
-    });
+    if (b.klartextHinweis) {
+      html += "<p class='muted'>" + entschaerfe(b.klartextHinweis) + "</p>";
+    }
+    echte.forEach((f) => { html += befundKarte(f, true); });
+    verdacht.forEach((f) => { html += befundKarte(f, false); });
     html += "</div>";
   }
 
@@ -180,6 +177,36 @@ function zeichne(d) {
   html += "<p class='muted' style='text-align:center'>" +
     "<button class='grau' onclick='laden()'>Aktualisieren</button></p>";
   ziel.innerHTML = html;
+}
+
+function befundKarte(f, istEchterFehler) {
+  const dring = { hoch: "🔴 dringend", mittel: "🟠 sollte bald",
+    niedrig: "🟡 kann warten" }[f.dringlichkeit] || "";
+  let s = "<div class='fall" + (istEchterFehler ? " echt" : "") + "'>";
+  s += "<div style='font-size:.78rem;color:var(--muted)'>" +
+    (istEchterFehler ? "Fehler" : "Verdacht") +
+    (f.bereich ? " · " + entschaerfe(f.bereich) : "") +
+    (dring ? " · " + dring : "") + "</div>";
+  // Klartext zuerst - das ist das Wichtige
+  s += "<div style='margin-top:4px'><b>" +
+    entschaerfe(f.klartext || f.name) + "</b></div>";
+  if (f.auswirkung) {
+    s += "<div style='margin-top:3px'>Was das bedeutet: " +
+      entschaerfe(f.auswirkung) + "</div>";
+  }
+  if (f.vorschlag) {
+    s += "<div style='margin-top:4px;padding:6px 8px;background:#eef4ea;" +
+      "border-radius:6px'>🔧 <b>Vorschlag:</b> " +
+      entschaerfe(f.vorschlag) + "</div>";
+  }
+  // Technische Fassung nur klein und aufklappbar
+  s += "<details style='margin-top:5px'><summary class='muted' " +
+    "style='font-size:.78rem;cursor:pointer'>Technische Fassung</summary>" +
+    "<div class='muted' style='font-size:.78rem;margin-top:3px'>" +
+    entschaerfe(f.name) + (f.fehlertext ? "<br>" + entschaerfe(f.fehlertext)
+      : "") + "</div></details>";
+  s += "</div>";
+  return s;
 }
 
 function entschaerfe(text) {

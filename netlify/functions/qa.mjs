@@ -49,6 +49,18 @@ async function starteWorkflow(typ, nutzlast) {
   return { ok: r.status === 204, status: r.status };
 }
 
+/** Uebernimmt nur bekannte Felder eines Befunds (Laengen begrenzt). */
+function befundFeld(v) {
+  const k = (x, n) => String((v && v[x]) || "").slice(0, n);
+  return {
+    name: k("name", 200), fehlertext: k("fehlertext", 300),
+    bereich: k("bereich", 60), klartext: k("klartext", 300),
+    auswirkung: k("auswirkung", 300), vorschlag: k("vorschlag", 300),
+    dringlichkeit: ["hoch", "mittel", "niedrig"].includes(v && v.dringlichkeit)
+      ? v.dringlichkeit : "",
+  };
+}
+
 export const handler = async (event) => {
   const headers = { "Content-Type": "application/json" };
 
@@ -101,16 +113,12 @@ export const handler = async (event) => {
       gesamt: Number(b.gesamt) || 0,
       bestanden: Number(b.bestanden) || 0,
       fehlgeschlagen: Number(b.fehlgeschlagen) || 0,
+      ueberschrift: String(b.ueberschrift || "").slice(0, 200),
+      klartextHinweis: String(b.klartextHinweis || "").slice(0, 200),
       verdachtsfaelle: (Array.isArray(b.verdachtsfaelle) ? b.verdachtsfaelle
-        : []).slice(0, 25).map((v) => ({
-          name: String(v.name || "").slice(0, 200),
-          fehlertext: String(v.fehlertext || "").slice(0, 300),
-        })),
+        : []).slice(0, 25).map(befundFeld),
       fehler: (Array.isArray(b.fehler) ? b.fehler : []).slice(0, 25)
-        .map((v) => ({
-          name: String(v.name || "").slice(0, 200),
-          fehlertext: String(v.fehlertext || "").slice(0, 300),
-        })),
+        .map(befundFeld),
       selbstheilung: Array.isArray(b.selbstheilung)
         ? b.selbstheilung.slice(0, 20).map((s) => String(s).slice(0, 200)) : [],
       lauf: String(b.lauf || "").slice(0, 200), // Link zum GitHub-Lauf

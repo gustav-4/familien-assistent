@@ -23,6 +23,8 @@ const MODELL = process.env.REPARATUR_MODELL || "claude-sonnet-4-6";
 const trocken = process.argv.includes("--trocken");
 const befundArg = process.argv.find((a) => a.startsWith("--befund="));
 const befund = befundArg ? befundArg.slice("--befund=".length) : "";
+const BERICHTE = path.join(HIER, "berichte");
+if (!fs.existsSync(BERICHTE)) fs.mkdirSync(BERICHTE, { recursive: true });
 
 const ERLAUBTE_DATEIEN = [
   "index.html", "sw.js", "install.js",
@@ -176,7 +178,7 @@ async function hauptlauf() {
 
   if (!aenderungen.length) {
     console.log("Modell schlaegt keine Aenderung vor - Abbruch ohne Fehler.");
-    fs.writeFileSync(path.join(HIER, "berichte", "reparatur.json"),
+    fs.writeFileSync(path.join(BERICHTE, "reparatur.json"),
       JSON.stringify({ zeitpunkt: new Date().toISOString(),
         begruendung: vorschlag.begruendung || "", aenderungen: [] }, null, 2));
     process.exit(0);
@@ -195,7 +197,7 @@ async function hauptlauf() {
     fs.writeFileSync(g.p, g.inhalt.replace(g.alt, g.neu));
     console.log("  geaendert: " + g.datei);
   }
-  fs.writeFileSync(path.join(HIER, "berichte", "reparatur.json"),
+  fs.writeFileSync(path.join(BERICHTE, "reparatur.json"),
     JSON.stringify({ zeitpunkt: new Date().toISOString(), modell: MODELL,
       begruendung: vorschlag.begruendung || "",
       aenderungen: geplant.map((g) => ({ datei: g.datei,

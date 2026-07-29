@@ -22,6 +22,8 @@ const HIER = path.dirname(fileURLToPath(import.meta.url));
 const WURZEL = path.resolve(HIER, "..");
 const MODELL = process.env.REDTEAM_MODELL || "claude-fable-5";
 const RUNDEN = Number((process.argv.find((a) => a.startsWith("--runden=")) || "").split("=")[1] || 1);
+const BERICHTE = path.join(HIER, "berichte");
+if (!fs.existsSync(BERICHTE)) fs.mkdirSync(BERICHTE, { recursive: true });
 const BUDGET = Number((process.argv.find((a) => a.startsWith("--budget=")) || "").split("=")[1] || 6);
 
 // Diese Funktionen sind rein (kein DOM, keine Netzwerkzugriffe) und
@@ -191,7 +193,7 @@ function saeubereCode(roh) {
     verdachtsfaelle: rtFehler,
     bestandsfehler: eigeneFehler,
   };
-  fs.writeFileSync(path.join(HIER, "berichte", "redteam.json"),
+  fs.writeFileSync(path.join(BERICHTE, "redteam.json"),
     JSON.stringify(zusammenfassung, null, 2));
 
   console.log(`\nRed-Team-Ergebnis: ${bericht.bestanden} bestanden, `

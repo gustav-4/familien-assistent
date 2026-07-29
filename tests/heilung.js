@@ -17,6 +17,8 @@ const path = require("path");
 const HIER = __dirname;
 const WURZEL = path.resolve(HIER, "..");
 const trocken = process.argv.includes("--trocken");
+const BERICHTE = path.join(HIER, "berichte");
+if (!fs.existsSync(BERICHTE)) fs.mkdirSync(BERICHTE, { recursive: true });
 const protokoll = [];
 
 // ---------- (1) Attrappen-Luecken schliessen ----------
@@ -96,6 +98,6 @@ if (!protokoll.length) {
   console.log("Selbstheilung" + (trocken ? " (Trockenlauf)" : "") + ":");
   protokoll.forEach((p) => console.log("  - " + p));
 }
-fs.writeFileSync(path.join(HIER, "berichte", "heilung.json"),
+fs.writeFileSync(path.join(BERICHTE, "heilung.json"),
   JSON.stringify({ zeitpunkt: new Date().toISOString(), trocken, protokoll },
     null, 2));

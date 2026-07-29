@@ -9,7 +9,7 @@
  * dieses Strings reicht, damit der Browser die sw.js als
  * geändert erkennt und den Update-Zyklus (Weg A) auslöst.
  */
-const VERSION = "app-fusion18";
+const VERSION = "app-fusion19";
 
 self.addEventListener("install", (e) => self.skipWaiting());
 

@@ -11,6 +11,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { verstaendlichMachen } from "./klartext.mjs";
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 const ZIEL = (process.env.QA_ZIEL || "https://familienassistent.net") + "/api/qa";
@@ -52,6 +53,11 @@ if (reparatur && reparatur.begruendung) {
     fehlertext: "Tests: " + arg("tests", "?") + " · Red-Team: " + arg("rt", "?"),
   }]);
 }
+
+// Technische Befunde in Alltagsdeutsch uebersetzen (Woerterbuch +
+// optional Modell). Schlaegt das fehl, geht der Bericht trotzdem raus.
+try { await verstaendlichMachen(bericht); }
+catch (e) { console.error("Klartext uebersprungen: " + e.message); }
 
 if (!process.env.QA_TOKEN) {
   console.error("QA_TOKEN fehlt - Meldung uebersprungen.");
