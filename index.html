@@ -439,6 +439,17 @@
         <br><span class="muted">Klangfarbe:</span>
         <select id="klangWahl" onchange="klangGewaehlt()"
                 style="margin-top:4px;max-width:230px"></select>
+        <br><label style="display:inline-flex;align-items:center;
+                     gap:6px;margin-top:8px;font-size:.9rem">
+          <input type="checkbox" id="ruheKochWahl"
+                 onchange="ruheKochGewaehlt()">
+          🔇 Bereitton weiter reduzieren
+        </label>
+        <div class="muted" style="font-size:.8rem">
+          Der kurze Ton kommt vom Handy-System bei jedem Zuhör-Start.
+          Mit dieser Option pausiert das Mikrofon beim Kochen nach
+          einer Minute Stille – Mikrofon-Knopf weckt es wieder.
+        </div>
       </div>
       </div>
       <div style="margin-top:12px">
@@ -1370,10 +1381,12 @@ function cookingVisible() {
 }
 
 function muteMic() {
+  // FUSION17: Die Erkennung wird NICHT mehr abgewürgt. Jeder Neustart
+  // erzeugt auf Android den System-Bereitton - bei einer Ansage pro
+  // Kochschritt war das Dauerpiepen. Der Schutz gegen "App hört sich
+  // selbst" liegt ohnehin als Softwaresperre in recognition.onresult
+  // (ttsActive + ttsCooldownUntil), das Stoppen war reine Doppelung.
   micMuted = true;
-  if (recognition) {
-    try { recognition.abort(); } catch (e) {}
-  }
 }
 
 function unmuteMic() {
@@ -1481,6 +1494,30 @@ const KLANGFARBEN = {
   flott:      { pitch: 1.05, rate: 1.15,
     name: "Flott & munter",  probe: "Hallo! Mit mir geht alles ein bisschen flotter!" },
 };
+// Schalter "Bereitton weiter reduzieren": laesst die Ruhepause
+// auch im Kochmodus greifen (dort mit laengerem Fenster).
+const GV_RUHE_KOCH_MS = 60000;
+function ruheImKochmodus() {
+  try { return localStorage.getItem("ka_ruhe_koch") === "1"; }
+  catch (e) { return false; }
+}
+function ruheKochGewaehlt() {
+  const box = document.getElementById("ruheKochWahl");
+  if (!box) return;
+  try {
+    localStorage.setItem("ka_ruhe_koch", box.checked ? "1" : "0");
+  } catch (e) {}
+  speak(box.checked
+    ? "Alles klar. Beim Kochen pausiert das Mikrofon jetzt nach einer " +
+      "Minute Stille. Tipp auf den Mikrofon-Knopf weckt es wieder."
+    : "Gut. Das Mikrofon bleibt beim Kochen durchgehend wach.", true);
+}
+function ruheKochFuellen() {
+  const box = document.getElementById("ruheKochWahl");
+  if (box) box.checked = ruheImKochmodus();
+}
+
+
 function klangAktuell() {
   let k = "standard";
   try { k = localStorage.getItem("ka_klang") || "standard"; } catch (e) {}
@@ -1649,7 +1686,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION16";
+const APP_VERSION = "FUSION17";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -1727,8 +1764,11 @@ function gvStart() {
       // Dialog offen -> nicht neu starten (= kein Systemton mehr)
       // Ruhepause NICHT im Kochmodus (Feedback 23.07.: "muss weiter
       // aktiv bleiben") - beim Kochen sind die Hände belegt.
-      if (GlobalVoice.aktiv && !GlobalVoice.dialog && !cookingVisible()
-          && Date.now() - gvLetztesErgebnis > GV_RUHE_MS) {
+      const kochAn = cookingVisible();
+      const ruheErlaubt = !kochAn || ruheImKochmodus();
+      const ruheFenster = kochAn ? GV_RUHE_KOCH_MS : GV_RUHE_MS;
+      if (GlobalVoice.aktiv && !GlobalVoice.dialog && ruheErlaubt
+          && Date.now() - gvLetztesErgebnis > ruheFenster) {
         GlobalVoice.aktiv = false;
         gvChip("🎤 Ruhepause – tippen zum Weiterhören", "aus");
         return;
@@ -4388,7 +4428,7 @@ function reminderOk() {
     });
   setInterval(checkErinnerungen, 30000);
   setTimeout(checkErinnerungen, 3000);
-  try { stimmenAuswahlFuellen(); klangAuswahlFuellen(); } catch (e) {}
+  try { stimmenAuswahlFuellen(); klangAuswahlFuellen(); ruheKochFuellen(); } catch (e) {}
   try { syncAnzeige(); syncAbholen(); } catch (e) {}
   try {
     const m = location.hash.match(/sync=([A-Za-z2-9-]+)/);

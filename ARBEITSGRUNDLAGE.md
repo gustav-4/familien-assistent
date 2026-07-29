@@ -1,8 +1,8 @@
-# ARBEITSGRUNDLAGE – Familien-Assistent FUSION16
+# ARBEITSGRUNDLAGE – Familien-Assistent FUSION17
 
 Maschinell aus dem Code extrahiert (nicht aus Erinnerung). Zweck: Bei
 jeder künftigen Reparatur sofort wissen, WAS wo liegt, ohne zu suchen.
-Stand: FUSION16 / sw `app-fusion16`, index.html 4.806 Zeilen,
+Stand: FUSION17 / sw `app-fusion17`, index.html 4.806 Zeilen,
 199.155 Bytes, BOM entfernt, alle 25 Textdateien valides UTF-8.
 
 ---
@@ -32,92 +32,92 @@ Stand: FUSION16 / sw `app-fusion16`, index.html 4.806 Zeilen,
 ## 2. Frontend-Funktionen nach Domäne (Zeile @ FUSION15B)
 
 **Sprachausgabe / Stimme**
-`ttsSaeubern`1366 (Emoji+Klammer-Filter) · `speakChunks`1383 ·
-`speak`1521 (zentraler Eingang; Reihenfolge: Sprechblase original →
-säubern → Stimme/Klangfarbe → Chunks) · `gvSprechblase`1402 ·
-`stimmenLaden`1431 · `stimmeAktuelle`1483 · `stimmenAuswahlFuellen`1490 ·
-`stimmeGewaehlt`1509 · `stimmeProbe`1515 · `klangAktuell`1455 ·
-`klangGewaehlt`1460 · `klangAuswahlFuellen`1467 ·
-`muteMic`1343 / `unmuteMic`1350 (Mikro-Exklusivität, 12-s-Notaus)
+`ttsSaeubern`1408 (Emoji+Klammer-Filter) · `speakChunks`1425 ·
+`speak`1587 (zentraler Eingang; Reihenfolge: Sprechblase original →
+säubern → Stimme/Klangfarbe → Chunks) · `gvSprechblase`1444 ·
+`stimmenLaden`1473 · `stimmeAktuelle`1549 · `stimmenAuswahlFuellen`1556 ·
+`stimmeGewaehlt`1575 · `stimmeProbe`1581 · `klangAktuell`1521 ·
+`klangGewaehlt`1526 · `klangAuswahlFuellen`1533 ·
+`muteMic`1383 / `unmuteMic`1392 (Mikro-Exklusivität, 12-s-Notaus)
 
 **Spracherkennung / Router**
-`GlobalVoice`1625 · `gvStart`1653 · `gvStopp`1717 · `gvToggle`1724 ·
-`gvNeustart`1648 · `gvAutoStart`1746 · `gvChip`1634 ·
-`erkenneKommando`1779 (**alle Befehle**, siehe §4) ·
-`istUeberspringen`1774 · `gvRoute`1835 (Ausführung) · `gvOneShot`2447 ·
-`initRecognition`2461 · `GV_RUHE_MS`1631 (20 s Stille → Pause)
+`GlobalVoice`1691 · `gvStart`1719 · `gvStopp`1788 · `gvToggle`1795 ·
+`gvNeustart`1714 · `gvAutoStart`1817 · `gvChip`1700 ·
+`erkenneKommando`1850 (**alle Befehle**, siehe §4) ·
+`istUeberspringen`1845 · `gvRoute`1908 (Ausführung) · `gvOneShot`2520 ·
+`initRecognition`2534 · `GV_RUHE_MS`1697 (20 s Stille → Pause)
 
 **Rezepte / Kochen**
-`RECIPES`892 (Standard-Rezepte) · `dietPasses`1297 / `requiredDiets`1271 /
-`satisfiesDiet`1286 (Ernährungsform-Logik) · `styleScore`1315 ·
-`renderRecipes`2696 · `selectedIntolerances`2622 · `setTimeGroup`2635 ·
-`rechercheRezept`3094 (KI-Aufruf + 429/504-Behandlung) ·
-`fehlermeldungRecherche`2657 · `rezeptVorstellen`2682 /
-`rezeptVorstellungsText`2670 · `startCooking`2939 · `showStep`2987 /
-`renderStep`2973 · `zutatenImSchritt`2957 · `startTimer`3004 ·
-`confirmStep`3045 · `repeatStep`3067 · `armReminder`3034 ·
-`flashStep`3207 · `clearTimers`3215 · Favoriten: `loadFavs`2545,
-`saveFavs`2551, `addFavorite`2556, `renderFavoriten`2575
+`RECIPES`903 (Standard-Rezepte) · `dietPasses`1308 / `requiredDiets`1282 /
+`satisfiesDiet`1297 (Ernährungsform-Logik) · `styleScore`1326 ·
+`renderRecipes`2769 · `selectedIntolerances`2695 · `setTimeGroup`2708 ·
+`rechercheRezept`3182 (KI-Aufruf + 429/504-Behandlung) ·
+`fehlermeldungRecherche`2730 · `rezeptVorstellen`2755 /
+`rezeptVorstellungsText`2743 · `startCooking`3012 · `showStep`3061 /
+`renderStep`3047 · `zutatenImSchritt`3031 · `startTimer`3086 ·
+`confirmStep`3133 · `repeatStep`3155 · `armReminder`3118 ·
+`flashStep`3295 · `clearTimers`3303 · Favoriten: `loadFavs`2618,
+`saveFavs`2624, `addFavorite`2629, `renderFavoriten`2648
 
 **Mengen-Kontinuität (FUSION15, kritisch)**
-`portionFactor`3531 → `skaliereRezept`2812 schreibt das Rezept **einmal
+`portionFactor`3620 → `skaliereRezept`2885 schreibt das Rezept **einmal
 bei der Auswahl** fest (inkl. Zahlen in Schritt-Prosa via
-`smartMenge`2797 + `zahlVarianten`2803) → alle Anzeigen rechnen danach
+`smartMenge`2870 + `zahlVarianten`2876) → alle Anzeigen rechnen danach
 mit Faktor 1 (Wächter `_skaliert`). Formatierung überall:
-`smartQty`2838 (Rundung: g/ml 25er bzw. 50er ab 500; Liter .25;
+`smartQty`2911 (Rundung: g/ml 25er bzw. 50er ab 500; Liter .25;
 EL/TL .5; Stück ganzzahlig).
 
 **Einkauf / Verbrauch**
-`buildShoppingList`2871 · `readShoppingList`2898 ·
-`leereEinkaufsliste`2917 (+Knopf/Voice-Varianten 2926/2929) ·
-`parseArtikelListe`1818 · `einkaufHinzufuegen`1824 ·
-`VERBRAUCH`4405 · `vState`4472 · `vbSave`4504 · `renderVerbrauch`4553 ·
-`vbRate`4474 · `vbReichtNochTage`4499 · `vbGekauft`4526 ·
-Einkaufs-Modus: `vbVoiceCheckoffStart`4733 / `vbVoiceCheckoffStop`4781 / `vbVoiceCheckoffToggle`4795,
-`vbVoiceHandle`4705, `vbMatchScore`4677
+`buildShoppingList`2944 · `readShoppingList`2971 ·
+`leereEinkaufsliste`2990 (+Knopf/Voice-Varianten 2926/2929) ·
+`parseArtikelListe`1891 · `einkaufHinzufuegen`1897 ·
+`VERBRAUCH`4494 · `vState`4561 · `vbSave`4593 · `renderVerbrauch`4642 ·
+`vbRate`4563 · `vbReichtNochTage`4588 · `vbGekauft`4615 ·
+Einkaufs-Modus: `vbVoiceCheckoffStart`4822 / `vbVoiceCheckoffStop`4870 / `vbVoiceCheckoffToggle`4884,
+`vbVoiceHandle`4794, `vbMatchScore`4766
 
 **Familie / Termine**
-`mitglieder`3240 · `addMember`3539 · `renderMembers`3559 ·
-`personenAequivalent`3514 · `summePE`3526 ·
-`termine`3242 · `tLoad`3247 · `tSaveAll`3251 (**+ syncGeplant**) ·
-`formularTermin`4038 · `saveTermin`4057 · `findeKollisionen`4003 ·
-`terminDialogNext`3758 (Zustandsautomat) · `startTerminDialog`3928 ·
-`parseServer`3933 · `findeMitglied`3705 / `findeMitgliedImSatz`3732 ·
-`editierDistanz`3693 · `renderMatrix`4134 · `wocheWechseln`4121 ·
-`montagVon`4125 / `isoTag`4132 · `renderTerminListe`4206 ·
-`checkErinnerungen`4248 · `zeigeErinnerung`4270 · `reminderOk`4298 ·
-`routinen`3241 · `addRoutine`4089 · `renderRoutinen`4103
+`mitglieder`3329 · `addMember`3628 · `renderMembers`3648 ·
+`personenAequivalent`3603 · `summePE`3615 ·
+`termine`3331 · `tLoad`3336 · `tSaveAll`3340 (**+ syncGeplant**) ·
+`formularTermin`4127 · `saveTermin`4146 · `findeKollisionen`4092 ·
+`terminDialogNext`3847 (Zustandsautomat) · `startTerminDialog`4017 ·
+`parseServer`4022 · `findeMitglied`3794 / `findeMitgliedImSatz`3821 ·
+`editierDistanz`3782 · `renderMatrix`4223 · `wocheWechseln`4210 ·
+`montagVon`4214 / `isoTag`4221 · `renderTerminListe`4295 ·
+`checkErinnerungen`4337 · `zeigeErinnerung`4359 · `reminderOk`4387 ·
+`routinen`3330 · `addRoutine`4178 · `renderRoutinen`4192
 
 **Wochenplan (Plus)**
-`wpPlanen`1929 · `wpLaeuft`1928 → POST `/api/rezept` mit
+`wpPlanen`2002 · `wpLaeuft`2001 → POST `/api/rezept` mit
 `modus:"wochenplan"` → Termine 18:00 in angezeigter Woche +
 konsolidierte Liste über `smartQty`
 
 **Familien-Sync (Plus, E2E)**
-`syncCode`2043 · `syncSchluessel`2050 (PBKDF2 150k, Salt
-`ka-familien-sync-v1`) · `syncVerschluesseln`2067 /
-`syncEntschluesseln`2074 (AES-GCM, IV zufällig, Format `iv.ct` b64) ·
-`syncDaten`2083 (termine/routinen/mitglieder/verbrauch) ·
-`syncUebernehmen`2086 · `syncGeplant`2105 (2,5 s Debounce) ·
-`syncSenden`2110 · `syncAbholen`2131 (Poll 60 s + visibilitychange) ·
-`syncVerbinden`2166 · `syncEinladen`2209 + `syncEinladungsLink`2205
+`syncCode`2116 · `syncSchluessel`2123 (PBKDF2 150k, Salt
+`ka-familien-sync-v1`) · `syncVerschluesseln`2140 /
+`syncEntschluesseln`2147 (AES-GCM, IV zufällig, Format `iv.ct` b64) ·
+`syncDaten`2156 (termine/routinen/mitglieder/verbrauch) ·
+`syncUebernehmen`2159 · `syncGeplant`2178 (2,5 s Debounce) ·
+`syncSenden`2183 · `syncAbholen`2204 (Poll 60 s + visibilitychange) ·
+`syncVerbinden`2239 · `syncEinladen`2282 + `syncEinladungsLink`2278
 (Code im **URL-Fragment** `#sync=`, nie in Server-Logs) ·
-`syncTrennen`2225 · `syncAnzeige`2148
+`syncTrennen`2298 · `syncAnzeige`2221
 
 **Onboarding**
-`OB_FLAG`2266 · `OB_SCHRITTE`2267 · `OB_SAG`2274 · `obZeige`2302
-(liest **Volltext** der Seite) · `obWeiter`2341 / `obZurueck`2346 ·
-`obFertig`2349 (**startet Mikrofon → Berechtigungsdialog**) ·
-`obMitgliedHinzu`2377 · `obMikro`2396 · `obPush`2407 · `obInstall`2419 ·
-`onboardingOeffnen`2332
+`OB_FLAG`2339 · `OB_SCHRITTE`2340 · `OB_SAG`2347 · `obZeige`2375
+(liest **Volltext** der Seite) · `obWeiter`2414 / `obZurueck`2419 ·
+`obFertig`2422 (**startet Mikrofon → Berechtigungsdialog**) ·
+`obMitgliedHinzu`2450 · `obMikro`2469 · `obPush`2480 · `obInstall`2492 ·
+`onboardingOeffnen`2405
 
 **Gerät / Infrastruktur**
-`deviceId`3260 (crypto.getRandomValues, g+32 Hex; Museums-Fallback
-djb2, **kein Math.random**) · `idbOpen`3287 / `idbSet`3295 ·
-`weckerPlan`3304 · `serverSync`3327 · `aktivierePush`3347 ·
-`pruefePushAbo`3393 · `b64ToUint8`3342 · `goTab`2468 ·
-`aktiverTab`3448 · `appBeenden`2250 · `loescheAlles`3496 (DSGVO) ·
-Feedback: `fbOeffnen`3452 / `fbSprechen`3459 / `fbSenden`3469
+`deviceId`3349 (crypto.getRandomValues, g+32 Hex; Museums-Fallback
+djb2, **kein Math.random**) · `idbOpen`3376 / `idbSet`3384 ·
+`weckerPlan`3393 · `serverSync`3416 · `aktivierePush`3436 ·
+`pruefePushAbo`3482 · `b64ToUint8`3431 · `goTab`2541 ·
+`aktiverTab`3537 · `appBeenden`2323 · `loescheAlles`3585 (DSGVO) ·
+Feedback: `fbOeffnen`3541 / `fbSprechen`3548 / `fbSenden`3558
 
 ---
 
@@ -136,7 +136,7 @@ Feedback: `fbOeffnen`3452 / `fbSprechen`3459 / `fbSenden`3469
 
 ---
 
-## 4. Sprachbefehle (Stand FUSION15B, `erkenneKommando`1779)
+## 4. Sprachbefehle (Stand FUSION15B, `erkenneKommando`1850)
 
 | Befehl (Regex-Kern) | Typ |
 |---|---|
@@ -154,7 +154,7 @@ Feedback: `fbOeffnen`3452 / `fbSprechen`3459 / `fbSenden`3469
 | termin … / neuer termin … | `termin` |
 | einkauf … / kaufe … / besorge … | `einkauf` |
 | gehe/wechsle/zeige/öffne <Tab> | `nav` |
-| „weiter"/„überspringen" | kontextsensitiv (`istUeberspringen`1774) |
+| „weiter"/„überspringen" | kontextsensitiv (`istUeberspringen`1845) |
 
 ---
 
@@ -221,6 +221,12 @@ Sicherheitsfilter nach der KI**) · `buildPrompt`280 ·
   familienStile). Als FP markiert, Deklarationen Z. 3240–3242 / 1267.
 - **TTS erst nach 1. Touch:** Browser-Gesetz; Onboarding spricht daher
   erst ab Nutzer-Geste, `obFertig` nutzt genau diese Geste fürs Mikro.
+- **System-Bereitton:** entsteht bei JEDEM Neustart der
+  Spracherkennung. Deshalb NIE `recognition.abort()` zum Stummschalten
+  benutzen – der Selbsthör-Schutz liegt als Softwaresperre in
+  `onresult` (`ttsActive` + `ttsCooldownUntil` 800 ms). Schalter
+  `ka_ruhe_koch` erlaubt zusätzlich die Ruhepause im Kochmodus
+  (`GV_RUHE_KOCH_MS` 60 s).
 - **Android-Chrome liefert nur 1 deutsche Stimme** → Klangfarben
   (pitch/rate) sind der Vielfalt-Ersatz.
 - **`u.rate` darf nur EINMAL gesetzt werden** (Preset gewinnt).
@@ -233,7 +239,7 @@ Sicherheitsfilter nach der KI**) · `buildPrompt`280 ·
 ## 8. Testinfrastruktur (nach Sandbox-Reset neu zu erzeugen!)
 
 Verloren gehen bei Sandbox-Reset: `/tmp/harness3.js` + `/tmp/tests3.js`
-(40 Szenarien A–J; **Tests laufen IM eval-Kontext**, sonst sind
+(47 Szenarien A–K; **Tests laufen IM eval-Kontext**, sonst sind
 `const`/`let` der App unsichtbar; DOM-Stubs inkl. `options`,
 `wakeLock`, globals `elemente/gesprochen/ttsBlockiert/recInstanz`), `/tmp/test_sync.mjs`
 (9), `/tmp/test_limit.mjs` (4), `/tmp/test_digest.mjs` (13, echtes
@@ -246,10 +252,11 @@ P-256-Paar, Date.now-Mock, Redis-Router), `/tmp/test_kontingent.mjs`
 
 ## 9. Offene Punkte (Stand jetzt)
 
-- FUSION16 **noch nicht ausgerollt** (kumulativ: Klangfarben,
+- FUSION17 **noch nicht ausgerollt** (kumulativ: Klangfarben,
   TTS-Säuberung, Mikro nach Einführung, BOM-Fix, Wake Lock,
   gestaffelte Timer-Ansagen, Mikro wach im Kochmodus, progressive
-  Erinnerung, Navigations-Regex mit Artikeln).
+  Erinnerung, Navigations-Regex mit Artikeln, **Bereitton-Reduktion**).
+  FUSION16 ist live (Deploy main@388d29c).
 - Postfach: verifiziert (6 Einträge, API liefert korrekt).
 - „go A11y": ~40 Label-/Tastatur-Fixes (einziger Sonar-Punkt mit
   echtem Produktwert).
