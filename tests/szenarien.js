@@ -165,3 +165,54 @@ pruefe("K2 Rechtslinks im Footer",
   APPHTML.includes('href="/datenschutz.html"'));
 pruefe("K3 Versionsstempel gesetzt", typeof APP_VERSION === "string" &&
   /^FUSION/.test(APP_VERSION));
+
+// ---------- L: Vom Red-Team gefundene Defekte (dauerhaft) ----------
+// Diese Faelle hat Fable 5 am 29.07.2026 gefunden - alle waren echte
+// Fehler. Sie bleiben dauerhaft in der Suite, damit kein Rueckfall
+// unbemerkt bleibt.
+pruefe("L01 null-Eingabe ist kein Befehl", erkenneKommando(null) === null);
+pruefe("L02 undefined-Eingabe ist kein Befehl", erkenneKommando(undefined) === null);
+pruefe("L03 Frage 'Kaufen wir am Samstag ein?' ist KEIN Einkaufsbefehl",
+  erkenneKommando("Kaufen wir am Samstag zusammen ein?") === null);
+pruefe("L04 'das war keine hilfe' oeffnet NICHT die Hilfe",
+  erkenneKommando("nein danke, das war keine hilfe") === null);
+pruefe("L05 Echter Einkaufsbefehl funktioniert weiter",
+  (erkenneKommando("einkauf milch") || {}).typ === "einkauf");
+pruefe("L06 'kaufe brot' funktioniert weiter",
+  (erkenneKommando("kaufe brot") || {}).typ === "einkauf");
+pruefe("L07 'hilfe' als Aufforderung funktioniert weiter",
+  (erkenneKommando("hilfe") || {}).typ === "hilfe");
+pruefe("L08 'SEI STILL!!!' wird erkannt",
+  (erkenneKommando("SEI STILL!!!") || {}).typ === "still");
+pruefe("L09 Verschachtelte Klammern hinterlassen keine Klammer",
+  !ttsSaeubern("Hinweis (außen (innen) rest) fertig").includes("("));
+pruefe("L10 Saeuberung ist idempotent", (function () {
+  const s = ttsSaeubern("Achtung ⚠️ (heiß)! Bitte «vorsichtig» ruehren.");
+  return ttsSaeubern(s) === s;
+})());
+pruefe("L11 Alter 0 zaehlt als Kleinkind, nicht als Erwachsener",
+  personenAequivalent({ alter: 0, geschlecht: "m" }) === 0.5);
+pruefe("L12 Fehlendes Alter faellt weiter auf Erwachsen zurueck",
+  personenAequivalent({ geschlecht: "w" }) === 0.85);
+pruefe("L13 Menge 1.5 g ueberschreibt NICHT fremde '105 g' im Schritt",
+  skaliereRezept({ ingredients: [{ name: "Zucker", qty: 1.5, unit: "g" }],
+    steps: [{ text: "105 g Mehl unterrühren" }] }, 2)
+    .steps[0].text === "105 g Mehl unterrühren");
+pruefe("L14 Eigene Menge wird trotzdem ersetzt",
+  skaliereRezept({ ingredients: [{ name: "Zucker", qty: 100, unit: "g" }],
+    steps: [{ text: "100 g Zucker unterrühren" }] }, 2)
+    .steps[0].text.includes("200 g"));
+pruefe("L15 Einheit 'Bund' bleibt beim Skalieren erhalten",
+  skaliereRezept({ ingredients: [{ name: "Petersilie", qty: 1, unit: "Bund" }],
+    steps: [] }, 0.5).ingredients[0].unit === "Bund");
+pruefe("L16 Einheit 'Stück' bleibt beim Skalieren erhalten",
+  skaliereRezept({ ingredients: [{ name: "Zwiebel", qty: 1, unit: "Stück" }],
+    steps: [] }, 0.5).ingredients[0].unit === "Stück");
+pruefe("L17 Floskel 'bitte' wird kein Einkaufsartikel",
+  parseArtikelListe("Erdbeeren und Sahne, bitte").length === 2);
+pruefe("L18 Echte Artikel bleiben vollstaendig",
+  parseArtikelListe("Milch, Butter und Eier").length === 3);
+pruefe("L19 Grenzwert 300 s ist Minutenansage, 299 s nicht",
+  restzeitAnsageFaellig(300) === true && restzeitAnsageFaellig(299) === false);
+pruefe("L20 Wochenstart ist ein Montag",
+  new Date(isoTag(montagVon(0)) + "T12:00:00Z").getUTCDay() === 1);

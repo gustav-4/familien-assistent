@@ -1408,7 +1408,13 @@ function unmuteMic() {
 function ttsSaeubern(text) {
   let t = String(text);
   // (Einschub) -> , Einschub,
-  t = t.replace(/\s*\(([^()]{1,120})\)/g, ", $1,");
+  // RT1-03: verschachtelte Klammern - wiederholen, bis nichts bleibt
+  for (let runde = 0; runde < 5; runde++) {
+    const vorher = t;
+    t = t.replace(/\s*\(([^()]{0,120})\)/g, ", $1,");
+    if (t === vorher) break;
+  }
+  t = t.replace(/[()]/g, " "); // Reste einzelner Klammern
   // Emojis, Piktogramme, Dingbats, Pfeile, Varianten-Selektoren
   t = t.replace(/[\u{1F000}-\u{1FAFF}\u{2300}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}\u{2049}\u{203C}]/gu, " ");
   // Zier-/Steuerzeichen, die Stimmen vorlesen oder verschlucken
@@ -1686,7 +1692,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION21";
+const APP_VERSION = "FUSION22";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -1865,7 +1871,11 @@ function erkenneKommando(text) {
       || /^(?:tschüss|tschuess|auf wiedersehen)$/.test(t)) {
     return { typ: "app_ende" };
   }
-  if (/\b(hilfe|was kannst du)\b/.test(t)) return { typ: "hilfe" };
+  // RT2-02: nur als Aufforderung, nicht in beliebigen Saetzen
+  // ("das war keine hilfe" ist kein Befehl).
+  if (/^(?:hilfe|was kannst du(?: alles)?|hilf mir)\b/.test(t)) {
+    return { typ: "hilfe" };
+  }
   if (/^(?:jetzt\s+|los\s+|lass uns\s+)?koch(?:en)?(?:\s+start(?:en)?|\s+beginnen|\s+los)?$/.test(t)) {
     return { typ: "kochen" };
   }
@@ -1878,7 +1888,12 @@ function erkenneKommando(text) {
   if (m) return { typ: "rezept", rest: (m[1] || "").trim() };
   m = t.match(/^(?:neuer\s+|neuen\s+)?termin[:,]?\s*(.*)$/);
   if (m) return { typ: "termin", rest: m[1].trim() };
-  m = t.match(/^(?:einkauf|einkaufen|kaufe|kaufen|besorge|besorgen|auf die liste)[:,]?\s*(.*)$/);
+  // RT1-02: "Kaufen wir am Samstag zusammen ein?" ist eine Frage, kein
+  // Befehl. Deshalb: Fragen ausschliessen und "kaufen/besorgen" nur mit
+  // folgendem Artikel akzeptieren, nicht mit Pronomen.
+  m = /[?]\s*$/.test(t) ? null
+    : t.match(/^(?:einkauf|einkaufsliste|kaufe|besorge|auf die liste)\b[:,]?\s*(.*)$/)
+      || t.match(/^(?:einkaufen|kaufen|besorgen)[:,]?\s+(?!wir\b|sie\b|die\b|das\b|den\b|dem\b|der\b|es\b|man\b)(.+)$/);
   if (m) return { typ: "einkauf", rest: m[1].trim() };
   // Fuellwoerter/Artikel beliebig oft ueberspringen ("gehe zu den
   // terminen", "wechsle zur einkaufsliste", "zeige mir die rezepte")
@@ -1889,9 +1904,15 @@ function erkenneKommando(text) {
 
 // ---------- Einkaufs-Artikel (pur & testbar) ----------
 function parseArtikelListe(text) {
+  // RT2-08: Hoeflichkeitsfloskeln sind keine Einkaufsartikel.
+  const FLOSKELN = ["bitte", "danke", "noch", "auch", "dazu", "und",
+    "sonst", "ok", "okay", "gerne", "mal"];
   return String(text).split(/\s+und\s+|,/)
-    .map((s) => s.trim().replace(/^(noch|bitte|auch)\s+/i, "").slice(0, 50))
-    .filter((s) => s.length > 1);
+    .map((s) => s.trim()
+      .replace(/^(?:noch|bitte|auch|dazu)\s+/i, "")
+      .replace(/\s+(?:bitte|danke)$/i, "")
+      .slice(0, 50))
+    .filter((s) => s.length > 1 && !FLOSKELN.includes(s.toLowerCase()));
 }
 
 function einkaufHinzufuegen(text) {
@@ -2878,6 +2899,12 @@ function zahlVarianten(q) {
   const b = a.replace(".", ",");
   return a === b ? [a] : [a, b];
 }
+/** Maskiert Sonderzeichen fuer den Einsatz in regulaeren Ausdruecken.
+ *  RT2-05: Ohne Maskierung passte "1.5" auch auf "105" - dadurch wurden
+ *  fremde Mengen im Schritttext ueberschrieben. */
+function regexMaskiere(text) {
+  return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 /** Rezept EINMAL aufs Familienprofil festschreiben. Ersetzt auch
  * Mengenangaben in der Schritt-Prosa ("Koche 200 g Reis" ->
  * skalierte Menge), damit Vorstellung, Liste und Kochen
@@ -2891,18 +2918,23 @@ function skaliereRezept(r, f) {
       ["text", "announce"].forEach((feld) => {
         if (!s[feld]) return;
         zahlVarianten(ing.qty).forEach((z) => {
+          // Punkt/Komma als EINE Alternative, alles andere maskiert.
+          const zahl = regexMaskiere(z).replace(/\\\./, "[.,]")
+            .replace(/,/, "[.,]");
+          const einheit = regexMaskiere(ing.unit);
           const re = new RegExp(
-            "\\b" + z.replace(",", "[.,]") + "\\s*" + ing.unit + "\\b", "g");
-          s[feld] = s[feld].replace(re, neu);
+            "(^|[^\\d.,])" + zahl + "\\s*" + einheit + "\\b", "g");
+          s[feld] = s[feld].replace(re, "$1" + neu);
         });
       });
     });
     // Zutat selbst festschreiben (Anzeige danach mit Faktor 1)
-    const m = neu.match(/^([\d.,]+)\s*(.*)$/);
-    if (m) {
-      ing.qty = Number(m[1].replace(",", "."));
-      if (m[2]) ing.unit = m[2];
-    }
+    // Nur die ZAHL zurueckschreiben. Die Einheit bleibt, wie sie ist:
+    // der Anzeigetext kann Zusaetze wie "kleine" enthalten (RT2-04),
+    // die sonst in die Einheit wandern wuerden. Einheiten aendern sich
+    // beim Skalieren ohnehin nie.
+    const m = neu.match(/^([\d.,]+)/);
+    if (m) ing.qty = Number(m[1].replace(",", "."));
   });
   return kopie;
 }
@@ -2915,9 +2947,12 @@ function smartQty(ing, f) {
   if (unit === "Stück" || unit === "Bund") {
     const rounded = Math.ceil(q);
     const diff = rounded - q;
+    // RT1-06/RT2-04: Hinweis nur, wenn wirklich eine Bruchmenge
+    // vorliegt - "1 Bund kleine Petersilie" war Unsinn.
     let hint = "";
-    if (diff >= 0.5) hint = "kleine ";
-    else if (q - Math.floor(q) >= 0.85) hint = "große ";
+    const bruch = Math.abs(q - Math.round(q)) > 0.01;
+    if (bruch && diff >= 0.5) hint = "kleine ";
+    else if (bruch && q - Math.floor(q) >= 0.85) hint = "große ";
     const unitText = unit === "Bund" ? " Bund" : "";
     return `${rounded}${unitText} ${hint}${ing.name}`;
   }
@@ -3601,7 +3636,9 @@ async function loescheAlles() {
 
 // ---------- Familienprofil ----------
 function personenAequivalent(m) {
-  const a = Number(m.alter) || 30;
+  // RT1-07: Number(0) ist falsy - ein Saeugling zaehlte als Erwachsener.
+  const roh = Number(m && m.alter);
+  const a = Number.isFinite(roh) && roh >= 0 ? roh : 30;
   const w = m.geschlecht === "w";
   if (a <= 3) return 0.5;
   if (a <= 6) return 0.62;
