@@ -69,6 +69,15 @@ jobs:
       - name: Selbstheilung anwenden
         run: node tests/heilung.js
 
+      - name: Berichte sichern (VOR dem Pull Request - danach ist das
+          Arbeitsverzeichnis aufgeraeumt)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-berichte
+          path: tests/berichte/
+          if-no-files-found: warn
+
       - name: Reparaturvorschlag als Pull Request
         if: always()
         uses: peter-evans/create-pull-request@v6
@@ -95,9 +104,3 @@ jobs:
           QA_TOKEN: ${{ secrets.QA_TOKEN }}
         run: node tests/melde.mjs --anlass=nacht
 
-      - name: Bericht sichern
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: redteam-bericht
-          path: tests/berichte/
