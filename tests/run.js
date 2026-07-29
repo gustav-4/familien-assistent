@@ -62,7 +62,10 @@ try {
   const fehlgeschlagen = ergebnisse.length - bestanden;
   const bericht = {
     zeitpunkt: new Date().toISOString(),
-    version: (global.APP_VERSION || "unbekannt"),
+    // Version aus der Datei lesen: APP_VERSION ist eine const im
+    // eval-Bereich und von hier aus NICHT sichtbar.
+    version: (global.APPHTML.match(/APP_VERSION = "([^"]+)"/) || [])[1]
+      || "unbekannt",
     gesamt: ergebnisse.length, bestanden, fehlgeschlagen,
     selbstheilung: {
       geschlosseneAttrappenLuecken: luecken,
