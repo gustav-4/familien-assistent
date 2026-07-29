@@ -78,6 +78,12 @@ jobs:
           path: tests/berichte/
           if-no-files-found: warn
 
+      - name: Bericht ans Handy melden
+        if: always()
+        env:
+          QA_TOKEN: ${{ secrets.QA_TOKEN }}
+        run: node tests/melde.mjs --anlass=nacht
+
       - name: Reparaturvorschlag als Pull Request
         if: always()
         uses: peter-evans/create-pull-request@v6
@@ -97,10 +103,4 @@ jobs:
             Bitte Verdachtsfaelle sichten: echter Defekt -> Fix beauftragen;
             falsche Annahme -> Testfall verwerfen.
           delete-branch: true
-
-      - name: Bericht ans Handy melden
-        if: always()
-        env:
-          QA_TOKEN: ${{ secrets.QA_TOKEN }}
-        run: node tests/melde.mjs --anlass=nacht
 
