@@ -41,6 +41,18 @@ jobs:
       - name: Szenarien ausfuehren
         run: node tests/run.js
 
+      # AUDIT 31.07.: Servertests liefen bisher gar nicht mit - die
+      # gesamte Serverlogik war vom taeglichen Lauf ausgenommen.
+      - name: Servertests ausfuehren
+        run: |
+          for f in tests/server/*.test.mjs; do node "$f"; done
+
+      # Gegenprobe: Ein gruener Test beweist erst dann etwas, wenn er rot
+      # wird, sobald man die Reparatur zerstoert. Faellt das aus, ist die
+      # Testsuite Zierde statt Sicherung.
+      - name: Mutationstest (Gegenprobe)
+        run: node tests/mutation.js
+
       - name: Bericht sichern
         if: always()
         uses: actions/upload-artifact@v4
@@ -98,7 +110,7 @@ jobs:
             * `tests/berichte/redteam.json` enthaelt die Verdachtsfaelle
               des Red-Teams (Modell Fable 5).
             * `tests/berichte/letzter-lauf.json` enthaelt den vollen Bericht.
-            * Selbstheilung hat nur Testinfrastruktur veraendert â€“
+            * Selbstheilung hat nur Testinfrastruktur veraendert –
               **kein App-Code wurde automatisch geaendert.**
 
             Bitte Verdachtsfaelle sichten: echter Defekt -> Fix beauftragen;
