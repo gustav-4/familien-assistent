@@ -121,8 +121,21 @@ localStorage.removeItem("ka_ruhe_koch");
   pruefe("G5 Ansagen brechen die Erkennung NICHT ab (kein Bereitton)",
     nachher === vorher);
 })();
-pruefe("G6 Selbsthoer-Schutz als Softwaresperre vorhanden",
-  APPQUELLE.includes("if (ttsActive || Date.now() < ttsCooldownUntil) return;"));
+// G6 GEAENDERT: Der alte Test suchte nur eine ZEICHENKETTE im Quelltext.
+// Er wurde rot, als der Schutz VERBESSERT wurde - und waere gruen
+// geblieben, haette man den Schutz geloescht und die Zeile als toten
+// Kommentar stehen lassen. Jetzt wird das VERHALTEN geprueft.
+pruefe("G6 Selbsthoer-Schutz verwirft die eigene Ansage", (function () {
+  const vorher = vState.liste.length;
+  ttsActive = true;
+  ttsEchoAktuell = "Welcher Artikel?";
+  ttsEchoVorher = "";
+  GlobalVoice.dialog = { onInput: einkaufHinzufuegen };
+  recInstanz.onresult({ results: [[{ transcript: "Welcher Artikel" }]] });
+  const gewachsen = vState.liste.length > vorher;
+  ttsActive = false; ttsEchoAktuell = ""; GlobalVoice.dialog = null;
+  return !gewachsen;
+})());
 
 // ---------- H: Erinnerungen ----------
 pruefe("H1 Erinnerungsstufen 90/150/240 s",
@@ -216,3 +229,266 @@ pruefe("L19 Grenzwert 300 s ist Minutenansage, 299 s nicht",
   restzeitAnsageFaellig(300) === true && restzeitAnsageFaellig(299) === false);
 pruefe("L20 Wochenstart ist ein Montag",
   new Date(isoTag(montagVon(0)) + "T12:00:00Z").getUTCDay() === 1);
+
+// =====================================================================
+// M: FEHLERTESTS ZU DEN GEMELDETEN FEHLERN (31.07.)
+// ---------------------------------------------------------------------
+// Warum dieser Block existiert: Weder die taegliche Red-Team-Runde noch
+// die deterministischen Szenarien haben diese drei Fehler je gesehen.
+// Grund: Das Red-Team bekommt ausschliesslich REINE Funktionen zu
+// sehen; die Fehler lagen aber allesamt in der Ereignis- und
+// Zeitsteuerung (onresult, onend, Sprechblasen-Timer). Diese Ebene war
+// bis heute vollstaendig ungetestet. Jeder Test hier muss ohne die
+// zugehoerige Reparatur ROT sein - nachgewiesen per tests/mutation.js.
+// =====================================================================
+
+// ---------- M1: App hoert sich selbst (Einkaufsliste) ----------
+pruefe("M1 Eigene Rueckfrage landet NICHT als Artikel auf der Liste", (function () {
+  const vorher = vState.liste.length;
+  ttsActive = true;
+  ttsEchoAktuell = "Welcher Artikel?";
+  GlobalVoice.dialog = { onInput: einkaufHinzufuegen };
+  recInstanz.onresult({ results: [[{ transcript: "welcher Artikel" }]] });
+  const ok = vState.liste.length === vorher;
+  ttsActive = false; ttsEchoAktuell = ""; GlobalVoice.dialog = null;
+  return ok;
+})());
+
+pruefe("M2 Echte Antwort waehrend der Ansage kommt DURCH", (function () {
+  const vorher = vState.liste.length;
+  ttsActive = true;
+  ttsEchoAktuell = "Welcher Artikel?";
+  GlobalVoice.dialog = { onInput: einkaufHinzufuegen };
+  recInstanz.onresult({ results: [[{ transcript: "Milch" }]] });
+  const ok = vState.liste.length === vorher + 1;
+  ttsActive = false; ttsEchoAktuell = ""; GlobalVoice.dialog = null;
+  vState.liste.length = vorher;
+  return ok;
+})());
+
+pruefe("M3 Zutat aus vorgelesener Liste bleibt gueltige Eingabe", (function () {
+  // "Milch" darf NICHT als Echo gelten, nur weil die App eben eine
+  // Zutatenliste mit Milch vorgelesen hat (Einzelwort-Regel).
+  return istEigenesEcho("Milch", "Ihr braucht: 200 ml Milch, 3 Eier", "") === false;
+})());
+
+pruefe("M4 Wortgleiche Ansage gilt als Echo",
+  istEigenesEcho("Welcher Artikel", "Welcher Artikel?", "") === true);
+
+pruefe("M5 Echo-Fenster reicht nicht ueber die ganze Ansage", (function () {
+  // Waehrend des Hilfetexts muss "stopp" ein echter Befehl bleiben,
+  // solange gerade ein ANDERES Stueck gesprochen wird.
+  return istEigenesEcho("stopp", "Ihr könnt sagen: Termin, dann den Termin sprechen.", "") === false;
+})());
+
+// ---------- M6-M8: Aktivton darf sich nicht wiederholen ----------
+pruefe("M6 Aktivton kommt beim Einschalten genau einmal", (function () {
+  gvStopp(); toeneLeeren();
+  gvStart();
+  return toeneGespielt().length === 2; // aufsteigender Zweiklang
+})());
+
+pruefe("M7 Interner Neustart erzeugt KEINEN weiteren Aktivton", (function () {
+  gvStopp(); gvStart(); toeneLeeren();
+  gvNeustart(); gvNeustart(); gvNeustart();
+  return toeneGespielt().length === 0;
+})());
+
+pruefe("M8 gvStart im laufenden Betrieb bleibt stumm", (function () {
+  gvStopp(); gvStart(); toeneLeeren();
+  gvStart();
+  return toeneGespielt().length === 0;
+})());
+
+pruefe("M9 Einschlafton ist absteigend und vom Aktivton unterscheidbar", (function () {
+  toeneLeeren(); tonAktiv();
+  const auf = toeneGespielt();
+  toeneLeeren(); tonSchlaf();
+  const ab = toeneGespielt();
+  return auf.length === 2 && ab.length === 2
+    && auf[1] > auf[0] && ab[1] < ab[0];
+})());
+
+pruefe("M10 Bereit-Ton ist ein einzelner Ton", (function () {
+  toeneLeeren(); tonBereit();
+  return toeneGespielt().length === 1;
+})());
+
+// ---------- M11: Sprechblase verschwindet nicht mehr zu frueh ----------
+pruefe("M11 Sprechblase haelt laenger als der alte 15-Sekunden-Deckel", (function () {
+  const echt = global.setTimeout;
+  const fristen = [];
+  global.setTimeout = function (fn, ms) { fristen.push(ms || 0); return 0; };
+  try {
+    // Rezeptvorstellung mit voller Zutatenliste: ~600 Zeichen
+    gvSprechblase("x".repeat(600));
+  } finally { global.setTimeout = echt; }
+  // Alte Fassung: Math.min(4000 + 600*60, 15000) === 15000 -> ROT
+  return fristen.length > 0 && Math.max.apply(null, fristen) > 15000;
+})());
+
+pruefe("M12 Ansage-Ende blendet die Sprechblase aus", (function () {
+  gvSprechblase("Testansage");
+  gvSprechblaseAus();
+  return String(el("gvSage").className || "").indexOf("sichtbar") === -1;
+})());
+
+// ---------- M13-M16: Der Chip sagt die Wahrheit ----------
+pruefe("M13 Waehrend der Ansage zeigt der Chip NICHT gruen", (function () {
+  gvChipAnsage();
+  const k = String(el("gvChip").className || "");
+  return k === "redet" && k !== "an";
+})());
+
+pruefe("M14 Nach der Ansage steht der Chip wieder auf dem echten Zustand", (function () {
+  gvStopp();               // aktiv = false
+  gvChipAnsage();
+  gvChipStand();
+  return String(el("gvChip").className || "") === "aus";
+})());
+
+pruefe("M15 Ruhepause spielt den Einschlafton", (function () {
+  // Kochmodus ausdruecklich als "nicht sichtbar" setzen: in der
+  // Attrappe liefert classList.contains sonst undefined und die App
+  // haelt faelschlich den Kochmodus fuer offen (dort gilt die
+  // Ruhepause bewusst nicht).
+  el("tab-kochen").classList = { contains: () => true, add() {}, remove() {}, toggle() {} };
+  gvStart();
+  toeneLeeren();
+  gvLetztesErgebnis = Date.now() - (GV_RUHE_MS + 5000);
+  GlobalVoice.dialog = null;
+  recInstanz.onend();
+  const toene = toeneGespielt();
+  return GlobalVoice.aktiv === false && toene.length === 2 && toene[1] < toene[0];
+})());
+
+pruefe("M16 Eigene Redezeit zaehlt NICHT als Stille", (function () {
+  // Kernfehler: Der Ruhepausen-Zaehler wurde nur von erkannten Saetzen
+  // zurueckgesetzt - eine lange Ansage liess das Mikro einschlafen.
+  gvStart();
+  gvLetztesErgebnis = Date.now() - (GV_RUHE_MS + 5000);
+  const alt = gvLetztesErgebnis;
+  gesprochenLeeren();
+  speak("Eine lange Rezeptvorstellung mit vielen Zutaten.", true);
+  return gvLetztesErgebnis > alt;
+})());
+
+// ---------- M17-M22: "Auf die Einkaufsliste" ----------
+pruefe("M17 Getrennt gesprochen: 'auf die einkaufs liste'",
+  (erkenneKommando("auf die einkaufs liste") || {}).typ === "auf_liste");
+pruefe("M18 Mit Hoeflichkeitswort: 'auf die einkaufsliste bitte'",
+  (erkenneKommando("auf die einkaufsliste bitte") || {}).typ === "auf_liste");
+pruefe("M19 'alles auf die liste'",
+  (erkenneKommando("alles auf die liste") || {}).typ === "auf_liste");
+pruefe("M20 'pack die zutaten auf die liste'",
+  (erkenneKommando("pack die zutaten auf die liste") || {}).typ === "auf_liste");
+pruefe("M21 Klassiker bleibt erhalten: 'auf die einkaufsliste'",
+  (erkenneKommando("auf die einkaufsliste") || {}).typ === "auf_liste");
+pruefe("M22 'liste vorlesen' wird NICHT zu auf_liste",
+  (erkenneKommando("einkaufsliste vorlesen") || {}).typ === "liste");
+// Von der Mutationsprobe aufgedeckt: M17-M21 werden bereits von der
+// Hauptregel gefangen - die AUFFANGREGEL fuer freiere Formulierungen
+// war komplett ungetestet. Diese Saetze treffen nur sie.
+pruefe("M22a Auffangregel: 'das kommt auf die liste'",
+  (erkenneKommando("das kommt auf die liste") || {}).typ === "auf_liste");
+pruefe("M22b Auffangregel: 'können wir das auf die einkaufsliste tun'",
+  (erkenneKommando("können wir das auf die einkaufsliste tun") || {}).typ === "auf_liste");
+pruefe("M22c Langer Satz loest die Auffangregel NICHT aus",
+  (erkenneKommando("am samstag schreiben wir gemeinsam alles auf die liste was wir noch brauchen") || {}) .typ !== "auf_liste");
+
+// ---------- M23-M27: Zurueck ----------
+pruefe("M23 'zurück' allein ist ein Befehl", istZurueck("zurück") === true);
+pruefe("M24 'ein schritt zurück' ist ein Befehl", istZurueck("ein Schritt zurück") === true);
+pruefe("M25 'vorheriger schritt' ist ein Befehl", istZurueck("vorheriger Schritt") === true);
+pruefe("M26 Satz mit 'zurück' loest NICHTS aus",
+  istZurueck("wir fahren am Samstag zurück nach Hamburg") === false);
+pruefe("M27 'zurückstellen' loest NICHTS aus", istZurueck("zurückstellen") === false);
+
+pruefe("M28 prevStep geht einen Schritt zurueck", (function () {
+  selectedRecipe = { name: "Test", _skaliert: true,
+    steps: [{ text: "Erster Schritt" }, { text: "Zweiter Schritt" },
+            { text: "Dritter Schritt" }] };
+  stepIndex = 2;
+  prevStep();
+  return stepIndex === 1;
+})());
+
+pruefe("M29 prevStep bleibt beim ersten Schritt stehen", (function () {
+  stepIndex = 0;
+  prevStep();
+  return stepIndex === 0;
+})());
+
+// ---------- M30-M33: Einkaufs-Kette ----------
+pruefe("M30 'fertig' beendet die Kette", istKetteEnde("fertig") === true);
+pruefe("M31 'das war's' beendet die Kette", istKetteEnde("das war's") === true);
+pruefe("M32 Ein Artikel beendet die Kette NICHT", istKetteEnde("Milch") === false);
+pruefe("M33 Zurueck nimmt den letzten Artikel wieder weg", (function () {
+  vState.liste.length = 0;
+  einkaufHinzufuegen("Milch");
+  const nachher = vState.liste.length;
+  einkaufZurueck();
+  return nachher === 1 && vState.liste.length === 0;
+})());
+
+// ---------- M34-M40: Freitext-Ausschluss ----------
+pruefe("M34 Komma-Eingabe wird zerlegt",
+  ausschlussParse("Schweinefleisch, Alkohol , Koriander").length === 3);
+pruefe("M35 Leere Eingabe ergibt leere Liste",
+  ausschlussParse("").length === 0 && ausschlussParse(null).length === 0);
+pruefe("M36 'Schwein' zieht Speck und Salami mit",
+  ausschlussErweitern(["schwein"]).includes("speck")
+  && ausschlussErweitern(["schwein"]).includes("salami"));
+pruefe("M37 'Alkohol' zieht Rotwein mit",
+  ausschlussErweitern(["alkohol"]).includes("rotwein"));
+pruefe("M38 Unbekannter Begriff bleibt trotzdem wirksam",
+  ausschlussErweitern(["quitte"]).includes("quitte"));
+pruefe("M39 Ausschluss greift in der Zutatenliste",
+  ausschlussTrifft({ name: "Pasta", ingredients: [{ name: "Pancetta" }], steps: [] },
+    ["schwein"]) !== null);
+pruefe("M40 Ausschluss greift auch im Schritttext",
+  ausschlussTrifft({ name: "Sauce", ingredients: [{ name: "Tomaten" }],
+    steps: [{ text: "Mit einem Schuss Rotwein abloeschen." }] },
+    ["alkohol"]) !== null);
+pruefe("M41 Sauberes Rezept bleibt erhalten",
+  ausschlussTrifft({ name: "Gemuesepfanne", ingredients: [{ name: "Zucchini" }],
+    steps: [{ text: "Alles anbraten." }] }, ["schwein"]) === null);
+pruefe("M42 Ohne Ausschlussliste wird nichts verworfen",
+  ausschlussTrifft({ name: "Speckknoedel", ingredients: [{ name: "Speck" }],
+    steps: [] }, []) === null);
+
+// ---------- M43: Unterbrechen ----------
+pruefe("M43 Alltagsgeplauder unterbricht die Ansage NICHT", (function () {
+  GlobalVoice.dialog = null;
+  return gvDarfUnterbrechen("ach das riecht aber gut hier") === false;
+})());
+pruefe("M44 Echter Befehl darf unterbrechen",
+  gvDarfUnterbrechen("auf die einkaufsliste") === true);
+
+// ---------- M45: Zufallsbeschuss gegen Fehlausloeser ----------
+pruefe("M45 Zufallsbeschuss: kein Alltagssatz loest Einkauf/Liste aus", (function () {
+  // Fester Startwert statt Zufall - der Lauf muss reproduzierbar sein.
+  let saat = 20260731;
+  const wuerfel = (n) => { saat = (saat * 1103515245 + 12345) % 2147483648; return saat % n; };
+  const subjekte = ["wir", "die kinder", "oma", "der papa", "alle"];
+  const verben = ["fahren", "gehen", "wollen", "kommen", "bleiben"];
+  // Von der Mutationsprobe aufgedeckt: Ohne die Woerter "zurueck" und
+  // "weiter" im Vorrat konnte dieser Beschuss die Alleinstehend-
+  // Sicherung gar nicht pruefen - er war dekorativ.
+  const orte = ["nach hamburg", "zum sport", "in die schule", "auf den spielplatz",
+    "zur liste der gäste", "auf die andere seite", "zurück nach hause",
+    "zurück zum auto", "weiter zum spielplatz", "zurück in die stadt",
+    "weiter nach bremen"];
+  const enden = ["", " am samstag", " heute abend", " nächste woche",
+    " und dann zurück", " und weiter zum sport"];
+  let fehlausloeser = 0;
+  for (let i = 0; i < 2000; i++) {
+    const satz = subjekte[wuerfel(subjekte.length)] + " " +
+      verben[wuerfel(verben.length)] + " " +
+      orte[wuerfel(orte.length)] + enden[wuerfel(enden.length)];
+    const k = erkenneKommando(satz);
+    if (k && (k.typ === "auf_liste" || k.typ === "einkauf")) fehlausloeser++;
+    if (istZurueck(satz) || istUeberspringen(satz)) fehlausloeser++;
+  }
+  return fehlausloeser === 0;
+})());

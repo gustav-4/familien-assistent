@@ -67,6 +67,7 @@ function knotenRoh(id) {
       return { top: 0, left: 0, width: 100, height: 20, bottom: 20, right: 100 };
     },
     closest() { return null; },
+    className: undefined, // automatisch ergaenzt (Selbstheilung)
   };
 }
 
@@ -98,6 +99,8 @@ function setzeGlobal(name, wert) {
     value: wert, writable: true, configurable: true, enumerable: true,
   });
 }
+
+let audioInstanz = null;
 
 function umgebungAufbauen() {
   global.window = global;
@@ -219,6 +222,35 @@ function umgebungAufbauen() {
   }
   global.SpeechRecognition = Erkennung;
   global.webkitSpeechRecognition = Erkennung;
+  // --- Signaltoene messbar machen -----------------------------------
+  // Ohne diese Attrappe war die gesamte Ton-Logik im Test unsichtbar:
+  // tonKontext() lieferte null und jeder Ton verpuffte lautlos. Genau
+  // solche Loecher sind der Grund, warum die taeglichen Pruefungen die
+  // Ton-Fehler nie sehen konnten.
+  function GainAttrappe() {
+    this.gain = { setValueAtTime() {}, exponentialRampToValueAtTime() {} };
+    this.connect = () => {};
+  }
+  function OszillatorAttrappe(ctx) {
+    this.type = "sine";
+    this.frequency = { value: 0 };
+    this.connect = () => {};
+    this.start = () => { ctx._toene.push(this.frequency.value); };
+    this.stop = () => {};
+  }
+  function AudioContextAttrappe() {
+    this.state = "running";
+    this.currentTime = 0;
+    this._toene = [];
+    this.resume = () => { this.state = "running"; };
+    this.createOscillator = () => new OszillatorAttrappe(this);
+    this.createGain = () => new GainAttrappe();
+    this.destination = {};
+    audioInstanz = this;
+    global.audioInstanz = this;
+  }
+  global.AudioContext = AudioContextAttrappe;
+  global.webkitAudioContext = AudioContextAttrappe;
   global.Notification = {
     permission: "granted", requestPermission: async () => "granted",
   };
@@ -244,6 +276,10 @@ function umgebungAufbauen() {
   global.gesprochen = gesprochen;
   global.el = element;
   global.setzeTtsBlockiert = (b) => { ttsBlockiert = b; };
+  // Toene zaehlen/zuruecksetzen (Frequenzfolge = Art des Tons)
+  global.toeneGespielt = () => (audioInstanz ? audioInstanz._toene.slice() : []);
+  global.toeneLeeren = () => { if (audioInstanz) audioInstanz._toene = []; };
+  global.gesprochenLeeren = () => { gesprochen.length = 0; };
   global.wakeLockZaehler = () => ({ an: wakeLockAnfragen, aus: wakeLockFreigaben });
   global.attrappenLuecken = () => luecken.slice();
 }

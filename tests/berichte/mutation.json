@@ -1,0 +1,77 @@
+{
+  "zeitpunkt": "2026-07-31T10:06:42.856Z",
+  "mutationen": 14,
+  "luecken": 0,
+  "ergebnisse": [
+    {
+      "name": "Selbsthoer-Schutz entfernt",
+      "status": "bemerkt",
+      "rot": 2
+    },
+    {
+      "name": "Echo-Erkennung meldet immer 'kein Echo'",
+      "status": "bemerkt",
+      "rot": 3
+    },
+    {
+      "name": "Echo-Erkennung verschluckt auch einzelne Woerter",
+      "status": "bemerkt",
+      "rot": 1
+    },
+    {
+      "name": "Aktivton wieder bei jedem Neustart",
+      "status": "bemerkt",
+      "rot": 1
+    },
+    {
+      "name": "Einschlafton entfernt",
+      "status": "bemerkt",
+      "rot": 1
+    },
+    {
+      "name": "Sprechblasen-Deckel von 15 Sekunden zurueck",
+      "status": "bemerkt",
+      "rot": 1
+    },
+    {
+      "name": "Chip luegt waehrend der Ansage wieder gruen",
+      "status": "bemerkt",
+      "rot": 1
+    },
+    {
+      "name": "Eigene Redezeit zaehlt wieder als Stille",
+      "status": "bemerkt",
+      "rot": 1
+    },
+    {
+      "name": "Einkaufsbefehl wieder eng gefasst",
+      "status": "bemerkt",
+      "rot": 2
+    },
+    {
+      "name": "Zurueck-Befehl ohne Alleinstehend-Sicherung",
+      "status": "bemerkt",
+      "rot": 3
+    },
+    {
+      "name": "prevStep zaehlt nicht zurueck",
+      "status": "bemerkt",
+      "rot": 1
+    },
+    {
+      "name": "Synonymgruppen im Ausschluss abgeschaltet",
+      "status": "bemerkt",
+      "rot": 4
+    },
+    {
+      "name": "Ausschluss prueft die Schritttexte nicht mehr",
+      "status": "bemerkt",
+      "rot": 1
+    },
+    {
+      "name": "Einkaufs-Zurueck entfernt den Artikel nicht",
+      "status": "bemerkt",
+      "rot": 1
+    }
+  ]
+}

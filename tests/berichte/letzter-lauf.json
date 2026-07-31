@@ -1,0 +1,18 @@
+{
+  "zeitpunkt": "2026-07-31T10:06:42.848Z",
+  "version": "FUSION26",
+  "gesamt": 124,
+  "bestanden": 123,
+  "fehlgeschlagen": 1,
+  "selbstheilung": {
+    "geschlosseneAttrappenLuecken": [],
+    "hinweis": "Keine Attrappen-Luecken."
+  },
+  "fehler": [
+    {
+      "name": "M33 Zurueck nimmt den letzten Artikel wieder weg",
+      "bestanden": false,
+      "fehlertext": ""
+    }
+  ]
+}

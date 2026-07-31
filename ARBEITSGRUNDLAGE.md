@@ -1,9 +1,9 @@
-# ARBEITSGRUNDLAGE – Familien-Assistent FUSION22
+# ARBEITSGRUNDLAGE – Familien-Assistent FUSION26
 
 Maschinell aus dem Code extrahiert (nicht aus Erinnerung). Zweck: Bei
 jeder künftigen Reparatur sofort wissen, WAS wo liegt, ohne zu suchen.
-Stand: FUSION22 / sw `app-fusion22`, index.html 4.806 Zeilen,
-199.155 Bytes, BOM entfernt, alle 25 Textdateien valides UTF-8.
+Stand: FUSION26 / sw `app-fusion26`, index.html siehe Systemkarte.
+205.241 Bytes, BOM entfernt, alle 25 Textdateien valides UTF-8.
 
 ---
 
@@ -32,92 +32,92 @@ Stand: FUSION22 / sw `app-fusion22`, index.html 4.806 Zeilen,
 ## 2. Frontend-Funktionen nach Domäne (Zeile @ FUSION15B)
 
 **Sprachausgabe / Stimme**
-`ttsSaeubern`1408 (Emoji+Klammer-Filter) · `speakChunks`1431 ·
-`speak`1593 (zentraler Eingang; Reihenfolge: Sprechblase original →
-säubern → Stimme/Klangfarbe → Chunks) · `gvSprechblase`1450 ·
-`stimmenLaden`1479 · `stimmeAktuelle`1555 · `stimmenAuswahlFuellen`1562 ·
-`stimmeGewaehlt`1581 · `stimmeProbe`1587 · `klangAktuell`1527 ·
-`klangGewaehlt`1532 · `klangAuswahlFuellen`1539 ·
-`muteMic`1383 / `unmuteMic`1392 (Mikro-Exklusivität, 12-s-Notaus)
+`ttsSaeubern`1482 (Emoji+Klammer-Filter) · `speakChunks`1505 ·
+`speak`1717 (zentraler Eingang; Reihenfolge: Sprechblase original →
+säubern → Stimme/Klangfarbe → Chunks) · `gvSprechblase`1524 ·
+`stimmenLaden`1603 · `stimmeAktuelle`1679 · `stimmenAuswahlFuellen`1686 ·
+`stimmeGewaehlt`1705 · `stimmeProbe`1711 · `klangAktuell`1651 ·
+`klangGewaehlt`1656 · `klangAuswahlFuellen`1663 ·
+`muteMic`1457 / `unmuteMic`1466 (Mikro-Exklusivität, 12-s-Notaus)
 
 **Spracherkennung / Router**
-`GlobalVoice`1697 · `gvStart`1725 · `gvStopp`1794 · `gvToggle`1801 ·
-`gvNeustart`1720 · `gvAutoStart`1823 · `gvChip`1706 ·
-`erkenneKommando`1856 (**alle Befehle**, siehe §4) ·
-`istUeberspringen`1851 · `gvRoute`1929 (Ausführung) · `gvOneShot`2541 ·
-`initRecognition`2555 · `GV_RUHE_MS`1703 (20 s Stille → Pause)
+`GlobalVoice`1853 · `gvStart`1899 · `gvStopp`1995 · `gvToggle`2003 ·
+`gvNeustart`1891 · `gvAutoStart`2025 · `gvChip`1862 ·
+`erkenneKommando`2084 (**alle Befehle**, siehe §4) ·
+`istUeberspringen`2053 · `gvRoute`2233 (Ausführung) · `gvOneShot`2857 ·
+`initRecognition`2871 · `GV_RUHE_MS`1859 (20 s Stille → Pause)
 
 **Rezepte / Kochen**
-`RECIPES`903 (Standard-Rezepte) · `dietPasses`1308 / `requiredDiets`1282 /
-`satisfiesDiet`1297 (Ernährungsform-Logik) · `styleScore`1326 ·
-`renderRecipes`2790 · `selectedIntolerances`2716 · `setTimeGroup`2729 ·
-`rechercheRezept`3217 (KI-Aufruf + 429/504-Behandlung) ·
-`fehlermeldungRecherche`2751 · `rezeptVorstellen`2776 /
-`rezeptVorstellungsText`2764 · `startCooking`3047 · `showStep`3096 /
-`renderStep`3082 · `zutatenImSchritt`3066 · `startTimer`3121 ·
-`confirmStep`3168 · `repeatStep`3190 · `armReminder`3153 ·
-`flashStep`3330 · `clearTimers`3338 · Favoriten: `loadFavs`2639,
-`saveFavs`2645, `addFavorite`2650, `renderFavoriten`2669
+`RECIPES`920 (Standard-Rezepte) · `dietPasses`1325 / `requiredDiets`1299 /
+`satisfiesDiet`1314 (Ernährungsform-Logik) · `styleScore`1343 ·
+`renderRecipes`3208 · `selectedIntolerances`3129 · `setTimeGroup`3142 ·
+`rechercheRezept`3659 (KI-Aufruf + 429/504-Behandlung) ·
+`fehlermeldungRecherche`3164 · `rezeptVorstellen`3192 /
+`rezeptVorstellungsText`3177 · `startCooking`3470 · `showStep`3519 /
+`renderStep`3505 · `zutatenImSchritt`3489 · `startTimer`3544 ·
+`confirmStep`3591 · `repeatStep`3613 · `armReminder`3576 ·
+`flashStep`3784 · `clearTimers`3792 · Favoriten: `loadFavs`2957,
+`saveFavs`2963, `addFavorite`2968, `renderFavoriten`2987
 
 **Mengen-Kontinuität (FUSION15, kritisch)**
-`portionFactor`3657 → `skaliereRezept`2912 schreibt das Rezept **einmal
+`portionFactor`4111 → `skaliereRezept`3335 schreibt das Rezept **einmal
 bei der Auswahl** fest (inkl. Zahlen in Schritt-Prosa via
-`smartMenge`2891 + `zahlVarianten`2897) → alle Anzeigen rechnen danach
+`smartMenge`3314 + `zahlVarianten`3320) → alle Anzeigen rechnen danach
 mit Faktor 1 (Wächter `_skaliert`). Formatierung überall:
-`smartQty`2943 (Rundung: g/ml 25er bzw. 50er ab 500; Liter .25;
+`smartQty`3366 (Rundung: g/ml 25er bzw. 50er ab 500; Liter .25;
 EL/TL .5; Stück ganzzahlig).
 
 **Einkauf / Verbrauch**
-`buildShoppingList`2979 · `readShoppingList`3006 ·
-`leereEinkaufsliste`3025 (+Knopf/Voice-Varianten 2926/2929) ·
-`parseArtikelListe`1906 · `einkaufHinzufuegen`1918 ·
-`VERBRAUCH`4531 · `vState`4598 · `vbSave`4630 · `renderVerbrauch`4679 ·
-`vbRate`4600 · `vbReichtNochTage`4625 · `vbGekauft`4652 ·
-Einkaufs-Modus: `vbVoiceCheckoffStart`4859 / `vbVoiceCheckoffStop`4907 / `vbVoiceCheckoffToggle`4921,
-`vbVoiceHandle`4831, `vbMatchScore`4803
+`buildShoppingList`3402 · `readShoppingList`3429 ·
+`leereEinkaufsliste`3448 (+Knopf/Voice-Varianten 2926/2929) ·
+`parseArtikelListe`2144 · `einkaufHinzufuegen`2159 ·
+`VERBRAUCH`4987 · `vState`5054 · `vbSave`5086 · `renderVerbrauch`5135 ·
+`vbRate`5056 · `vbReichtNochTage`5081 · `vbGekauft`5108 ·
+Einkaufs-Modus: `vbVoiceCheckoffStart`5315 / `vbVoiceCheckoffStop`5363 / `vbVoiceCheckoffToggle`5377,
+`vbVoiceHandle`5287, `vbMatchScore`5259
 
 **Familie / Termine**
-`mitglieder`3364 · `addMember`3665 · `renderMembers`3685 ·
-`personenAequivalent`3638 · `summePE`3652 ·
-`termine`3366 · `tLoad`3371 · `tSaveAll`3375 (**+ syncGeplant**) ·
-`formularTermin`4164 · `saveTermin`4183 · `findeKollisionen`4129 ·
-`terminDialogNext`3884 (Zustandsautomat) · `startTerminDialog`4054 ·
-`parseServer`4059 · `findeMitglied`3831 / `findeMitgliedImSatz`3858 ·
-`editierDistanz`3819 · `renderMatrix`4260 · `wocheWechseln`4247 ·
-`montagVon`4251 / `isoTag`4258 · `renderTerminListe`4332 ·
-`checkErinnerungen`4374 · `zeigeErinnerung`4396 · `reminderOk`4424 ·
-`routinen`3365 · `addRoutine`4215 · `renderRoutinen`4229
+`mitglieder`3818 · `addMember`4119 · `renderMembers`4139 ·
+`personenAequivalent`4092 · `summePE`4106 ·
+`termine`3820 · `tLoad`3825 · `tSaveAll`3829 (**+ syncGeplant**) ·
+`formularTermin`4618 · `saveTermin`4637 · `findeKollisionen`4583 ·
+`terminDialogNext`4338 (Zustandsautomat) · `startTerminDialog`4508 ·
+`parseServer`4513 · `findeMitglied`4285 / `findeMitgliedImSatz`4312 ·
+`editierDistanz`4273 · `renderMatrix`4714 · `wocheWechseln`4701 ·
+`montagVon`4705 / `isoTag`4712 · `renderTerminListe`4786 ·
+`checkErinnerungen`4828 · `zeigeErinnerung`4850 · `reminderOk`4878 ·
+`routinen`3819 · `addRoutine`4669 · `renderRoutinen`4683
 
 **Wochenplan (Plus)**
-`wpPlanen`2023 · `wpLaeuft`2022 → POST `/api/rezept` mit
+`wpPlanen`2338 · `wpLaeuft`2337 → POST `/api/rezept` mit
 `modus:"wochenplan"` → Termine 18:00 in angezeigter Woche +
 konsolidierte Liste über `smartQty`
 
 **Familien-Sync (Plus, E2E)**
-`syncCode`2137 · `syncSchluessel`2144 (PBKDF2 150k, Salt
-`ka-familien-sync-v1`) · `syncVerschluesseln`2161 /
-`syncEntschluesseln`2168 (AES-GCM, IV zufällig, Format `iv.ct` b64) ·
-`syncDaten`2177 (termine/routinen/mitglieder/verbrauch) ·
-`syncUebernehmen`2180 · `syncGeplant`2199 (2,5 s Debounce) ·
-`syncSenden`2204 · `syncAbholen`2225 (Poll 60 s + visibilitychange) ·
-`syncVerbinden`2260 · `syncEinladen`2303 + `syncEinladungsLink`2299
+`syncCode`2453 · `syncSchluessel`2460 (PBKDF2 150k, Salt
+`ka-familien-sync-v1`) · `syncVerschluesseln`2477 /
+`syncEntschluesseln`2484 (AES-GCM, IV zufällig, Format `iv.ct` b64) ·
+`syncDaten`2493 (termine/routinen/mitglieder/verbrauch) ·
+`syncUebernehmen`2496 · `syncGeplant`2515 (2,5 s Debounce) ·
+`syncSenden`2520 · `syncAbholen`2541 (Poll 60 s + visibilitychange) ·
+`syncVerbinden`2576 · `syncEinladen`2619 + `syncEinladungsLink`2615
 (Code im **URL-Fragment** `#sync=`, nie in Server-Logs) ·
-`syncTrennen`2319 · `syncAnzeige`2242
+`syncTrennen`2635 · `syncAnzeige`2558
 
 **Onboarding**
-`OB_FLAG`2360 · `OB_SCHRITTE`2361 · `OB_SAG`2368 · `obZeige`2396
-(liest **Volltext** der Seite) · `obWeiter`2435 / `obZurueck`2440 ·
-`obFertig`2443 (**startet Mikrofon → Berechtigungsdialog**) ·
-`obMitgliedHinzu`2471 · `obMikro`2490 · `obPush`2501 · `obInstall`2513 ·
-`onboardingOeffnen`2426
+`OB_FLAG`2676 · `OB_SCHRITTE`2677 · `OB_SAG`2684 · `obZeige`2712
+(liest **Volltext** der Seite) · `obWeiter`2751 / `obZurueck`2756 ·
+`obFertig`2759 (**startet Mikrofon → Berechtigungsdialog**) ·
+`obMitgliedHinzu`2787 · `obMikro`2806 · `obPush`2817 · `obInstall`2829 ·
+`onboardingOeffnen`2742
 
 **Gerät / Infrastruktur**
-`deviceId`3384 (crypto.getRandomValues, g+32 Hex; Museums-Fallback
-djb2, **kein Math.random**) · `idbOpen`3411 / `idbSet`3419 ·
-`weckerPlan`3428 · `serverSync`3451 · `aktivierePush`3471 ·
-`pruefePushAbo`3517 · `b64ToUint8`3466 · `goTab`2562 ·
-`aktiverTab`3572 · `appBeenden`2344 · `loescheAlles`3620 (DSGVO) ·
-Feedback: `fbOeffnen`3576 / `fbSprechen`3583 / `fbSenden`3593
+`deviceId`3838 (crypto.getRandomValues, g+32 Hex; Museums-Fallback
+djb2, **kein Math.random**) · `idbOpen`3865 / `idbSet`3873 ·
+`weckerPlan`3882 · `serverSync`3905 · `aktivierePush`3925 ·
+`pruefePushAbo`3971 · `b64ToUint8`3920 · `goTab`2878 ·
+`aktiverTab`4026 · `appBeenden`2660 · `loescheAlles`4074 (DSGVO) ·
+Feedback: `fbOeffnen`4030 / `fbSprechen`4037 / `fbSenden`4047
 
 ---
 
@@ -136,7 +136,7 @@ Feedback: `fbOeffnen`3576 / `fbSprechen`3583 / `fbSenden`3593
 
 ---
 
-## 4. Sprachbefehle (Stand FUSION15B, `erkenneKommando`1856)
+## 4. Sprachbefehle (Stand FUSION15B, `erkenneKommando`2084)
 
 | Befehl (Regex-Kern) | Typ |
 |---|---|
@@ -154,7 +154,7 @@ Feedback: `fbOeffnen`3576 / `fbSprechen`3583 / `fbSenden`3593
 | termin … / neuer termin … | `termin` |
 | einkauf … / kaufe … / besorge … | `einkauf` |
 | gehe/wechsle/zeige/öffne <Tab> | `nav` |
-| „weiter"/„überspringen" | kontextsensitiv (`istUeberspringen`1851) |
+| „weiter"/„überspringen" | kontextsensitiv (`istUeberspringen`2053) |
 
 ---
 
@@ -176,8 +176,8 @@ ausfallsicher) · `kanalVonCode`58/45 (**identisch in rezept.mjs und
 termine.mjs halten!** sha256("ka1|"+CODE), 32 Hex) · `rufeModell`82
 (20-s-Budget) · `wochenplanPrompt`121 · `normalizePlanItem`161 ·
 `verletztAllergen`247 / `verletztDiet`259 (**deterministischer
-Sicherheitsfilter nach der KI**) · `buildPrompt`280 ·
-`normalizeRecipe`368 · `faelligeRefs`/`anzeigeRefs` (wecker.mjs)
+Sicherheitsfilter nach der KI**) · `buildPrompt`338 ·
+`normalizeRecipe`432 · `faelligeRefs`/`anzeigeRefs` (wecker.mjs)
 
 **Redis-Schlüssel (Upstash, Frankfurt):** `familie:<device>`
 (Alt-API pro Gerät, termine.mjs) · `wecker:<device>` ·
@@ -298,16 +298,121 @@ P-256-Paar, Date.now-Mock, Redis-Router), `/tmp/test_kontingent.mjs`
 
 ---
 
-## 9. Offene Punkte (Stand jetzt)
+## 9. Stand & offene Punkte
 
-- FUSION17 **noch nicht ausgerollt** (kumulativ: Klangfarben,
-  TTS-Säuberung, Mikro nach Einführung, BOM-Fix, Wake Lock,
-  gestaffelte Timer-Ansagen, Mikro wach im Kochmodus, progressive
-  Erinnerung, Navigations-Regex mit Artikeln, **Bereitton-Reduktion**).
-  FUSION16 ist live (Deploy main@388d29c).
-- Postfach: verifiziert (6 Einträge, API liefert korrekt).
+**Live und verifiziert:** FUSION25 (Deploy aus GitHub, stilles Update
+aktiv). Testsuite 143 Pruefungen gruen (76 Szenarien + 67 Servertests).
+Letzter QA-Lauf: 92/92 (76 eigene + 16 Red-Team-Faelle).
+
+**Erledigt in dieser Ausbaustufe:**
+- Kochmodus: Wake Lock, gestaffelte Timer-Ansagen, Mikro bleibt wach,
+  progressive Erinnerung, Bereitton-Reduktion (kein `abort()` mehr).
+- Mengen-Kontinuitaet inkl. maskierter Regex (RT2-05).
+- 9 echte Defekte vom Red-Team gefunden und behoben (Gruppe L).
+- QA-Kette komplett: naechtlicher Lauf → Handy-Push → Klartext-Bericht
+  → Freigabe-Knopf 1 (Reparatur) → Freigabe-Knopf 2 (live).
+- Ehrlichkeitsregel: gestoerter/leerer Lauf meldet NIE "alles in Ordnung".
+
+**Offen, technisch (auf Zuruf):**
 - „go A11y": ~40 Label-/Tastatur-Fixes (einziger Sonar-Punkt mit
   echtem Produktwert).
-- Gewerbeanmeldung → Händlerbund → `agb.html` + `widerruf.html` +
-  PayPal-Direktkauf auf `/plus`.
-- Testfamilien-Rekrutierung (Ziel ≥30 % Woche-4-Retention).
+- „go Schnellerfassung": App-Shortcut + Teilen-Ziel fuer die
+  Einkaufsliste (Manifest-Erweiterung).
+- GitHub-Actions auf `@v5` heben (Node-20-Warnung, unkritisch).
+- TWA/Play-Store-Paket.
+
+**Offen, geschaeftlich (Engpass!):**
+1. Gewerbeanmeldung Gemeinde Seevetal (Einzelunternehmen
+   „app-performance-solution", Inhaber Axel Hoffmann).
+2. Haendlerbund-Mitgliedschaft → AGB + Widerrufsbelehrung
+   (Prompt liegt vor) → `agb.html` + `widerruf.html` einbauen.
+3. PayPal-Link → Direktkauf auf `/plus` freischalten.
+4. Testfamilien rekrutieren (Anrufliste + Telefonleitfaden + A5-Aushang
+   liegen vor). Ziel: >=30 % Woche-4-Retention.
+5. Danach ELTERN/Funke: Pilot-Kooperation statt Verkauf.
+
+**Preis-/Produktmodell:** Familien-Plus 29 EUR/Jahr (Founder), bis
+5 Geraete. Free: 5 KI-Recherchen/Tag, 1 Wochenplan/Monat.
+Verkaufsweg aktuell: unverbindliche Bestell-E-Mail ueber `/plus`,
+Code-Erzeugung im Feedback-Postfach.
+
+---
+
+## 10. Uebergabe an einen neuen Chat
+
+Damit ein neuer Chat SOFORT arbeitsfaehig ist, braucht er **beides**:
+1. **Das aktuelle ZIP** (`familien_assistent_FUSION25.zip` o. neuer) -
+   ohne den Code kann nichts geaendert werden.
+2. **Diese Datei** - sie liegt im ZIP unter `ARBEITSGRUNDLAGE.md`.
+
+Ausserdem die Arbeitsregel des Betreibers:
+> Rollen: maximal profitorientierter Owner, formaler
+> Senior-Systemarchitekt, epistemisch unabhaengiger Audit-Reviewer,
+> Senior Software Engineer. Evidenzbasiert statt Annahmen
+> (unverifizierte Menuepfade als [unverifiziert] markieren).
+> Ausschliesslich komplette Dateien, alle Befehle einzeln, nach JEDER
+> Aenderung hart testen. Immer EIN Step, dann auf Bestaetigung oder
+> Ausgabe warten. Laienverstaendliche Klick-Anleitungen, keine
+> Floskeln, radikale Kostendisziplin (kurze Antworten, Buendelung).
+
+**Erste Handgriffe im neuen Chat:**
+```
+mkdir -p /home/claude/merge && cd /home/claude/merge \
+  && unzip -oq /mnt/user-data/uploads/familien_assistent_FUSION25.zip
+node tests/run.js            # muss 76/76 gruen sein
+node tests/heilung.js        # Systemkarte synchronisieren
+```
+Danach ist der Stand exakt reproduziert.
+
+---
+
+## 11. Audit 31.07.2026 - warum die taeglichen Pruefungen versagt haben
+
+Drei vom Betreiber gemeldete Fehler (App hoert sich selbst / Aktivton
+wiederholt sich / Zutatenliste verschwindet beim Vorlesen) sind weder
+vom taeglichen Red-Team noch vom taeglichen Funktionslauf je bemerkt
+worden. Ursache, maschinell festgestellt:
+
+1. **Das Red-Team war strukturell blind.** Es bekommt in `redteam.mjs`
+   nur die in `ZIELFUNKTIONEN` gelisteten REINEN Funktionen zu sehen -
+   bis heute ausschliesslich Rechenkerne. Alle drei Fehler lagen in der
+   Ereignis- und Zeitsteuerung (`recognition.onresult`, `onend`,
+   Sprechblasen-Timer). Diese Ebene war nie Ziel eines Angriffs.
+2. **Der "Funktionstest" war derselbe Lauf.** `qa.yml` startete nur
+   `tests/run.js`. Die Servertests unter `tests/server/` liefen gar
+   nicht mit.
+3. **Ein Test prueft Text statt Verhalten.** Das alte `G6` suchte eine
+   Zeichenkette im Quelltext. Es wurde rot, als der Schutz VERBESSERT
+   wurde - und waere gruen geblieben, haette man ihn geloescht.
+
+**Behoben:**
+- `ZIELFUNKTIONEN` um die Sprach- und Ausschlussfunktionen erweitert.
+  *Regel: Jede neue reine Funktion gehoert dort hinein.*
+- Ereignisebene testbar gemacht: `tests/lib/browser.js` hat jetzt eine
+  AudioContext-Attrappe (`toeneGespielt()`, `toeneLeeren()`), die
+  Erkennungs-Attrappe war bereits ueber `recInstanz` steuerbar.
+- `G6` auf Verhalten umgeschrieben; Block **M1-M45** ergaenzt
+  (Fehlertests zu allen drei gemeldeten Fehlern + Zufallsbeschuss).
+- **`tests/mutation.js` neu:** zerstoert jede Reparatur einzeln und
+  verlangt, dass die benannten Tests rot werden. Findet Tests, die nur
+  Zierde sind - hat beim ersten Lauf sofort zwei entlarvt (die
+  Auffangregel des Einkaufsbefehls und der Zufallsbeschuss, dem das
+  Wort "zurueck" im Vorrat fehlte).
+- `qa.yml` startet jetzt Szenarien **+ Servertests + Mutationstest**.
+
+**Pflichtlauf vor jeder Auslieferung:**
+```
+node tests/run.js                       # 124/124 gruen
+for f in tests/server/*.test.mjs; do node "$f"; done
+node tests/mutation.js                  # 14/14 Mutationen bemerkt
+node tests/heilung.js                   # Systemkarte synchronisieren
+```
+
+### Was das Testnetz weiterhin NICHT abdeckt
+Ehrliche Grenze - das ist nur auf einem echten Geraet pruefbar:
+- Ob der Android-**Systemton** tatsaechlich seltener kommt (die App
+  kann ihn nicht abschalten, nur die Neustarts reduzieren).
+- Ob die eigenen Signaltoene zur richtigen Sekunde erklingen.
+- Echte Laufzeit der KI-Recherche gegen das Netlify-Limit.
+- Echtes Verhalten der Android-Spracherkennung (Verzoegerung,
+  getrennte Schreibweise zusammengesetzter Woerter).

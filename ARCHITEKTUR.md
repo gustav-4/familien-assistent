@@ -27,7 +27,7 @@ und Chat-Verläufen verfügbar machen.
 1. **Recherche:** Frontend → `/api/rezept` (device, wunsch, Formen,
    Stile) → Tageskontingent (Redis INCR+EXPIRE, 429 bei Überschreiten;
    bei Redis-Störung ungebremst weiter) → Anthropic → Schema-Härtung →
-   3 Rezepte. Frontend behandelt 429/5xx/Netz getrennt
+   3 Rezepte; modus=wochenplan liefert 7 gefilterte Abendessen (Free: 1 Plan/Monat, Plus: unbegrenzt + Tages-Deckel aufgehoben). Frontend behandelt 429/5xx/Netz getrennt
    (`fehlermeldungRecherche`).
 2. **Erinnerungen:** Termin lokal → anonyme Refs an `/api/wecker` →
    Cron (`wecker-cron`, 5-min-Raster) → Web-Push (inhaltsleeres

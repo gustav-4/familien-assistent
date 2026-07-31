@@ -271,6 +271,64 @@ function verletztDiet(recipe, ernaehrungsformen) {
   return null;
 }
 
+// ---- Freitext-Ausschluss (Vorlieben/Religion/Verzicht) ----
+// Zweite Verteidigungslinie wie bei den Allergenen: Die KI bekommt die
+// Begriffe als harte Regel UND der Server verwirft danach jedes Rezept,
+// das sie trotzdem enthaelt. Die Gruppen MUESSEN mit
+// AUSSCHLUSS_GRUPPEN in index.html uebereinstimmen.
+const AUSSCHLUSS_GRUPPEN = [
+  ["schwein","schweinefleisch","schweinefilet","schweinelende","speck",
+   "bacon","schinken","salami","kassler","kasseler","chorizo","cabanossi",
+   "leberk\u00e4se","leberkaese","bratwurst","mettwurst","mett","wiener",
+   "frankfurter","schweineschmalz","pancetta","guanciale","prosciutto",
+   "serranoschinken","gelatine","gelantine"],
+  ["rind","rindfleisch","beef","steak","roastbeef","tafelspitz","ochse"],
+  ["lamm","lammfleisch","hammel","lammkeule","lammfilet"],
+  ["alkohol","wein","rotwein","wei\u00dfwein","weisswein","bier","rum","cognac",
+   "lik\u00f6r","likoer","sherry","portwein","wodka","whisky","whiskey",
+   "calvados","marsala","weinbrand","amaretto","prosecco","sekt"],
+  ["zwiebel","zwiebeln","schalotte","schalotten","fr\u00fchlingszwiebel",
+   "fruehlingszwiebel","lauchzwiebel","zwiebelpulver"],
+  ["knoblauch","knofi","knoblauchzehe","knoblauchpulver"],
+  ["pilz","pilze","champignon","champignons","pfifferling","steinpilz",
+   "shiitake","austernpilz","egerling"],
+  ["koriander","cilantro","koriandergr\u00fcn","koriandergruen"],
+  ["scharf","chili","chilli","peperoni","cayenne","sambal","harissa",
+   "tabasco","jalapeno","jalape\u00f1o","chiliflocken"],
+  ["innereien","leber","niere","nieren","herz","zunge","kutteln","bries"],
+  ["kokos","kokosmilch","kokosnuss","kokosraspel","kokos\u00f6l","kokosoel"],
+  ["rosine","rosinen","sultanine","sultaninen","korinthen"],
+  ["oliven","olive","olivenpaste","tapenade"],
+];
+
+function ausschlussErweitern(begriffe) {
+  const raus = new Set();
+  for (const b of begriffe || []) {
+    const w = normalize(b).trim();
+    if (w.length < 2) continue;
+    raus.add(w);
+    for (const gruppe of AUSSCHLUSS_GRUPPEN) {
+      if (gruppe.some((g) => g === w || w.includes(g) || g.includes(w)))
+        gruppe.forEach((g) => raus.add(g));
+    }
+  }
+  return [...raus];
+}
+
+// Zutaten UND Schritttexte pruefen - eine Zutat kann in der Anleitung
+// stehen, ohne in der Zutatenliste aufzutauchen.
+function verletztAusschluss(recipe, begriffe) {
+  if (!begriffe || !begriffe.length) return null;
+  const woerter = ausschlussErweitern(begriffe);
+  const felder = [];
+  (recipe.ingredients || []).forEach((i) => felder.push(String((i && i.name) || "")));
+  (recipe.steps || []).forEach((s) => felder.push(String((s && s.text) || "")));
+  felder.push(String(recipe.name || ""));
+  const text = normalize(felder.join(" | "));
+  for (const w of woerter) if (text.includes(w)) return w;
+  return null;
+}
+
 // ---- Eingaben defensiv saeubern ----
 function saubereListe(arr, erlaubt) {
   if (!Array.isArray(arr)) return [];
@@ -285,6 +343,12 @@ function buildPrompt(p) {
     ? p.ernaehrungsformen.join(", ")
     : "keine Einschränkung";
   const stilTxt = p.stile.length ? p.stile.join(", ") : "keine besondere";
+  const ausschlussTxt = p.ausschluss.length
+    ? `\n- VERBOTENE ZUTATEN (Wunsch der Familie, ebenfalls nicht \
+verhandelbar): ${p.ausschluss.join(", ")}. Verwende diese Zutaten NICHT \
+und auch keine Erzeugnisse daraus (z.B. "kein Schwein" schliesst Speck, \
+Schinken, Salami, Wurst und Gelatine mit ein).`
+    : "";
   const vermeideTxt = p.vermeide.length
     ? `\n- Schlage NICHT erneut vor (schon gezeigt): ${p.vermeide.join(", ")}.`
     : "";
@@ -307,7 +371,7 @@ vegan = keine Tierprodukte (kein Fleisch, Fisch, Ei, Milch, Honig, Gelatine). \
 lowcarb = wenig Kohlenhydrate (keine Nudeln/Reis/Kartoffeln/Brot als Hauptbeilage).
 
 WEICHE PRAEFERENZ (wenn moeglich beruecksichtigen): Stil ${stilTxt}.
-ZEITRAHMEN: Zubereitung zwischen ${p.minuten_min} und ${p.minuten_max} Minuten.${vermeideTxt}
+ZEITRAHMEN: Zubereitung zwischen ${p.minuten_min} und ${p.minuten_max} Minuten.${ausschlussTxt}${vermeideTxt}
 
 AUSGABEFORMAT: Antworte AUSSCHLIESSLICH mit gueltigem JSON, ohne Markdown, \
 ohne Kommentar, in dieser Struktur:
@@ -537,12 +601,18 @@ export const handler = async (event) => {
     minuten_max: minMax,
     vermeide: Array.isArray(body.vermeide)
       ? body.vermeide.map((x) => String(x).slice(0, 80)).slice(0, 15) : [],
+    ausschluss: Array.isArray(body.ausschluss)
+      ? body.ausschluss.map((x) => normalize(x).trim().slice(0, 40))
+        .filter((x) => x.length > 1).slice(0, 15) : [],
   };
 
   // ---- KI-Aufruf mit Timeout (FUSION v10: als Funktion, fuer Retry) ----
   async function frageKI(zusatz) {
     const ctrl = new AbortController();
-    const timeout = setTimeout(() => ctrl.abort(), 45000);
+    // BUGFIX: 45 s war laenger als das Netlify-Limit (~26 s) - die
+    // eigene Notbremse konnte nie greifen, der Nutzer bekam statt der
+    // freundlichen Meldung den nackten Gateway-Fehler 504.
+    const timeout = setTimeout(() => ctrl.abort(), 20000);
     try {
       const resp = await fetch(ANTHROPIC_URL, {
         method: "POST",
@@ -591,7 +661,7 @@ export const handler = async (event) => {
   // Einmal automatisch nachfassen, wenn die Antwort kein verwertbares
   // JSON war - aber NUR, wenn noch Zeitbudget vor dem Netlify-Limit
   // (~26 s) bleibt; sonst wuerde der Retry selbst den 504 ausloesen.
-  if (!parsed && Date.now() - startZeit < 12000) {
+  if (!parsed && Date.now() - startZeit < 8000) {
     versuch = await frageKI("\n\nERINNERUNG: Antworte AUSSCHLIESSLICH " +
       "mit dem geforderten JSON-Objekt. Kein Markdown, keine Backticks, " +
       "kein Text davor oder danach.");
@@ -612,6 +682,7 @@ export const handler = async (event) => {
   const sicher = [];
   let verworfenAllergen = 0;
   let verworfenDiet = 0;
+  let verworfenAusschluss = 0;
 
   for (const roh of rohListe) {
     const rec = normalizeRecipe(roh);
@@ -631,6 +702,14 @@ export const handler = async (event) => {
       verworfenDiet++;
       continue;
     }
+    // 2b. Freitext-Ausschluss der Familie - ebenfalls nicht der KI
+    //     ueberlassen, sondern hier gegengeprueft.
+    const ausTreffer = verletztAusschluss(rec, params.ausschluss);
+    if (ausTreffer) {
+      console.warn("Verworfen (Ausschluss " + ausTreffer + "): " + rec.name);
+      verworfenAusschluss++;
+      continue;
+    }
 
     // 3. Konsistenz: deklarierte allergens duerfen die ausgeschlossenen
     //    nicht enthalten (defensiv bereinigen statt nur vertrauen).
@@ -647,13 +726,14 @@ export const handler = async (event) => {
   if (!sicher.length)
     return { statusCode: 200, headers, body: JSON.stringify({ success: false,
       error: "Es konnten keine Rezepte gefunden werden, die alle " +
-        "Unverträglichkeiten und die Ernährungsform sicher erfüllen. " +
+        "Unverträglichkeiten, die Ernährungsform und eure " +
+        "ausgeschlossenen Zutaten sicher erfüllen. " +
         "Bitte formuliere deinen Wunsch etwas anders." }) };
 
   return { statusCode: 200, headers, body: JSON.stringify({
     success: true,
     recipes: sicher.slice(0, 3),
     meta: { angefragt: rohListe.length, geliefert: sicher.length,
-      verworfenAllergen, verworfenDiet },
+      verworfenAllergen, verworfenDiet, verworfenAusschluss },
   }) };
 };

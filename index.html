@@ -167,6 +167,7 @@
     cursor:pointer; user-select:none; }
   #gvChip.an { background:#e3f2e1; border-color:var(--accent2); }
   #gvChip.aus { background:#f4f4f4; color:#666; }
+  #gvChip.redet { background:#fdf3e0; border-color:#d9a441; color:#7a5410; }
   #micStatus.listening { background:#e3f2e1; color:var(--accent2);
                          font-weight:700; }
   .hidden { display:none; }
@@ -544,6 +545,18 @@
         <label><input type="checkbox" class="intol" value="lupinen"> Lupinen</label>
         <label><input type="checkbox" class="intol" value="sulfite"> Sulfite (Wein, Trockenfrüchte …)</label>
       </details>
+      <div style="margin-top:14px">
+        <label for="ausschlussFeld" style="display:block;font-weight:600;
+               margin-bottom:4px">Zutaten, die nie vorkommen sollen</label>
+        <input type="text" id="ausschlussFeld" style="width:100%"
+               placeholder="z. B. Schweinefleisch, Alkohol, Koriander"
+               oninput="ausschlussSpeichern()">
+        <p class="muted" style="margin-top:4px">Mit Komma trennen. Gedacht für
+        Vorlieben und Überzeugungen (Religion, Geschmack, Verzicht). Gängige
+        Begriffe werden mitgedacht: „Schwein“ schließt auch Speck, Schinken und
+        Salami aus. <b>Für echte Allergien bitte die Ankreuzfelder oben nutzen</b> –
+        nur die sind vollständig abgesichert.</p>
+      </div>
       <p class="muted">Rezepte mit diesen Zutaten werden <b>hart ausgeschlossen</b> –
       hier entscheidet niemals eine KI, sondern eine feste Zutatenliste.
       Allergien gelten <b>immer für die ganze Familie</b>, unabhängig vom
@@ -672,6 +685,9 @@
         bitte einen kurzen Blick auf die Zutatenliste der Produkte –
         unsere Vorschläge ersetzen keine medizinische Beratung.
       </div>
+    <p id="rezeptHinweis" class="muted hidden">Sagt <b>„Kochen“</b> zum
+    Loskochen · <b>„Auf die Einkaufsliste“</b> zum Einkaufen · oder wählt ein
+    anderes Rezept.</p>
     <button class="btn big" id="toShopBtn" disabled
             onclick="buildShoppingList();goTab('einkauf')">
       Einkaufsliste erstellen</button>
@@ -724,6 +740,7 @@
       <button class="btn big green" id="doneBtn" onclick="confirmStep()">
         ✓ Fertig / Erledigt</button>
       <button class="btn ghost" onclick="repeatStep()">🔁 Wiederholen</button>
+      <button class="btn ghost" id="backBtn" onclick="prevStep()">‹ Zurück</button>
       <div id="favoriteBox" class="hidden" style="margin-top:12px">
         <button class="btn" id="favBtn" onclick="addFavorite()">
           ⭐ Das war lecker – als Favorit speichern</button>
@@ -1349,6 +1366,14 @@ let reminderStufe = 0;
 let ttsActive = false;
 let ttsCooldownUntil = 0;
 let micMuted = false;
+// ECHO-FENSTER: Was die App GERADE sagt bzw. eben gesagt hat. Nur
+// dagegen wird abgeglichen - nicht gegen die komplette Ansage. Sonst
+// wuerde z.B. waehrend des Hilfetexts (der alle Befehle aufzaehlt)
+// jeder echte Befehl des Nutzers faelschlich als Echo verworfen.
+let ttsEchoAktuell = "";
+let ttsEchoVorher = "";
+// Wird nach dem Ende einer Ansage aufgerufen (Kette, Bereit-Ton).
+let ttsDanach = null;
 
 // ---------- Bildschirm wachhalten (Feedback 23.07.) ----------
 // Beim Kochen darf das Handy nicht in den Ruhezustand fallen -
@@ -1379,6 +1404,55 @@ document.addEventListener("visibilitychange", () => {
 function cookingVisible() {
   return !document.getElementById("tab-kochen").classList.contains("hidden");
 }
+
+// ---------- Signaltoene (App-eigen, kurz, unaufdringlich) ----------
+// Der Android-SYSTEMTON bei jedem Erkennungs-Neustart laesst sich aus
+// einer Web-App heraus NICHT abschalten. Deshalb zwei Massnahmen:
+// (1) Neustarts so weit wie moeglich vermeiden, (2) EIGENE, eindeutig
+// unterscheidbare Toene geben, damit der Nutzer den Zustand ohne den
+// Systemton erkennt: aufsteigend = Mikro an, absteigend = Mikro
+// schlaeft, kurzer heller Ton = "sprich jetzt".
+let audioCtx = null;
+function tonKontext() {
+  try {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    return audioCtx;
+  } catch (e) { return null; }
+}
+
+// toene = [[Frequenz in Hz, Dauer in ms], ...] - nacheinander gespielt
+function tonSpielen(toene, lautstaerke) {
+  const ctx = tonKontext();
+  if (!ctx) return;
+  try {
+    let t = ctx.currentTime + 0.01;
+    const vol = typeof lautstaerke === "number" ? lautstaerke : 0.09;
+    for (const paar of toene) {
+      const dauer = paar[1] / 1000;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = paar[0];
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(vol, t + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dauer);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + dauer + 0.02);
+      t += dauer + 0.03;
+    }
+  } catch (e) {}
+}
+
+function tonAktiv() { tonSpielen([[660, 90], [880, 110]]); }
+function tonSchlaf() { tonSpielen([[660, 120], [440, 190]]); }
+function tonBereit() { tonSpielen([[990, 70]], 0.07); }
 
 function muteMic() {
   // FUSION17: Die Erkennung wird NICHT mehr abgewürgt. Jeder Neustart
@@ -1457,18 +1531,68 @@ function gvSprechblase(text) {
     }
     b.textContent = "💬 " + text;
     b.classList.add("sichtbar");
+    // BUGFIX: Frueher blendete sich die Blase nach einer GESCHAETZTEN
+    // Zeit aus (4 s + 60 ms je Zeichen, gedeckelt bei 15 s). Eine
+    // Rezeptvorstellung mit voller Zutatenliste dauert vorgelesen aber
+    // 30-45 s - die Zutaten verschwanden mitten im Satz. Jetzt haengt
+    // die Blase an der ECHTEN Sprachausgabe (gvSprechblaseAus() wird
+    // vom Ende der Ansage aufgerufen). Der Timer hier ist nur noch
+    // Rueckfallebene, falls der Browser die Stimme blockiert - sonst
+    // bliebe die Blase ewig stehen.
     clearTimeout(gvSprechblase._t);
-    gvSprechblase._t = setTimeout(() => b.classList.remove("sichtbar"),
-      Math.min(4000 + text.length * 60, 15000));
-    const ms = Math.max(3000, text.length * 90) + 1500;
-    setTimeout(() => {
+    gvSprechblase._t = setTimeout(() => {
       if (!window.speechSynthesis.speaking
           && !window.speechSynthesis.pending) {
+        b.classList.remove("sichtbar");
         ttsActive = false;
         unmuteMic();
       }
-    }, ms);
+    }, Math.max(6000, text.length * 90) + 2000);
   } catch (e) { unmuteMic(); }
+}
+
+// Blase ausblenden - wird vom Ende der Ansage angestossen.
+function gvSprechblaseAus() {
+  try {
+    clearTimeout(gvSprechblase._t);
+    const b = document.getElementById("gvSage");
+    if (b) b.classList.remove("sichtbar");
+  } catch (e) {}
+}
+
+// ---------- Echo-Erkennung (pur & testbar) ----------
+// Vergleichsform: Kleinschreibung, nur Buchstaben/Ziffern, ein Leerzeichen.
+function gvNorm(s) {
+  return String(s || "").toLowerCase()
+    .replace(/[^a-zäöüß0-9]+/g, " ")
+    .trim().replace(/\s+/g, " ");
+}
+
+// Hat das Mikrofon die App SELBST gehoert? Verglichen wird nur gegen
+// das gerade bzw. eben gesprochene Stueck (Echo-Fenster), niemals gegen
+// die ganze Ansage - sonst wuerde waehrend des Hilfetexts jeder echte
+// Befehl des Nutzers als Echo verworfen.
+// Einzelne Woerter gelten nur bei voller Uebereinstimmung als Echo:
+// sonst wuerde "Milch" verschluckt, nur weil die App eben eine
+// Zutatenliste mit Milch vorgelesen hat.
+function istEigenesEcho(gehoert, aktuell, vorher) {
+  const h = gvNorm(gehoert);
+  if (h.length < 3) return false;
+  const woerter = h.split(" ");
+  for (const quelle of [gvNorm(aktuell), gvNorm(vorher)]) {
+    if (!quelle) continue;
+    if (woerter.length < 2) {
+      if (quelle === h) return true;
+      continue;
+    }
+    if (quelle.includes(h)) return true;
+    const lang = woerter.filter((w) => w.length > 2);
+    if (lang.length >= 2) {
+      const treffer = lang.filter((w) => quelle.includes(w)).length;
+      if (treffer / lang.length >= 0.75) return true;
+    }
+  }
+  return false;
 }
 
 let ttsStartete = false;      // hat der Browser JE eine Ansage gestartet?
@@ -1590,11 +1714,17 @@ function stimmeProbe() {
 }
 
 
-function speak(text, interrupt) {
+function speak(text, interrupt, danach) {
   try {
     gvSprechblase(text); // Sprechblase zeigt ORIGINAL
     text = ttsSaeubern(text); // gesprochen wird die Saubere Fassung
     muteMic();
+    // Die eigene Redezeit ist KEINE Stille: Zaehler sofort UND am Ende
+    // zuruecksetzen. Nur am Ende reichte nicht - bricht die Ansage ab
+    // oder bleibt sie haengen, schliefe das Mikro trotzdem ein.
+    gvLetztesErgebnis = Date.now();
+    ttsDanach = typeof danach === "function" ? danach : null;
+    gvChipAnsage(); // ehrlich anzeigen: die App redet gerade
     if (interrupt) window.speechSynthesis.cancel();
 
     // DEADLOCK-SCHUTZ: Egal was mit der Ansage passiert - nach
@@ -1622,9 +1752,20 @@ function speak(text, interrupt) {
       if (window.speechSynthesis.speaking
           || window.speechSynthesis.pending) return;
       ttsActive = false;
-      ttsCooldownUntil = Date.now() + 800;
+      // 1,5 s statt 0,8 s: Android liefert erkannten Text spuerbar
+      // verzoegert - in der alten Luecke landete die eigene Ansage
+      // als Einkaufsartikel auf der Liste.
+      ttsCooldownUntil = Date.now() + 1500;
+      gvSprechblaseAus();
+      // WICHTIG: Die eigene Redezeit zaehlt NICHT als Stille. Sonst
+      // schlaeft das Mikrofon waehrend einer langen Ansage ein.
+      gvLetztesErgebnis = Date.now();
+      const nach = ttsDanach;
+      ttsDanach = null;
       setTimeout(() => {
         if (!window.speechSynthesis.speaking) unmuteMic();
+        gvChipStand();
+        if (nach) { try { nach(); } catch (e) {} }
       }, 800);
     };
 
@@ -1639,7 +1780,11 @@ function speak(text, interrupt) {
       u.lang = "de-DE";
       // Lesetempo kommt aus der Klangfarbe (Basis frueher: 0.95)
       u.onstart = () => { gestartet = true; ttsStartete = true;
-        ttsActive = true; };
+        ttsActive = true;
+        // Echo-Fenster mitfuehren: nur das laufende und das eben
+        // gesprochene Stueck gelten als "das war ich selbst".
+        ttsEchoVorher = ttsEchoAktuell;
+        ttsEchoAktuell = stueck; };
       u.onend = finish;
       u.onerror = finish;
       window.speechSynthesis.speak(u);
@@ -1655,15 +1800,26 @@ function speak(text, interrupt) {
         try { window.speechSynthesis.cancel(); } catch (e) {}
         ttsActive = false;
         ttsCooldownUntil = 0;
+        gvLetztesErgebnis = Date.now();
         unmuteMic();
+        gvChipStand();
+        const nach = ttsDanach;
+        ttsDanach = null;
+        if (nach) { try { nach(); } catch (e) {} }
       }
     }, 2500);
-  } catch (e) { try { unmuteMic(); } catch (e2) {} }
+  } catch (e) {
+    try { unmuteMic(); gvChipStand(); } catch (e2) {}
+    const nach = ttsDanach;
+    ttsDanach = null;
+    if (nach) { try { nach(); } catch (e2) {} }
+  }
 }
 
 // Sprachausgabe beim ersten Fingertipp freischalten (Browser-
 // Autoplay-Regel): eine stumme Mini-Ansage "entsperrt" die Stimme.
 document.addEventListener("click", function ttsUnlock() {
+  try { tonKontext(); } catch (e) {} // Signaltoene ebenfalls freischalten
   try {
     if (!ttsStartete) {
       const u = new SpeechSynthesisUtterance(" ");
@@ -1692,7 +1848,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION25";
+const APP_VERSION = "FUSION26";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -1710,6 +1866,21 @@ function gvChip(text, klasse) {
   c.className = klasse || "";
 }
 
+// BUGFIX: Der Chip zeigte waehrend einer Ansage weiter gruen "ich
+// hoere" - obwohl jedes erkannte Wort verworfen wurde. Wer in dieser
+// Zeit sprach, wurde kommentarlos ignoriert. Der Chip kennt jetzt drei
+// ehrliche Zustaende: aus / ich rede / ich hoere.
+function gvChipAnsage() {
+  gvChip("🔊 Ich rede – du kannst mich unterbrechen", "redet");
+}
+
+// Chip auf den TATSAECHLICHEN Zustand zuruecksetzen.
+function gvChipStand() {
+  if (!GlobalVoice.aktiv) { gvChip("🎤 aus – tippen zum Einschalten", "aus"); return; }
+  if (listening) gvChip("🎤 an – ich höre", "an");
+  else gvChip("🎤 gleich wieder da …", "");
+}
+
 function gvKochStatus(text, listening) {
   const s = document.getElementById("micStatus");
   if (!s) return;
@@ -1718,7 +1889,10 @@ function gvKochStatus(text, listening) {
 }
 
 function gvNeustart() {
-  if (!recognition || !GlobalVoice.aktiv || micMuted) return;
+  // micMuted blockiert hier bewusst NICHT mehr: waehrend einer Ansage
+  // muss weiter zugehoert werden, damit der Nutzer unterbrechen kann.
+  // Gegen die eigene Stimme schuetzt der Echo-Abgleich in onresult.
+  if (!recognition || !GlobalVoice.aktiv) return;
   try { recognition.start(); } catch (e) {}
 }
 
@@ -1737,15 +1911,31 @@ function gvStart() {
 
     recognition.onresult = (ev) => {
       gvLetztesErgebnis = Date.now(); // Aktivitaet: Ruhepause-Zaehler zuruecksetzen
-      // Eigene Stimme der App ignorieren (Bugfix)
-      if (ttsActive || Date.now() < ttsCooldownUntil) return;
       const said = ev.results[ev.results.length - 1][0].transcript.trim();
-      if (said) gvRoute(said);
+      if (!said) return;
+      // 1) Hat die App sich selbst gehoert? -> verwerfen.
+      if (istEigenesEcho(said, ttsEchoAktuell, ttsEchoVorher)) return;
+      // 2) Waehrend einer Ansage: frueher wurde ALLES verworfen - wer
+      //    dazwischenredete, wurde stumm ignoriert (haeufigste Ursache
+      //    dafuer, dass "Auf die Einkaufsliste" nicht ankam). Jetzt
+      //    duerfen echte Befehle und Antworten die Ansage abbrechen.
+      if (ttsActive || Date.now() < ttsCooldownUntil) {
+        if (!gvDarfUnterbrechen(said)) return;
+        try { window.speechSynthesis.cancel(); } catch (e) {}
+        ttsActive = false;
+        ttsCooldownUntil = 0;
+        ttsDanach = null;
+        gvSprechblaseAus();
+        gvChipStand();
+      }
+      gvRoute(said);
     };
     recognition.onstart = () => {
       listening = true;
       GlobalVoice.gestartet = true;
-      gvChip("🎤 an – ich höre", "an");
+      // Waehrend einer Ansage bleibt der ehrliche "Ich rede"-Zustand
+      // stehen - sonst wuerde der Chip wieder gruen luegen.
+      if (!ttsActive) gvChip("🎤 an – ich höre", "an");
       if (cookingVisible()) {
         gvKochStatus("🎤 Ich höre zu – sag „fertig“, wenn du soweit bist", true);
       }
@@ -1777,23 +1967,35 @@ function gvStart() {
           && Date.now() - gvLetztesErgebnis > ruheFenster) {
         GlobalVoice.aktiv = false;
         gvChip("🎤 Ruhepause – tippen zum Weiterhören", "aus");
+        tonSchlaf(); // deutlicher, absteigender Hinweiston
         return;
       }
-      if (GlobalVoice.aktiv && !micMuted) {
-        setTimeout(gvNeustart, 300);
-      } else if (!GlobalVoice.aktiv) {
+      if (GlobalVoice.aktiv) {
+        // BUGFIX: Endete die Erkennung waehrend einer Ansage, griff
+        // frueher KEIN Zweig - die App war danach taub, zeigte aber
+        // weiter gruen. Jetzt wird in jedem Fall wieder gestartet,
+        // waehrend einer Ansage nur etwas spaeter.
+        setTimeout(gvNeustart, micMuted ? 900 : 300);
+        gvChipStand();
+      } else {
         gvChip("🎤 aus – tippen zum Einschalten", "aus");
       }
     };
   }
+  // Aktivton NUR beim echten Einschalten - nicht bei den internen
+  // Neustarts nach jeder Sprechpause. Das war die Quelle des
+  // Dauergepiepes.
+  const warAus = !GlobalVoice.aktiv;
   GlobalVoice.aktiv = true;
   gvLetztesErgebnis = Date.now();
+  if (warAus) tonAktiv();
   try { recognition.start(); } catch (e) {}
 }
 
 function gvStopp() {
   GlobalVoice.aktiv = false;
   GlobalVoice.dialog = null;
+  einkaufKetteAktiv = false;
   if (recognition) { try { recognition.abort(); } catch (e) {} }
   gvChip("🎤 aus – tippen zum Einschalten", "aus");
 }
@@ -1853,6 +2055,32 @@ function istUeberspringen(text) {
   return /^(?:überspringen|ueberspringen|weiter|skip|nächste(?:\s+frage)?|naechste(?:\s+frage)?|nächster(?:\s+schritt)?|naechster(?:\s+schritt)?)$/.test(t);
 }
 
+// "Zurueck" als Universalbefehl - wie bei "weiter" nur, wenn das Wort
+// (nahezu) allein gesagt wird. "Wir fahren zurueck nach Hamburg"
+// waehrend eines Termindiktats darf keinen Schritt zuruecksetzen.
+function istZurueck(text) {
+  const t = String(text).toLowerCase().trim().replace(/[.,!?]+$/g, "");
+  return /^(?:(?:einen?|ein|1)\s+)?(?:schritt\s+)?zur(?:ü|ue)ck(?:\s+bitte)?$/.test(t)
+    || /^(?:nochmal|einmal)\s+zur(?:ü|ue)ck$/.test(t)
+    || /^(?:vorheriger|vorherige|voriger|vorige|letzter|letzte)\s+(?:schritt|frage)$/.test(t)
+    || /^(?:ein\s+)?schritt\s+zur(?:ü|ue)ck$/.test(t);
+}
+
+// Beendet die Einkaufs-Kette (mehrere Artikel nacheinander).
+function istKetteEnde(text) {
+  const t = String(text).toLowerCase().trim().replace(/[.,!?]+$/g, "");
+  return /^(?:fertig|erledigt|ende|schluss|das war(?:'|’)?s|das wars|danke das war(?:'|’)?s|stopp|stop|aufh(?:ö|oe)ren|reicht|das reicht)$/.test(t);
+}
+
+// Darf Gesagtes eine laufende Ansage abbrechen? Ja bei einer offenen
+// Rueckfrage (der Nutzer antwortet) und bei jedem echten Befehl.
+// Alltagsgeplauder unterbricht weiterhin nicht.
+function gvDarfUnterbrechen(text) {
+  if (GlobalVoice.dialog) return true;
+  if (istUeberspringen(text) || istZurueck(text)) return true;
+  return Boolean(erkenneKommando(text));
+}
+
 function erkenneKommando(text) {
   const t = String(text).toLowerCase().trim()
     .replace(/[.,!?]+$/g, "");
@@ -1879,7 +2107,17 @@ function erkenneKommando(text) {
   if (/^(?:jetzt\s+|los\s+|lass uns\s+)?koch(?:en)?(?:\s+start(?:en)?|\s+beginnen|\s+los)?$/.test(t)) {
     return { typ: "kochen" };
   }
-  let m = t.match(/^(?:setz(?:e)?(?:\s+(?:es|das|alles))?\s+)?(?:die\s+)?(?:zutaten\s+)?auf\s+die\s+(?:einkaufs)?liste$/);
+  // BUGFIX: Die alte Regel verlangte fast wortwoertlich "auf die
+  // (einkaufs)liste". Es scheiterten u.a. "auf die Einkaufs Liste"
+  // (Android trennt zusammengesetzte Woerter oft), "... bitte",
+  // "alles auf die Liste", "pack die Zutaten auf die Liste".
+  let m = t.match(/^(?:(?:setz|setze|pack|packe|tu|tue|schreib|schreibe|nimm|mach|mache)\s+)?(?:(?:es|das|die|den|alles|mir|uns|mal|bitte|doch|noch|zutaten|einkauf)\s+)*auf\s+die\s+(?:einkaufs\s*)?liste(?:\s+(?:setzen|schreiben|packen|drauf|bitte|danke))*$/);
+  // Auffangregel: kurzer Satz, der "auf die ... liste" enthaelt.
+  // Kurz ist Bedingung, damit ein diktierter Termin nichts ausloest.
+  if (!m && t.length <= 60 && /\bauf\s+die\s+(?:\w+\s+)?(?:einkaufs\s*)?liste\b/.test(t)
+      && !/\b(vorlesen|leeren|löschen|loeschen)\b/.test(t)) {
+    m = [t];
+  }
   if (m) return { typ: "auf_liste" };
   m = t.match(/^(?:(?:einkauf[:,]?\s+)?liste|einkaufs?liste)\s+(vorlesen|leeren|löschen|loeschen)$/);
   if (m) return { typ: "liste",
@@ -1915,14 +2153,80 @@ function parseArtikelListe(text) {
     .filter((s) => s.length > 1 && !FLOSKELN.includes(s.toLowerCase()));
 }
 
-function einkaufHinzufuegen(text) {
+// Merker fuer "zurueck": wie viele Artikel kamen zuletzt dazu?
+let einkaufZuletzt = [];
+
+function einkaufHinzufuegen(text, danach) {
   const artikel = parseArtikelListe(text);
-  if (!artikel.length) { speak("Das habe ich nicht verstanden.", true); return; }
+  if (!artikel.length) {
+    speak("Das habe ich nicht verstanden.", true, danach);
+    return;
+  }
   artikel.forEach((name) => vState.liste.push({ name: name, laden: "" }));
+  einkaufZuletzt = artikel.slice();
   vbSave(); renderVerbrauch();
   speak(artikel.length === 1
     ? artikel[0] + " ist auf der Liste."
-    : artikel.join(" und ") + " sind auf der Liste.", true);
+    : artikel.join(" und ") + " sind auf der Liste.", true, danach);
+}
+
+// "Zurueck" in der Einkaufs-Kette: den zuletzt genannten Artikel
+// wieder entfernen - der haeufigste Fall bei Versprechern.
+function einkaufZurueck(danach) {
+  if (!einkaufZuletzt.length) {
+    speak("Da ist nichts zum Zurücknehmen.", true, danach);
+    return;
+  }
+  const weg = einkaufZuletzt.slice();
+  einkaufZuletzt = [];
+  for (const name of weg) {
+    for (let i = vState.liste.length - 1; i >= 0; i--) {
+      if (vState.liste[i] && vState.liste[i].name === name) {
+        vState.liste.splice(i, 1);
+        break;
+      }
+    }
+  }
+  vbSave(); renderVerbrauch();
+  speak(weg.join(" und ") + (weg.length === 1 ? " ist" : " sind") +
+    " wieder von der Liste.", true, danach);
+}
+
+// ---------- Einkaufs-Kette (mehrere Artikel nacheinander) ----------
+// Ablauf: "Einkaufsliste" -> Bereit-Ton -> Artikel -> Bestaetigung ->
+// Bereit-Ton -> naechster Artikel -> ... bis "fertig".
+// Die App stellt bewusst KEINE gesprochene Rueckfrage mehr ("Welcher
+// Artikel?"). Genau die hoerte sie sich selbst wieder an und setzte
+// sie als Artikel auf die Liste.
+let einkaufKetteAktiv = false;
+
+function einkaufKetteStart() {
+  goTab("einkauf");
+  einkaufKetteAktiv = true;
+  einkaufKetteBereit();
+}
+
+function einkaufKetteBereit() {
+  if (!einkaufKetteAktiv) return;
+  gvStart();
+  GlobalVoice.dialog = { onInput: einkaufKetteEingabe };
+  gvChip("🛒 Artikel sagen – „fertig“ beendet", "an");
+  tonBereit();
+}
+
+function einkaufKetteStop(stumm) {
+  const lief = einkaufKetteAktiv;
+  einkaufKetteAktiv = false;
+  GlobalVoice.dialog = null;
+  if (lief && !stumm) speak("Okay, Einkaufsliste geschlossen.", true);
+  gvChipStand();
+}
+
+function einkaufKetteEingabe(text) {
+  GlobalVoice.dialog = null;
+  if (istKetteEnde(text)) { einkaufKetteStop(false); return; }
+  if (istZurueck(text)) { einkaufZurueck(einkaufKetteBereit); return; }
+  einkaufHinzufuegen(text, einkaufKetteBereit);
 }
 
 // ---------- Zentrale Weiche ----------
@@ -1946,6 +2250,12 @@ function gvRoute(said) {
   // (z.B. Rezept-Vorstellung, Zutatenliste) sofort beenden
   if (istUeberspringen(said)) {
     window.speechSynthesis.cancel();
+    return;
+  }
+  // "Zurueck" - im Kochmodus ein Schritt zurueck, sonst nur Hinweis.
+  if (istZurueck(said)) {
+    if (cookingVisible()) prevStep();
+    else speak("Zurück geht hier gerade nicht.", true);
     return;
   }
   const k = erkenneKommando(said);
@@ -2008,8 +2318,13 @@ function gvRoute(said) {
     return;
   }
   if (k.typ === "einkauf") {
-    if (k.rest) { einkaufHinzufuegen(k.rest); }
-    else { gvOneShot("Welcher Artikel?", einkaufHinzufuegen); }
+    if (k.rest) {
+      goTab("einkauf");
+      einkaufKetteAktiv = true;
+      einkaufHinzufuegen(k.rest, einkaufKetteBereit);
+    } else {
+      einkaufKetteStart();
+    }
     return;
   }
   if (k.typ === "termin") {
@@ -2038,6 +2353,7 @@ async function wpPlanen() {
         unvertraeglichkeiten: selectedIntolerances(),
         ernaehrungsformen: ernaehrungsformen,
         stile: familienStile,
+        ausschluss: ausschlussListe(),
         minuten_min: 15,
         minuten_max: 60,
       }),
@@ -2564,6 +2880,8 @@ function goTab(name) {
   // (verhindert Mikrofon-Konflikt mit der Koch-Spracherkennung)
   if (name !== "einkauf" && typeof vbVoiceCheckoffStop === "function")
     vbVoiceCheckoffStop();
+  if (name !== "einkauf" && typeof einkaufKetteStop === "function")
+    einkaufKetteStop(true);
   ["familie", "rezepte", "einkauf", "kochen", "favoriten", "termine"]
     .forEach(t => {
       document.getElementById("tab-" + t).classList.toggle("hidden", t !== name);
@@ -2713,6 +3031,101 @@ function renderFavoriten() {
 // Die frühere Doppel-Definition an dieser Stelle wurde entfernt -
 // zwei gleichnamige Funktionen sind eine klassische Fehlerquelle.
 
+// =====================================================
+// FREITEXT-AUSSCHLUSS (Vorlieben, Religion, Verzicht)
+// -----------------------------------------------------
+// Bewusst getrennt von den Allergie-Ankreuzfeldern: Ein reiner
+// Wortvergleich ist nur so gut wie das eingegebene Wort und ersetzt
+// keine Allergie-Sicherheit. Damit "Schwein" trotzdem nicht an Speck
+// und Salami vorbeigeht, gibt es Synonymgruppen. Diese Liste MUSS mit
+// AUSSCHLUSS_GRUPPEN in netlify/functions/rezept.mjs uebereinstimmen.
+// =====================================================
+const AUSSCHLUSS_GRUPPEN = [
+  ["schwein","schweinefleisch","schweinefilet","schweinelende","speck",
+   "bacon","schinken","salami","kassler","kasseler","chorizo","cabanossi",
+   "leberkäse","leberkaese","bratwurst","mettwurst","mett","wiener",
+   "frankfurter","schweineschmalz","pancetta","guanciale","prosciutto",
+   "serranoschinken","gelatine","gelantine"],
+  ["rind","rindfleisch","beef","steak","roastbeef","tafelspitz","ochse"],
+  ["lamm","lammfleisch","hammel","lammkeule","lammfilet"],
+  ["alkohol","wein","rotwein","weißwein","weisswein","bier","rum","cognac",
+   "likör","likoer","sherry","portwein","wodka","whisky","whiskey",
+   "calvados","marsala","weinbrand","amaretto","prosecco","sekt"],
+  ["zwiebel","zwiebeln","schalotte","schalotten","frühlingszwiebel",
+   "fruehlingszwiebel","lauchzwiebel","zwiebelpulver"],
+  ["knoblauch","knofi","knoblauchzehe","knoblauchpulver"],
+  ["pilz","pilze","champignon","champignons","pfifferling","steinpilz",
+   "shiitake","austernpilz","egerling"],
+  ["koriander","cilantro","koriandergrün","koriandergruen"],
+  ["scharf","chili","chilli","peperoni","cayenne","sambal","harissa",
+   "tabasco","jalapeno","jalapeño","chiliflocken"],
+  ["innereien","leber","niere","nieren","herz","zunge","kutteln","bries"],
+  ["kokos","kokosmilch","kokosnuss","kokosraspel","kokosöl","kokosoel"],
+  ["rosine","rosinen","sultanine","sultaninen","korinthen"],
+  ["oliven","olive","olivenpaste","tapenade"],
+];
+
+// Eingabefeld -> saubere Begriffsliste (pur & testbar)
+function ausschlussParse(text) {
+  return String(text || "")
+    .split(/[,;]|\s+und\s+|\n/)
+    .map((s) => s.trim().toLowerCase().slice(0, 40))
+    .filter((s) => s.length > 1)
+    .slice(0, 15);
+}
+
+// Begriff -> alle mitgemeinten Woerter (pur & testbar)
+function ausschlussErweitern(begriffe) {
+  const raus = new Set();
+  for (const b of begriffe) {
+    const w = String(b || "").toLowerCase().trim();
+    if (w.length < 2) continue;
+    raus.add(w);
+    for (const gruppe of AUSSCHLUSS_GRUPPEN) {
+      if (gruppe.some((g) => g === w || w.includes(g) || g.includes(w))) {
+        gruppe.forEach((g) => raus.add(g));
+      }
+    }
+  }
+  return [...raus];
+}
+
+// Enthaelt ein Rezept einen ausgeschlossenen Begriff? (pur & testbar)
+// Geprueft werden Zutaten UND Schritttexte - eine Zutat kann in der
+// Anleitung auftauchen, ohne in der Liste zu stehen.
+function ausschlussTrifft(recipe, begriffe) {
+  if (!recipe || !begriffe || !begriffe.length) return null;
+  const woerter = ausschlussErweitern(begriffe);
+  const felder = [];
+  (recipe.ingredients || []).forEach((i) => felder.push(String(i && i.name || "")));
+  (recipe.steps || []).forEach((s) => felder.push(String(s && s.text || "")));
+  felder.push(String(recipe.name || ""));
+  const text = felder.join(" | ").toLowerCase();
+  for (const w of woerter) if (text.includes(w)) return w;
+  return null;
+}
+
+function ausschlussListe() {
+  const feld = document.getElementById("ausschlussFeld");
+  return ausschlussParse(feld ? feld.value : "");
+}
+
+function ausschlussSpeichern() {
+  try {
+    const feld = document.getElementById("ausschlussFeld");
+    localStorage.setItem("fa_ausschluss", feld ? feld.value : "");
+  } catch (e) {}
+  if (typeof renderRecipes === "function") renderRecipes();
+}
+
+function ausschlussLaden() {
+  try {
+    const feld = document.getElementById("ausschlussFeld");
+    const wert = localStorage.getItem("fa_ausschluss");
+    if (feld && wert) feld.value = wert;
+  } catch (e) {}
+}
+
 function selectedIntolerances() {
   const manuell = Array.from(document.querySelectorAll(".intol:checked"))
     .map(c => c.value);
@@ -2767,17 +3180,22 @@ function rezeptVorstellungsText(r, f) {
   let s = `${r.name}, etwa ${r.timeMin} Minuten. `;
   s += `Ihr braucht: ${zutaten}. `;
   const variante = (r.varianten || [])[0];
-  if (variante && variante.text) s += `Tipp: ${variante.text} `;
-  s += "Zum Loskochen sagt: Kochen. Zum Einkaufen sagt: " +
-    "Auf die Einkaufsliste. Oder wählt ein anderes Rezept.";
-  return s;
+  if (variante && variante.text) s += `Tipp: ${variante.text}`;
+  // BUGFIX: Frueher endete die Ansage mit "Zum Einkaufen sagt: Auf die
+  // Einkaufsliste." Die App sprach damit ihren eigenen Ausloeser aus -
+  // der Echo-Schutz konnte danach nicht mehr unterscheiden, ob das
+  // Mikrofon den Nutzer oder die App gehoert hat. Die Bedienhinweise
+  // stehen jetzt SICHTBAR unter der Rezeptliste (#rezeptHinweis).
+  return s.trim();
 }
 
 function rezeptVorstellen(r) {
+  const hinweis = document.getElementById("rezeptHinweis");
+  if (hinweis) hinweis.classList.remove("hidden");
   try {
-    speak(rezeptVorstellungsText(selectedRecipe, 1), true);
+    speak(rezeptVorstellungsText(selectedRecipe, 1), true, tonBereit);
   } catch (e) {
-    speak(`${r.name} ausgewählt. Zum Loskochen sagt: Kochen.`, true);
+    speak(`${r.name} ausgewählt.`, true, tonBereit);
   }
 }
 
@@ -2797,11 +3215,15 @@ function renderRecipes() {
 
   const standard = RECIPES.filter(r => !String(r.id || "").startsWith("ki_"));
   const ki = RECIPES.filter(r => String(r.id || "").startsWith("ki_"));
+  // Freitext-Ausschluss gilt auch fuer die mitgelieferten Rezepte,
+  // nicht nur fuer die recherchierten.
+  const ausschluss = ausschlussListe();
 
   // --- Standard-Rezepte: filtern + nach Stil ranken ---
   const passende = [];
   standard.forEach(r => {
     if (r.allergens.some(a => intol.includes(a))) return; // Allergie: hart
+    if (ausschlussTrifft(r, ausschluss)) return;          // Wunsch-Ausschluss
     if (r.timeMin < timeMinSel || r.timeMin > timeMaxSel) return;
     const d = dietPasses(r);
     if (!d.ok) return; // Ernaehrungsform passt nicht (auch nicht per Variante)
@@ -2834,6 +3256,7 @@ function renderRecipes() {
   // --- KI-Treffer: serverseitig gefiltert, nur Allergen defensiv pruefen ---
   ki.forEach(r => {
     if ((r.allergens || []).some(a => intol.includes(a))) return;
+    if (ausschlussTrifft(r, ausschluss)) return;
     kiShown++;
     const div = document.createElement("div");
     div.className = "card recipe" + (selectedRecipe === r ? " selected" : "");
@@ -3193,10 +3616,29 @@ function repeatStep() {
   flashStep();
 }
 
+// NEU: ein Schritt zurueck. Fehlte bisher komplett - es gab nur
+// vorwaerts (confirmStep) und nochmal (repeatStep).
+function prevStep() {
+  lastConfirm = Date.now();
+  clearTimers();
+  if (!selectedRecipe || !selectedRecipe.steps) return;
+  if (stepIndex > 0) {
+    stepIndex--;
+    document.getElementById("favoriteBox").classList.add("hidden");
+    showStep();
+    flashStep();
+  } else {
+    speak("Das ist schon der erste Schritt.", true);
+    renderStep();
+    flashStep();
+  }
+}
+
 // =====================================================
 // KI-REZEPTRECHERCHE (laeuft nur in der Online-Version)
 // =====================================================
 let rechercheZyklen = 0;
+let rechercheZweiterAnlauf = false;
 let letzterWunsch = null;
 let bisherigeNamen = [];
 
@@ -3252,6 +3694,7 @@ async function rechercheRezept(istWiederholung) {
         minuten_min: timeMinSel,
         minuten_max: timeMaxSel,
         vermeide: bisherigeNamen,
+        ausschluss: ausschlussListe(),
       }),
     });
     if (r.status === 429) {
@@ -3268,10 +3711,21 @@ async function rechercheRezept(istWiederholung) {
       return;
     }
     if (!r.ok) {
+      // Serverfehler (502/504) sind meist Ausrutscher. Statt die
+      // Familie mit einer Fehlernummer stehen zu lassen, versucht die
+      // App EINMAL still nach zwei Sekunden neu. Erst dann Klartext.
+      if ((r.status === 502 || r.status === 504) && !rechercheZweiterAnlauf) {
+        rechercheZweiterAnlauf = true;
+        status.textContent = "🔄 Kurzer Aussetzer – ich versuche es nochmal …";
+        setTimeout(() => rechercheRezept(istWiederholung), 2000);
+        return;
+      }
+      rechercheZweiterAnlauf = false;
       status.textContent = fehlermeldungRecherche(location.protocol, r.status);
       btn.disabled = false;
       return;
     }
+    rechercheZweiterAnlauf = false;
     const data = await r.json();
 
     if (!data.success) {
@@ -4496,6 +4950,8 @@ function reminderOk() {
       location.replace("https://familienassistent.net/");
     }, 1500);
   }
+  // Gespeicherte Wunsch-Ausschluesse ins Feld zuruecklegen
+  try { ausschlussLaden(); } catch (e) {}
   // Globale Sprachsteuerung: sofort zuhoeren, wenn die
   // Mikrofon-Berechtigung schon erteilt ist
   gvAutoStart();

@@ -32,12 +32,21 @@ const BUDGET = Number((process.argv.find((a) => a.startsWith("--budget=")) || ""
 
 // Diese Funktionen sind rein (kein DOM, keine Netzwerkzugriffe) und
 // damit fuer erfundene Testfaelle geeignet.
+// AUDIT 31.07.: Diese Liste war die Ursache dafuer, dass das taegliche
+// Red-Team drei gemeldete Fehler nie sehen konnte. Es bekam nur die
+// Rechenkerne zu sehen - die gesamte Sprach- und Bedienlogik fehlte.
+// Jede neue reine Funktion gehoert ab sofort HIER hinein, sonst ist sie
+// vom taeglichen Angriff ausgenommen.
 const ZIELFUNKTIONEN = [
   "erkenneKommando", "istUeberspringen", "ttsSaeubern",
   "restzeitAnsageFaellig", "smartQty", "smartMenge", "zahlVarianten",
   "skaliereRezept", "dietPasses", "requiredDiets", "satisfiesDiet",
   "editierDistanz", "vbMatchScore", "parseArtikelListe",
   "montagVon", "isoTag", "personenAequivalent",
+  // Neu (FUSION26): Sprachsteuerung und Wunsch-Ausschluss
+  "istZurueck", "istKetteEnde", "istEigenesEcho", "gvNorm",
+  "ausschlussParse", "ausschlussErweitern", "ausschlussTrifft",
+  "rezeptVorstellungsText",
 ];
 
 function funktionAusQuelle(quelle, name) {
