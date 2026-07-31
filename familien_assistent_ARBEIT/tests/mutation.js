@@ -1,0 +1,322 @@
+// =====================================================================
+// MUTATIONSTESTER (Gegenprobe)
+// ---------------------------------------------------------------------
+// Ein gruener Test beweist nichts. Er beweist erst dann etwas, wenn er
+// ROT wird, sobald man die zugehoerige Reparatur zerstoert.
+//
+// Dieses Werkzeug macht genau das: Es baut jede Reparatur einzeln
+// wieder kaputt, laesst die Szenarien laufen und verlangt, dass die
+// benannten Tests fehlschlagen. Bleibt alles gruen, ist der Test
+// wertlos - er wird hier als LUECKE gemeldet.
+//
+// Anlass: Der alte Test G6 suchte nur eine Zeichenkette im Quelltext.
+// Er wurde rot, als der Selbsthoer-Schutz VERBESSERT wurde, und waere
+// gruen geblieben, haette man ihn geloescht. Solche Tests darf es in
+// diesem Projekt nicht mehr geben.
+//
+// Aufruf:  node tests/mutation.js
+// Exit-Code 0 = jede Mutation wurde bemerkt, 1 = mindestens eine Luecke.
+// =====================================================================
+"use strict";
+const fs = require("fs");
+const path = require("path");
+const { execFileSync } = require("child_process");
+
+const WURZEL = path.resolve(__dirname, "..");
+
+// Jede Mutation zerstoert GENAU EINE Reparatur.
+// erwarteRot = Tests, die das bemerken muessen (Praefix genuegt).
+const MUTATIONEN = [
+  {
+    name: "Selbsthoer-Schutz entfernt",
+    datei: "index.html",
+    suchen: "      if (istEigenesEcho(said, ttsEchoAktuell, ttsEchoVorher)) return;",
+    ersetzen: "      if (false) return;",
+    erwarteRot: ["M1", "G6"],
+  },
+  {
+    name: "Echo-Erkennung meldet immer 'kein Echo'",
+    datei: "index.html",
+    suchen: "function istEigenesEcho(gehoert, aktuell, vorher) {\n  const h = gvNorm(gehoert);",
+    ersetzen: "function istEigenesEcho(gehoert, aktuell, vorher) {\n  if (true) return false;\n  const h = gvNorm(gehoert);",
+    erwarteRot: ["M1", "M4", "G6"],
+  },
+  {
+    name: "Echo-Erkennung verschluckt auch einzelne Woerter",
+    datei: "index.html",
+    suchen: "    if (woerter.length < 2) {\n      if (quelle === h) return true;\n      continue;\n    }",
+    ersetzen: "    if (woerter.length < 2) {\n      if (quelle.includes(h)) return true;\n      continue;\n    }",
+    erwarteRot: ["M3"],
+  },
+  {
+    name: "Aktivton wieder bei jedem Neustart",
+    datei: "index.html",
+    suchen: "  gvBackoffZuruecksetzen();\n  if (warAus) tonAktiv();",
+    ersetzen: "  gvBackoffZuruecksetzen();\n  tonAktiv();",
+    erwarteRot: ["M8"],
+  },
+  {
+    name: "Einschlafton entfernt",
+    datei: "index.html",
+    suchen: "        tonSchlaf(); // deutlicher, absteigender Hinweiston",
+    ersetzen: "        // Ton entfernt",
+    erwarteRot: ["M15"],
+  },
+  {
+    name: "Sprechblasen-Deckel von 15 Sekunden zurueck",
+    datei: "index.html",
+    suchen: "    }, Math.max(6000, text.length * 90) + 2000);",
+    ersetzen: "    }, Math.min(4000 + text.length * 60, 15000));",
+    erwarteRot: ["M11"],
+  },
+  {
+    name: "Chip luegt waehrend der Ansage wieder gruen",
+    datei: "index.html",
+    suchen: '  gvChip("🔊 Ich rede – du kannst mich unterbrechen", "redet");',
+    ersetzen: '  gvChip("🎤 an – ich höre", "an");',
+    erwarteRot: ["M13"],
+  },
+  {
+    name: "Eigene Redezeit zaehlt wieder als Stille",
+    datei: "index.html",
+    suchen: "    gvLetztesErgebnis = Date.now();\n    ttsDanach = typeof danach === \"function\" ? danach : null;",
+    ersetzen: "    ttsDanach = typeof danach === \"function\" ? danach : null;",
+    erwarteRot: ["M16"],
+  },
+  {
+    name: "Einkaufsbefehl wieder eng gefasst",
+    datei: "index.html",
+    suchen: "  if (!m && t.length <= 60 && /\\bauf\\s+die\\s+(?:\\w+\\s+)?(?:einkaufs\\s*)?liste\\b/.test(t)",
+    ersetzen: "  if (false && t.length <= 60 && /\\bauf\\s+die\\s+(?:\\w+\\s+)?(?:einkaufs\\s*)?liste\\b/.test(t)",
+    erwarteRot: ["M22a", "M22b"],
+  },
+  {
+    name: "Zurueck-Befehl ohne Alleinstehend-Sicherung",
+    datei: "index.html",
+    suchen: "function istZurueck(text) {\n  const t = String(text).toLowerCase().trim().replace(/[.,!?]+$/g, \"\");",
+    ersetzen: "function istZurueck(text) {\n  const t = String(text).toLowerCase().trim().replace(/[.,!?]+$/g, \"\");\n  if (/zur(?:ü|ue)ck/.test(t)) return true;",
+    erwarteRot: ["M26", "M27", "M45"],
+  },
+  {
+    name: "prevStep zaehlt nicht zurueck",
+    datei: "index.html",
+    suchen: "  if (stepIndex > 0) {\n    stepIndex--;\n    document.getElementById(\"favoriteBox\").classList.add(\"hidden\");",
+    ersetzen: "  if (stepIndex > 0) {\n    document.getElementById(\"favoriteBox\").classList.add(\"hidden\");",
+    erwarteRot: ["M28"],
+  },
+  {
+    name: "Synonymgruppen im Ausschluss abgeschaltet",
+    datei: "index.html",
+    suchen: "      if (gruppe.some((g) => g === w || w.includes(g) || g.includes(w))) {\n        gruppe.forEach((g) => raus.add(g));\n      }",
+    ersetzen: "      if (false) { gruppe.forEach((g) => raus.add(g)); }",
+    erwarteRot: ["M36", "M37", "M39"],
+  },
+  {
+    name: "Ausschluss prueft die Schritttexte nicht mehr",
+    datei: "index.html",
+    suchen: "  (recipe.steps || []).forEach((s) => felder.push(String(s && s.text || \"\")));\n  felder.push(String(recipe.name || \"\"));",
+    ersetzen: "  felder.push(String(recipe.name || \"\"));",
+    erwarteRot: ["M40"],
+  },
+  {
+    name: "Einkaufs-Zurueck entfernt den Artikel nicht",
+    datei: "index.html",
+    suchen: "        vState.liste.splice(i, 1);\n        break;",
+    ersetzen: "        break;",
+    erwarteRot: ["M33"],
+  },
+  // --- Dauergepiepe (Neustartschleife) ---
+  {
+    name: "Backoff entfernt - Neustart wieder alle 300 ms",
+    datei: "index.html",
+    suchen: "        const maxStufe = GV_BACKOFF_MS.length - 1;\n        warten = GV_BACKOFF_MS[Math.min(gvBackoffStufe, maxStufe)];\n        gvBackoffStufe++;",
+    ersetzen: "        warten = 300;",
+    erwarteRot: ["N1", "N2"],
+  },
+  {
+    name: "Backoff wird nie zurueckgesetzt (Mikro wird traege)",
+    datei: "index.html",
+    suchen: "function gvBackoffZuruecksetzen() { gvBackoffStufe = 0; }",
+    ersetzen: "function gvBackoffZuruecksetzen() { /* nichts */ }",
+    erwarteRot: ["N5", "N6"],
+  },
+  {
+    name: "Neustart auch waehrend der Ansage",
+    datei: "index.html",
+    suchen: "      if (micMuted) { gvChipStand(); return; }",
+    ersetzen: "      if (false) { gvChipStand(); return; }",
+    erwarteRot: ["N7"],
+  },
+  // --- Zweistufige Recherche ---
+  {
+    name: "Recherche fordert wieder volle Rezepte an",
+    datei: "index.html",
+    suchen: '        modus: "kurz",           // Stufe 1: ohne Kochschritte (siehe startCooking)\n',
+    ersetzen: "",
+    erwarteRot: ["O5"],
+  },
+  {
+    name: "Nachladen schickt Rohmengen statt skalierter Mengen",
+    datei: "index.html",
+    suchen: "        zutaten: (rezept.ingredients || []).map((i) => ({\n          name: i.name, qty: i.qty, unit: i.unit })),",
+    ersetzen: "        zutaten: (rezept.rohZutaten || []).map((i) => ({\n          name: i.name, qty: i.qty, unit: i.unit })),",
+    erwarteRot: ["O6"],
+  },
+  {
+    name: "Zeitlimit des Servers wieder ueber der Plattformgrenze",
+    datei: "netlify/functions/rezept.mjs",
+    suchen: "    const timeout = setTimeout(() => ctrl.abort(), 9000);",
+    ersetzen: "    const timeout = setTimeout(() => ctrl.abort(), 45000);",
+    erwarteRot: [],
+    servertest: "tests/server/ausschluss.test.mjs",
+  },
+  // --- Kochmodus: Mikrofon, Erinnerungen, Garprobe ---
+  {
+    name: "Kochmodus horcht nicht mehr dauerhaft",
+    datei: "index.html",
+    suchen: "      if (kochAn && !garpause) {\n        warten = 300;                       // dauerhaft aufnahmebereit",
+    ersetzen: "      if (false) {\n        warten = 300;",
+    erwarteRot: ["P1", "P3"],
+  },
+  {
+    name: "Garpause entfernt - Systemton auch waehrend des Ofens",
+    datei: "index.html",
+    suchen: "      const garpause = kochAn && timerRest > 45;",
+    ersetzen: "      const garpause = false;",
+    erwarteRot: ["P2"],
+  },
+  {
+    name: "Erinnerung wieder starr statt schrittproportional",
+    datei: "index.html",
+    suchen: "  const sek = reminderAbstandSek(selectedRecipe, stepIndex, reminderStufe);",
+    ersetzen: "  const sek = REMINDER_STUFEN[Math.min(reminderStufe, REMINDER_STUFEN.length - 1)];",
+    erwarteRot: ["P17", "P18"],
+  },
+  {
+    name: "Erste Erinnerung wieder zu frueh (halbe statt drei viertel Dauer)",
+    datei: "index.html",
+    suchen: "  return Math.max(40, Math.round(schrittDauerSek(recipe, index) * 0.75));",
+    ersetzen: "  return Math.max(40, Math.round(schrittDauerSek(recipe, index) * 0.5));",
+    erwarteRot: ["P9"],
+  },
+  {
+    name: "Folge-Erinnerungen wieder haeufiger als einmal pro Minute",
+    datei: "index.html",
+    suchen: "  if (stufe > 0) return [60, 90, 120][Math.min(stufe - 1, 2)];",
+    ersetzen: "  if (stufe > 0) return [25, 25, 25][Math.min(stufe - 1, 2)];",
+    erwarteRot: ["P11", "P12"],
+  },
+  {
+    name: "Garprobe faellt weg - nur noch Countdown",
+    datei: "index.html",
+    suchen: "  return wieViel + \"Schau jetzt nach, ob es gar ist – lieber einmal zu \" +\n    \"früh probieren als verkochen lassen.\";",
+    ersetzen: "  return wieViel;",
+    erwarteRot: ["P14", "P15"],
+  },
+  {
+    name: "Endspurt-Hinweis wieder erst bei 30 s",
+    datei: "index.html",
+    suchen: "  return rest === 20 || rest === 10;         // Endspurt: 20 s und 10 s",
+    ersetzen: "  return rest === 30 || rest === 10;",
+    erwarteRot: ["P16", "E1"],
+  },
+];
+
+function laufen() {
+  try {
+    const roh = execFileSync("node", [path.join(WURZEL, "tests/run.js"), "--json"],
+      { cwd: WURZEL, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    return JSON.parse(roh);
+  } catch (e) {
+    // Exit-Code 1 bei roten Tests ist der Normalfall - Bericht steht in stdout
+    const roh = (e && e.stdout) || "";
+    try { return JSON.parse(roh); } catch (e2) {
+      return { gesamt: 0, fehlgeschlagen: -1, fehler: [],
+        ladefehler: String((e && e.message) || e2).slice(0, 300) };
+    }
+  }
+}
+
+const ergebnisse = [];
+let luecken = 0;
+
+// Ausgangslage: alles muss gruen sein, sonst ist die Gegenprobe wertlos.
+const start = laufen();
+if (start.fehlgeschlagen !== 0) {
+  console.error("ABBRUCH: Die Szenarien sind nicht gruen (" +
+    start.fehlgeschlagen + " rot). Erst reparieren, dann mutieren.");
+  process.exit(1);
+}
+console.log("Ausgangslage: " + start.bestanden + " Tests gruen.\n");
+
+for (const m of MUTATIONEN) {
+  const pfad = path.join(WURZEL, m.datei);
+  const original = fs.readFileSync(pfad, "utf8");
+  const treffer = original.split(m.suchen).length - 1;
+
+  if (treffer !== 1) {
+    console.log("LUECKE  " + m.name +
+      "  (Muster " + treffer + "x gefunden, erwartet 1x)");
+    luecken++;
+    ergebnisse.push({ name: m.name, status: "muster-fehlt", treffer });
+    continue;
+  }
+
+  fs.writeFileSync(pfad, original.split(m.suchen).join(m.ersetzen), "utf8");
+  let bericht, servertestRot = false;
+  try {
+    bericht = laufen();
+    if (m.servertest) {
+      try {
+        execFileSync("node", [path.join(WURZEL, m.servertest)],
+          { cwd: WURZEL, stdio: "ignore" });
+      } catch (e) { servertestRot = true; }
+    }
+  } finally { fs.writeFileSync(pfad, original, "utf8"); }
+
+  if (m.servertest && !servertestRot) {
+    console.log("LUECKE  " + m.name + "  -> Servertest bemerkt nichts");
+    luecken++;
+    ergebnisse.push({ name: m.name, status: "servertest-blind" });
+    continue;
+  }
+  if (m.servertest && servertestRot && !m.erwarteRot.length) {
+    console.log("bemerkt " + m.name + "  (Servertest rot)");
+    ergebnisse.push({ name: m.name, status: "bemerkt", via: "servertest" });
+    continue;
+  }
+
+  const roteNamen = (bericht.fehler || []).map((f) => String(f.name || ""));
+  const unbemerkt = m.erwarteRot.filter(
+    (p) => !roteNamen.some((n) => n.indexOf(p) === 0));
+
+  if (bericht.fehlgeschlagen === -1) {
+    console.log("LUECKE  " + m.name + "  (Testlauf abgestuerzt)");
+    luecken++;
+    ergebnisse.push({ name: m.name, status: "absturz" });
+  } else if (unbemerkt.length) {
+    console.log("LUECKE  " + m.name +
+      "  -> unbemerkt von: " + unbemerkt.join(", "));
+    luecken++;
+    ergebnisse.push({ name: m.name, status: "unbemerkt", unbemerkt });
+  } else {
+    console.log("bemerkt " + m.name +
+      "  (" + bericht.fehlgeschlagen + " Tests rot)");
+    ergebnisse.push({ name: m.name, status: "bemerkt",
+      rot: bericht.fehlgeschlagen });
+  }
+}
+
+const berichtOrdner = path.join(__dirname, "berichte");
+if (!fs.existsSync(berichtOrdner)) fs.mkdirSync(berichtOrdner, { recursive: true });
+fs.writeFileSync(path.join(berichtOrdner, "mutation.json"),
+  JSON.stringify({ zeitpunkt: new Date().toISOString(),
+    mutationen: MUTATIONEN.length, luecken, ergebnisse }, null, 2), "utf8");
+
+console.log("\nErgebnis: " + (MUTATIONEN.length - luecken) + " von " +
+  MUTATIONEN.length + " Mutationen wurden bemerkt.");
+if (luecken) {
+  console.log("ACHTUNG: " + luecken + " Reparatur(en) sind NICHT durch " +
+    "einen wirksamen Test abgesichert.");
+}
+process.exit(luecken ? 1 : 0);
