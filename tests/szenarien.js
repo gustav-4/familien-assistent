@@ -76,12 +76,16 @@ const eAnsagen = (dauer) => {
   for (let r = dauer; r >= 0; r--) if (restzeitAnsageFaellig(r)) treffer.push(r);
   return treffer;
 };
-pruefe("E1 20-Min-Timer: 2-Min-Takt, dann Minuten, dann 30/10 s",
+// GEAENDERT (Vorgabe Betreiber): Der Endspurt-Hinweis rueckt von 30 s
+// auf 20 s und traegt dort eine GARPROBE statt eines blossen
+// Countdowns - die letzten Sekunden entscheiden ueber "auf den Punkt"
+// oder "verkocht".
+pruefe("E1 20-Min-Timer: 2-Min-Takt, dann Minuten, dann 20/10 s",
   JSON.stringify(eAnsagen(1200)) ===
-  JSON.stringify([1200,1080,960,840,720,600,480,360,300,240,180,120,60,30,10]));
-pruefe("E2 3-Min-Timer: 180,120,60,30,10",
-  JSON.stringify(eAnsagen(180)) === JSON.stringify([180,120,60,30,10]));
-pruefe("E3 45-Sek-Timer: nur 30 und 10", JSON.stringify(eAnsagen(45)) === JSON.stringify([30,10]));
+  JSON.stringify([1200,1080,960,840,720,600,480,360,300,240,180,120,60,20,10]));
+pruefe("E2 3-Min-Timer: 180,120,60,20,10",
+  JSON.stringify(eAnsagen(180)) === JSON.stringify([180,120,60,20,10]));
+pruefe("E3 45-Sek-Timer: nur 20 und 10", JSON.stringify(eAnsagen(45)) === JSON.stringify([20,10]));
 pruefe("E4 Keine Ansage bei 0", !restzeitAnsageFaellig(0));
 pruefe("E5 Keine Ansagenluecke ueber 120 s", (() => {
   const a = eAnsagen(1200);
@@ -491,4 +495,273 @@ pruefe("M45 Zufallsbeschuss: kein Alltagssatz loest Einkauf/Liste aus", (functio
     if (istZurueck(satz) || istUeberspringen(satz)) fehlausloeser++;
   }
   return fehlausloeser === 0;
+})());
+
+// =====================================================================
+// N: DAUERGEPIEPE - SIMULATION DER ANDROID-NEUSTARTSCHLEIFE
+// ---------------------------------------------------------------------
+// Der Systemton kommt bei JEDEM recognition.start(). Android beendet die
+// Erkennung nach ~1,5 s Stille, auch bei continuous=true. Vorher hiess
+// das: Neustart alle 1,8 s = 33 Toene pro Minute. Gemessen wurde das nie,
+// weil die Testumgebung keine Zeit vergehen liess - genau deshalb konnte
+// der Fehler monatelang ueberleben.
+// Diese Simulation laesst die Uhr kontrolliert laufen und ZAEHLT die
+// Neustarts. Sie ist die einzige Stelle, an der sich das Versprechen
+// "seltener Ton" ueberhaupt belegen laesst.
+// =====================================================================
+function simuliereStille(sekunden, imKochmodus) {
+  el("tab-kochen").classList = {
+    contains: () => !imKochmodus, add() {}, remove() {}, toggle() {},
+  };
+  gvStopp();
+  micMuted = false;
+  gvStart();
+  const startZahl = recInstanz.gestartet;
+  let uhr = 1000000;
+  const echtNow = Date.now, echtTimeout = global.setTimeout;
+  let queue = [];
+  Date.now = () => uhr;
+  global.setTimeout = (fn, ms) => { queue.push({ t: uhr + (ms || 0), fn }); return 0; };
+  let offen = true, stilleSeit = uhr;
+  try {
+    const ende = uhr + sekunden * 1000;
+    while (uhr < ende) {
+      uhr += 100;
+      gvLetztesErgebnis = uhr;          // Ruhepause hier ausblenden
+      if (offen && uhr - stilleSeit >= 1500) { offen = false; recInstanz.onend(); }
+      const faellig = queue.filter((q) => q.t <= uhr);
+      queue = queue.filter((q) => q.t > uhr);
+      for (const q of faellig) {
+        const vorher = recInstanz.gestartet;
+        try { q.fn(); } catch (e) {}
+        if (recInstanz.gestartet > vorher) { offen = true; stilleSeit = uhr; }
+      }
+    }
+  } finally { Date.now = echtNow; global.setTimeout = echtTimeout; }
+  return recInstanz.gestartet - startZahl;
+}
+
+pruefe("N1 Erste Minute Stille: hoechstens 8 Neustarts (vorher 33)",
+  simuliereStille(60, false) <= 8);
+pruefe("N2 Fuenf Minuten Stille: hoechstens 5 Neustarts pro Minute",
+  simuliereStille(300, false) / 5 <= 5);
+pruefe("N3 Kochmodus bleibt reaktionsfaehig: mindestens 3 Neustarts pro Minute",
+  simuliereStille(300, true) / 5 >= 3);
+pruefe("N4 Kochmodus pausiert nie laenger als 12 s",
+  simuliereStille(300, true) / 5 >= 300 / 5 / 13.5);
+pruefe("N5 Nach einem erkannten Wort ist die Wartezeit wieder auf null", (function () {
+  gvStopp(); micMuted = false; gvStart();
+  gvBackoffStufe = 5;
+  recInstanz.onresult({ results: [[{ transcript: "hallo" }]] });
+  return gvBackoffStufe === 0;
+})());
+pruefe("N6 Nach einer Ansage ist die Wartezeit wieder auf null", (function () {
+  gvStopp(); gvStart();
+  gvBackoffStufe = 5;
+  unmuteMic();
+  return gvBackoffStufe === 0;
+})());
+pruefe("N7 Waehrend einer Ansage wird NICHT neu gestartet", (function () {
+  el("tab-kochen").classList = { contains: () => true, add() {}, remove() {}, toggle() {} };
+  gvStopp(); gvStart();
+  micMuted = true;
+  const vorher = recInstanz.gestartet;
+  const echtTimeout = global.setTimeout;
+  global.setTimeout = (fn) => { try { fn(); } catch (e) {} return 0; };
+  try { recInstanz.onend(); } finally { global.setTimeout = echtTimeout; }
+  micMuted = false;
+  return recInstanz.gestartet === vorher;
+})());
+
+// =====================================================================
+// O: ZWEISTUFIGE RECHERCHE (Ende der 504-Fehler)
+// ---------------------------------------------------------------------
+// Die Recherche fragte bisher DREI vollstaendige Rezepte auf einmal an -
+// zwei Drittel davon fuer den Papierkorb. Die Antwort war regelmaessig
+// laenger als das Zeitlimit der Plattform, das Ergebnis war ein nackter
+// Gateway-Fehler 504. Jetzt: Stufe 1 nur Auswahl-Infos, Stufe 2 die
+// Schritte fuer genau ein Rezept.
+// Kritischster Punkt dabei ist die Mengen-Kontinuitaet aus FUSION15.
+// Deshalb steht sie hier an erster Stelle.
+// =====================================================================
+
+pruefe("O1 Rezept ohne Schritte laesst sich auswaehlen und skalieren", (function () {
+  const roh = { name: "Testgericht", timeMin: 25,
+    ingredients: [{ name: "Reis", qty: 100, unit: "g" }], steps: [] };
+  const sk = skaliereRezept(roh, 2);
+  return sk._skaliert === true && sk.ingredients[0].qty === 200;
+})());
+
+pruefe("O2 Nachgeladene Schritte werden NICHT ein zweites Mal skaliert", (function () {
+  // Kern der Mengen-Kontinuitaet: Die Zutaten sind beim Auswaehlen
+  // festgeschrieben. Stufe 2 bekommt genau diese Zahlen und liefert
+  // Schritte, die sie bereits enthalten. Ein zweiter Durchlauf wuerde
+  // aus 200 g ploetzlich 400 g machen.
+  const rezept = skaliereRezept({ name: "Reispfanne", timeMin: 20,
+    ingredients: [{ name: "Reis", qty: 100, unit: "g" }], steps: [] }, 2);
+  rezept.steps = [{ text: "200 g Reis waschen und garen." }];
+  return rezept.steps[0].text.indexOf("200 g") >= 0
+    && rezept.steps[0].text.indexOf("400 g") === -1;
+})());
+
+pruefe("O3 Rezeptvorstellung funktioniert ohne Kochschritte", (function () {
+  const r = { name: "Testgericht", timeMin: 25,
+    ingredients: [{ name: "Reis", qty: 200, unit: "g" }], steps: [], varianten: [] };
+  const txt = rezeptVorstellungsText(r, 1);
+  return txt.indexOf("Testgericht") >= 0 && txt.indexOf("Reis") >= 0;
+})());
+
+pruefe("O4 Vorstellung nennt den Ausloeser NICHT mehr selbst", (function () {
+  // Sonst hoert die App ihren eigenen Befehl und kann Nutzer und
+  // eigene Stimme nicht mehr unterscheiden.
+  const txt = rezeptVorstellungsText({ name: "X", timeMin: 20,
+    ingredients: [{ name: "Reis", qty: 1, unit: "g" }], varianten: [] }, 1)
+    .toLowerCase();
+  return txt.indexOf("einkaufsliste") === -1 && txt.indexOf("sagt: kochen") === -1;
+})());
+
+pruefe("O5 Recherche fordert Stufe 1 an", (function () {
+  return APPQUELLE.indexOf('modus: "kurz"') >= 0;
+})());
+
+pruefe("O6 Nachladen schickt die BEREITS SKALIERTEN Zutaten", (function () {
+  // Wuerden hier Rohmengen verschickt, schriebe die KI die falschen
+  // Zahlen in die Schritte - der stille Weg zurueck zum alten Fehler.
+  const i = APPQUELLE.indexOf('modus: "schritte"');
+  const ausschnitt = APPQUELLE.slice(i, i + 700);
+  return i >= 0 && /zutaten:\s*\(rezept\.ingredients/.test(ausschnitt);
+})());
+
+pruefe("O7 Zeitversprechen an die Familie ist ehrlich", (function () {
+  // Die alte Ansage "20-40 Sekunden" lag ueber dem Plattform-Limit -
+  // sie kuendigte den eigenen Fehler an.
+  return APPQUELLE.indexOf("20–40 Sekunden") === -1;
+})());
+
+pruefe("O8 Kochen ohne Schritte stuerzt nicht ab", (function () {
+  selectedRecipe = { name: "Leer", timeMin: 20, _skaliert: true,
+    ingredients: [{ name: "Reis", qty: 100, unit: "g" }], steps: [] };
+  stepIndex = 0;
+  try { renderStep(); showStep(); return true; } catch (e) { return false; }
+})());
+
+// =====================================================================
+// P: KOCHMODUS - MIKROFON, ERINNERUNGEN, GARPROBE
+// ---------------------------------------------------------------------
+// Vorgabe des Betreibers: Im Kochmodus bleibt das Mikrofon dauerhaft
+// aktiv. Erinnerungen hoechstens zweimal pro Minute, erste Erinnerung
+// nach etwa drei Vierteln der veranschlagten Schrittdauer. Bei
+// Garvorgaengen zusaetzlich eine Garprobe in den letzten 20 Sekunden.
+// =====================================================================
+
+pruefe("P1 Kochmodus ohne Timer: Mikrofon bleibt dauerhaft aktiv", (function () {
+  timerRest = 0;
+  const neustarts = simuliereStille(60, true);
+  // Bei 1,5 s Stille + 0,3 s Neustart sind rund 33 Zyklen zu erwarten.
+  return neustarts >= 25;
+})());
+
+pruefe("P2 Waehrend langer Garzeit pausiert die Erkennung", (function () {
+  timerRest = 600;                 // 10 Minuten Ofen
+  const neustarts = simuliereStille(60, true);
+  timerRest = 0;
+  return neustarts <= 8;
+})());
+
+pruefe("P3 Kurz vor Ablauf horcht die App wieder dauerhaft", (function () {
+  timerRest = 30;                  // weniger als 45 s Restzeit
+  const neustarts = simuliereStille(60, true);
+  timerRest = 0;
+  return neustarts >= 25;
+})());
+
+// ---------- Erinnerungen ----------
+const pRezept = { timeMin: 30, steps: [
+  { text: "Zwiebeln wuerfeln" },
+  { text: "Anbraten" },
+  { text: "Koecheln lassen", timer: 900 },
+  { text: "Abschmecken" },
+] };
+
+pruefe("P4 Schritt mit Timer erbt dessen Dauer",
+  schrittDauerSek(pRezept, 2) === 900);
+pruefe("P5 Schritt ohne Timer bekommt die verteilte Restzeit", (function () {
+  // 30 Min = 1800 s, davon 900 s Timer -> 900 s auf 3 Schritte = 300 s
+  return schrittDauerSek(pRezept, 0) === 300;
+})());
+pruefe("P6 Sehr kurze Rezepte fallen nicht unter 45 s",
+  schrittDauerSek({ timeMin: 5, steps: [{ text: "a" }, { text: "b" },
+    { text: "c" }, { text: "d" }, { text: "e" }, { text: "f" },
+    { text: "g" }, { text: "h" }] }, 0) >= 45);
+pruefe("P7 Sehr lange Schritte werden bei 600 s gedeckelt",
+  schrittDauerSek({ timeMin: 180, steps: [{ text: "a" }] }, 0) === 600);
+pruefe("P8 Fehlendes Rezept stuerzt nicht ab",
+  schrittDauerSek(null, 0) === 90 && schrittDauerSek({ steps: [] }, 5) === 90);
+
+pruefe("P9 Erste Erinnerung bei drei Vierteln der Schrittdauer",
+  reminderAbstandSek(pRezept, 0, 0) === 225);   // 300 * 0.75
+pruefe("P10 Erste Erinnerung nie unter 40 s",
+  reminderAbstandSek({ timeMin: 5, steps: [{ text: "a" }] }, 0, 0) >= 40);
+pruefe("P11 Folge-Erinnerungen hoechstens einmal pro Minute", (function () {
+  for (let stufe = 1; stufe <= 5; stufe++)
+    if (reminderAbstandSek(pRezept, 0, stufe) < 60) return false;
+  return true;
+})());
+pruefe("P12 Vorgabe eingehalten: nie mehr als 2 Erinnerungen pro Minute", (function () {
+  // Ungünstigster Fall: kuerzest moeglicher Erstabstand, dann Folgestufen
+  let zeit = reminderAbstandSek({ timeMin: 5, steps: [{ text: "a" }] }, 0, 0);
+  const zeitpunkte = [zeit];
+  for (let stufe = 1; stufe <= 6; stufe++) {
+    zeit += reminderAbstandSek(pRezept, 0, stufe);
+    zeitpunkte.push(zeit);
+  }
+  // In jedem 60-Sekunden-Fenster hoechstens 2 Erinnerungen
+  for (const t of zeitpunkte) {
+    const imFenster = zeitpunkte.filter((x) => x >= t && x < t + 60).length;
+    if (imFenster > 2) return false;
+  }
+  return true;
+})());
+
+// ---------- Garprobe ----------
+pruefe("P13 Garprobe nutzt den rezepteigenen Hinweis", (function () {
+  const t = garprobeText({ announce: "Die Nudeln sollten bissfest sein." }, 20);
+  return t.indexOf("bissfest") >= 0 && t.indexOf("20 Sekunden") >= 0;
+})());
+pruefe("P14 Ohne eigenen Hinweis kommt ein allgemeiner Garhinweis", (function () {
+  const t = garprobeText({}, 20);
+  return t.indexOf("gar") >= 0 && t.indexOf("20 Sekunden") >= 0;
+})());
+pruefe("P15 Garprobe warnt vor dem Verkochen",
+  garprobeText(null, 20).toLowerCase().indexOf("verkochen") >= 0);
+pruefe("P16 Endspurt-Ansage liegt bei 20 s, nicht mehr bei 30 s",
+  restzeitAnsageFaellig(20) === true && restzeitAnsageFaellig(30) === false);
+
+pruefe("P17 armReminder plant WIRKLICH nach Schrittdauer, nicht starr", (function () {
+  // Von der Mutationsprobe aufgedeckt: P4-P12 pruefen nur die Rechnung.
+  // Ob armReminder() sie auch BENUTZT, stand nirgends. Genau solche
+  // Verdrahtungsfehler ueberleben sonst jede Testsuite.
+  selectedRecipe = { timeMin: 30, steps: [
+    { text: "Zwiebeln wuerfeln" },
+    { text: "Anbraten" },
+    { text: "Koecheln lassen", timer: 900 },
+    { text: "Abschmecken" },
+  ] };
+  stepIndex = 0;
+  const echt = global.setTimeout;
+  const fristen = [];
+  global.setTimeout = function (fn, ms) { fristen.push(ms || 0); return 0; };
+  try { armReminder(true); } finally { global.setTimeout = echt; }
+  // Erwartet: 300 s Schrittdauer * 0,75 = 225 s = 225000 ms
+  // Die alte starre Fassung haette 90000 geplant.
+  return fristen.indexOf(225000) >= 0;
+})());
+
+pruefe("P18 armReminder auf einem Timer-Schritt plant nach dessen Laufzeit", (function () {
+  stepIndex = 2;                       // Schritt mit timer: 900
+  const echt = global.setTimeout;
+  const fristen = [];
+  global.setTimeout = function (fn, ms) { fristen.push(ms || 0); return 0; };
+  try { armReminder(true); } finally { global.setTimeout = echt; }
+  return fristen.indexOf(675000) >= 0; // 900 * 0,75
 })());

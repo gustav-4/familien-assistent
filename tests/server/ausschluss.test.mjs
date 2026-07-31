@@ -109,10 +109,20 @@ p("Fehlende Felder stuerzen nicht ab",
 // --- 4. Zeitlimit: eigene Notbremse muss VOR Netlify greifen ----------
 const timeoutTreffer = serverQuelle.match(/ctrl\.abort\(\),\s*(\d+)\)/g) || [];
 const werte = timeoutTreffer.map((t) => Number(t.match(/(\d+)/)[1]));
-p("Kein KI-Aufruf wartet laenger als 26 s (Netlify-Grenze)",
-  werte.length > 0 && werte.every((w) => w <= 26000));
-p("Retry-Fenster laesst Zeit fuer einen zweiten Anlauf",
-  /Date\.now\(\) - startZeit < 8000/.test(serverQuelle));
+// AUDIT 2: 20 s waren immer noch zu grosszuegig - synchrone Netlify-
+// Funktionen brechen je nach Tarif schon nach 10 s ab. Jeder KI-Aufruf
+// muss unter 10 s bleiben, damit die eigene Notbremse zuerst greift.
+p("Kein KI-Aufruf wartet laenger als 9 s",
+  werte.length > 0 && werte.every((w) => w <= 9000));
+p("Alle KI-Aufrufe haben eine Notbremse", werte.length >= 2);
+p("Retry-Fenster passt ins 9-Sekunden-Budget",
+  /Date\.now\(\) - startZeit < 4000/.test(serverQuelle));
+p("Stufe 1 (kurz) begrenzt die Schreibmenge",
+  /params\.kurz \? 2500 : 8000/.test(serverQuelle));
+p("Stufe 2 (schritte) existiert als eigener Zweig",
+  /body\.modus === "schritte"/.test(serverQuelle));
+p("Stufe 2 prueft die Schritte gegen den Ausschluss",
+  /verletztAusschluss\(\{ name: gericht/.test(serverQuelle));
 
 console.log("\nAusschluss-Servertest: " + ok + " bestanden, " + fail + " fehlgeschlagen");
 process.exit(fail ? 1 : 0);

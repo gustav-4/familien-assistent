@@ -1,6 +1,6 @@
 {
-  "zeitpunkt": "2026-07-31T10:06:42.856Z",
-  "mutationen": 14,
+  "zeitpunkt": "2026-07-31T11:12:00.120Z",
+  "mutationen": 27,
   "luecken": 0,
   "ergebnisse": [
     {
@@ -72,6 +72,71 @@
       "name": "Einkaufs-Zurueck entfernt den Artikel nicht",
       "status": "bemerkt",
       "rot": 1
+    },
+    {
+      "name": "Backoff entfernt - Neustart wieder alle 300 ms",
+      "status": "bemerkt",
+      "rot": 3
+    },
+    {
+      "name": "Backoff wird nie zurueckgesetzt (Mikro wird traege)",
+      "status": "bemerkt",
+      "rot": 2
+    },
+    {
+      "name": "Neustart auch waehrend der Ansage",
+      "status": "bemerkt",
+      "rot": 1
+    },
+    {
+      "name": "Recherche fordert wieder volle Rezepte an",
+      "status": "bemerkt",
+      "rot": 1
+    },
+    {
+      "name": "Nachladen schickt Rohmengen statt skalierter Mengen",
+      "status": "bemerkt",
+      "rot": 1
+    },
+    {
+      "name": "Zeitlimit des Servers wieder ueber der Plattformgrenze",
+      "status": "bemerkt",
+      "via": "servertest"
+    },
+    {
+      "name": "Kochmodus horcht nicht mehr dauerhaft",
+      "status": "bemerkt",
+      "rot": 3
+    },
+    {
+      "name": "Garpause entfernt - Systemton auch waehrend des Ofens",
+      "status": "bemerkt",
+      "rot": 1
+    },
+    {
+      "name": "Erinnerung wieder starr statt schrittproportional",
+      "status": "bemerkt",
+      "rot": 2
+    },
+    {
+      "name": "Erste Erinnerung wieder zu frueh (halbe statt drei viertel Dauer)",
+      "status": "bemerkt",
+      "rot": 3
+    },
+    {
+      "name": "Folge-Erinnerungen wieder haeufiger als einmal pro Minute",
+      "status": "bemerkt",
+      "rot": 2
+    },
+    {
+      "name": "Garprobe faellt weg - nur noch Countdown",
+      "status": "bemerkt",
+      "rot": 2
+    },
+    {
+      "name": "Endspurt-Hinweis wieder erst bei 30 s",
+      "status": "bemerkt",
+      "rot": 4
     }
   ]
 }

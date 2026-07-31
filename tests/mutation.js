@@ -51,8 +51,8 @@ const MUTATIONEN = [
   {
     name: "Aktivton wieder bei jedem Neustart",
     datei: "index.html",
-    suchen: "  const warAus = !GlobalVoice.aktiv;\n  GlobalVoice.aktiv = true;\n  gvLetztesErgebnis = Date.now();\n  if (warAus) tonAktiv();",
-    ersetzen: "  const warAus = !GlobalVoice.aktiv;\n  GlobalVoice.aktiv = true;\n  gvLetztesErgebnis = Date.now();\n  tonAktiv();",
+    suchen: "  gvBackoffZuruecksetzen();\n  if (warAus) tonAktiv();",
+    ersetzen: "  gvBackoffZuruecksetzen();\n  tonAktiv();",
     erwarteRot: ["M8"],
   },
   {
@@ -125,6 +125,101 @@ const MUTATIONEN = [
     ersetzen: "        break;",
     erwarteRot: ["M33"],
   },
+  // --- Dauergepiepe (Neustartschleife) ---
+  {
+    name: "Backoff entfernt - Neustart wieder alle 300 ms",
+    datei: "index.html",
+    suchen: "        const maxStufe = GV_BACKOFF_MS.length - 1;\n        warten = GV_BACKOFF_MS[Math.min(gvBackoffStufe, maxStufe)];\n        gvBackoffStufe++;",
+    ersetzen: "        warten = 300;",
+    erwarteRot: ["N1", "N2"],
+  },
+  {
+    name: "Backoff wird nie zurueckgesetzt (Mikro wird traege)",
+    datei: "index.html",
+    suchen: "function gvBackoffZuruecksetzen() { gvBackoffStufe = 0; }",
+    ersetzen: "function gvBackoffZuruecksetzen() { /* nichts */ }",
+    erwarteRot: ["N5", "N6"],
+  },
+  {
+    name: "Neustart auch waehrend der Ansage",
+    datei: "index.html",
+    suchen: "      if (micMuted) { gvChipStand(); return; }",
+    ersetzen: "      if (false) { gvChipStand(); return; }",
+    erwarteRot: ["N7"],
+  },
+  // --- Zweistufige Recherche ---
+  {
+    name: "Recherche fordert wieder volle Rezepte an",
+    datei: "index.html",
+    suchen: '        modus: "kurz",           // Stufe 1: ohne Kochschritte (siehe startCooking)\n',
+    ersetzen: "",
+    erwarteRot: ["O5"],
+  },
+  {
+    name: "Nachladen schickt Rohmengen statt skalierter Mengen",
+    datei: "index.html",
+    suchen: "        zutaten: (rezept.ingredients || []).map((i) => ({\n          name: i.name, qty: i.qty, unit: i.unit })),",
+    ersetzen: "        zutaten: (rezept.rohZutaten || []).map((i) => ({\n          name: i.name, qty: i.qty, unit: i.unit })),",
+    erwarteRot: ["O6"],
+  },
+  {
+    name: "Zeitlimit des Servers wieder ueber der Plattformgrenze",
+    datei: "netlify/functions/rezept.mjs",
+    suchen: "    const timeout = setTimeout(() => ctrl.abort(), 9000);",
+    ersetzen: "    const timeout = setTimeout(() => ctrl.abort(), 45000);",
+    erwarteRot: [],
+    servertest: "tests/server/ausschluss.test.mjs",
+  },
+  // --- Kochmodus: Mikrofon, Erinnerungen, Garprobe ---
+  {
+    name: "Kochmodus horcht nicht mehr dauerhaft",
+    datei: "index.html",
+    suchen: "      if (kochAn && !garpause) {\n        warten = 300;                       // dauerhaft aufnahmebereit",
+    ersetzen: "      if (false) {\n        warten = 300;",
+    erwarteRot: ["P1", "P3"],
+  },
+  {
+    name: "Garpause entfernt - Systemton auch waehrend des Ofens",
+    datei: "index.html",
+    suchen: "      const garpause = kochAn && timerRest > 45;",
+    ersetzen: "      const garpause = false;",
+    erwarteRot: ["P2"],
+  },
+  {
+    name: "Erinnerung wieder starr statt schrittproportional",
+    datei: "index.html",
+    suchen: "  const sek = reminderAbstandSek(selectedRecipe, stepIndex, reminderStufe);",
+    ersetzen: "  const sek = REMINDER_STUFEN[Math.min(reminderStufe, REMINDER_STUFEN.length - 1)];",
+    erwarteRot: ["P17", "P18"],
+  },
+  {
+    name: "Erste Erinnerung wieder zu frueh (halbe statt drei viertel Dauer)",
+    datei: "index.html",
+    suchen: "  return Math.max(40, Math.round(schrittDauerSek(recipe, index) * 0.75));",
+    ersetzen: "  return Math.max(40, Math.round(schrittDauerSek(recipe, index) * 0.5));",
+    erwarteRot: ["P9"],
+  },
+  {
+    name: "Folge-Erinnerungen wieder haeufiger als einmal pro Minute",
+    datei: "index.html",
+    suchen: "  if (stufe > 0) return [60, 90, 120][Math.min(stufe - 1, 2)];",
+    ersetzen: "  if (stufe > 0) return [25, 25, 25][Math.min(stufe - 1, 2)];",
+    erwarteRot: ["P11", "P12"],
+  },
+  {
+    name: "Garprobe faellt weg - nur noch Countdown",
+    datei: "index.html",
+    suchen: "  return wieViel + \"Schau jetzt nach, ob es gar ist – lieber einmal zu \" +\n    \"früh probieren als verkochen lassen.\";",
+    ersetzen: "  return wieViel;",
+    erwarteRot: ["P14", "P15"],
+  },
+  {
+    name: "Endspurt-Hinweis wieder erst bei 30 s",
+    datei: "index.html",
+    suchen: "  return rest === 20 || rest === 10;         // Endspurt: 20 s und 10 s",
+    ersetzen: "  return rest === 30 || rest === 10;",
+    erwarteRot: ["P16", "E1"],
+  },
 ];
 
 function laufen() {
@@ -168,9 +263,28 @@ for (const m of MUTATIONEN) {
   }
 
   fs.writeFileSync(pfad, original.split(m.suchen).join(m.ersetzen), "utf8");
-  let bericht;
-  try { bericht = laufen(); }
-  finally { fs.writeFileSync(pfad, original, "utf8"); }
+  let bericht, servertestRot = false;
+  try {
+    bericht = laufen();
+    if (m.servertest) {
+      try {
+        execFileSync("node", [path.join(WURZEL, m.servertest)],
+          { cwd: WURZEL, stdio: "ignore" });
+      } catch (e) { servertestRot = true; }
+    }
+  } finally { fs.writeFileSync(pfad, original, "utf8"); }
+
+  if (m.servertest && !servertestRot) {
+    console.log("LUECKE  " + m.name + "  -> Servertest bemerkt nichts");
+    luecken++;
+    ergebnisse.push({ name: m.name, status: "servertest-blind" });
+    continue;
+  }
+  if (m.servertest && servertestRot && !m.erwarteRot.length) {
+    console.log("bemerkt " + m.name + "  (Servertest rot)");
+    ergebnisse.push({ name: m.name, status: "bemerkt", via: "servertest" });
+    continue;
+  }
 
   const roteNamen = (bericht.fehler || []).map((f) => String(f.name || ""));
   const unbemerkt = m.erwarteRot.filter(

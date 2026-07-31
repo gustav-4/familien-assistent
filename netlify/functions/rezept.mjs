@@ -79,9 +79,11 @@ async function redisEinzel(command) {
 }
 
 /** Genereller Modellaufruf mit Zeitbudget (fuer den Wochenplan). */
-async function rufeModell(apiKey, prompt, headers) {
+async function rufeModell(apiKey, prompt, headers, maxTokens) {
   const ctrl = new AbortController();
-  const timeout = setTimeout(() => ctrl.abort(), 20000);
+  // 9 s: liegt unter JEDEM plausiblen Netlify-Limit, damit der Nutzer
+  // immer die freundliche Meldung statt eines nackten 504 bekommt.
+  const timeout = setTimeout(() => ctrl.abort(), 9000);
   try {
     const resp = await fetch(ANTHROPIC_URL, {
       method: "POST",
@@ -93,7 +95,7 @@ async function rufeModell(apiKey, prompt, headers) {
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 6000,
+        max_tokens: maxTokens || 6000,
         temperature: 0.8,
         messages: [{ role: "user", content: prompt }],
       }),
@@ -335,6 +337,38 @@ function saubereListe(arr, erlaubt) {
   return [...new Set(arr.map(normalize).filter((x) => erlaubt.includes(x)))];
 }
 
+// ZWEISTUFIGE RECHERCHE (FUSION26, behebt den chronischen 504):
+// Stufe 1 liefert NUR Auswahl-Informationen - Name, Zeit, Zutaten. Das
+// ist alles, was die Familie zum Entscheiden, Vorlesen und Einkaufen
+// braucht, und es ist in wenigen Sekunden geschrieben.
+// Stufe 2 holt die Kochschritte fuer GENAU EIN gewaehltes Rezept.
+// Vorher wurden 3 vollstaendige Rezepte auf einmal erzeugt - zwei
+// Drittel davon fuer den Papierkorb, und die Antwort war regelmaessig
+// laenger als das Zeitlimit der Plattform. Nichts wird gekuerzt: die
+// Schritte duerfen jetzt sogar ausfuehrlicher sein.
+function buildStepPrompt(p) {
+  const zutaten = (p.zutaten || [])
+    .map((z) => `${z.qty} ${z.unit} ${z.name}`).join(", ");
+  return `Du bist ein erfahrener Familienkoch. Schreibe die \
+Zubereitungsschritte fuer dieses Gericht:
+
+GERICHT: "${p.gericht}"
+ZUBEREITUNGSZEIT: etwa ${p.minuten} Minuten
+ZUTATEN (exakt diese Mengen, bereits auf die Familie gerechnet – \
+verwende GENAU diese Zahlen in den Schritten, rechne nichts um):
+${zutaten}
+
+REGELN:
+- Nur diese Zutaten verwenden, keine weiteren erfinden.
+- 5 bis 10 Schritte, ganze Saetze, freundlich, fuer Sprachausgabe.
+- Bei Wartezeiten "timer" in Sekunden setzen und in "announce" \
+beschreiben, was danach fertig sein soll (mit Garprobe).
+
+AUSGABEFORMAT: Antworte AUSSCHLIESSLICH mit gueltigem JSON, ohne \
+Markdown, ohne Kommentar:
+{"steps":[{"text":"..."},{"text":"...","timer":600,"announce":"..."}]}`;
+}
+
 function buildPrompt(p) {
   const allergTxt = p.unvertraeglichkeiten.length
     ? p.unvertraeglichkeiten.join(", ")
@@ -373,6 +407,10 @@ lowcarb = wenig Kohlenhydrate (keine Nudeln/Reis/Kartoffeln/Brot als Hauptbeilag
 WEICHE PRAEFERENZ (wenn moeglich beruecksichtigen): Stil ${stilTxt}.
 ZEITRAHMEN: Zubereitung zwischen ${p.minuten_min} und ${p.minuten_max} Minuten.${ausschlussTxt}${vermeideTxt}
 
+${p.kurz ? `WICHTIG: Das Feld "steps" bleibt in dieser Anfrage LEER (\`[]\`). \
+Die Zubereitungsschritte werden spaeter getrennt angefragt. Konzentriere \
+dich auf treffende Namen und eine vollstaendige, realistische Zutatenliste.
+` : ""}
 AUSGABEFORMAT: Antworte AUSSCHLIESSLICH mit gueltigem JSON, ohne Markdown, \
 ohne Kommentar, in dieser Struktur:
 {
@@ -386,10 +424,10 @@ ohne Kommentar, in dieser Struktur:
       "stile": ["passende Codes aus: pflanzenbetont|highprotein|gesund|nachhaltig|fermentiert|cleanlabel|international|mealprep|budget"],
       "tags": ["2-3 kurze deutsche Schlagworte, z.B. glutenfrei, kinderliebling"],
       "ingredients": [{"name":"Zutat","qty":500,"unit":"g|ml|Liter|Stück|EL|TL|Bund"}],
-      "steps": [
+      "steps": ${p.kurz ? "[]" : `[
         {"text":"Anweisung in ganzen Saetzen, freundlich, fuer Sprachausgabe geeignet"},
         {"text":"Schritt mit Wartezeit","timer":600,"announce":"Was nach der Zeit fertig/gar sein soll – mit Garprobe"}
-      ]
+      ]`}
     }
   ]
 }
@@ -429,7 +467,7 @@ function extractJson(text) {
 }
 
 // ---- Rezept normalisieren & validieren (Schema haerten) ----
-function normalizeRecipe(raw) {
+function normalizeRecipe(raw, ohneSchritte) {
   if (!raw || typeof raw !== "object") return null;
   const name = String(raw.name || "").trim().slice(0, 80);
   if (!name) return null;
@@ -463,7 +501,7 @@ function normalizeRecipe(raw) {
       return step;
     })
     .filter(Boolean);
-  if (!steps.length) return null;
+  if (!steps.length && !ohneSchritte) return null;
 
   const varianten = (Array.isArray(raw.varianten) ? raw.varianten : [])
     .map((v) => {
@@ -526,6 +564,70 @@ export const handler = async (event) => {
     ? Boolean(await redisEinzel(["GET", "plus:" + kanal])) : false;
 
   // ===== WOCHENPLAN-AUTOMATIK (Plus-Kernfeature) =====
+  // ---- STUFE 2: Kochschritte fuer GENAU EIN gewaehltes Rezept ----
+  // Kleine, schnelle Anfrage (~4-6 s). Die Zutatenmengen kommen bereits
+  // FERTIG SKALIERT aus der App - die KI rechnet nichts um, sie schreibt
+  // nur die Schritte dazu. Damit bleibt die Mengen-Kontinuitaet aus
+  // FUSION15 unangetastet: es gibt keinen zweiten Skalierungsdurchlauf.
+  if (body && body.modus === "schritte") {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) return { statusCode: 500, headers, body: JSON.stringify({
+      success: false, error: "Server nicht konfiguriert." }) };
+    const gericht = String(body.gericht || "").trim().slice(0, 120);
+    const zutaten = (Array.isArray(body.zutaten) ? body.zutaten : [])
+      .map((z) => ({
+        name: String((z && z.name) || "").trim().slice(0, 80),
+        qty: Number(z && z.qty) || 0,
+        unit: String((z && z.unit) || "").trim().slice(0, 12),
+      }))
+      .filter((z) => z.name && z.qty > 0)
+      .slice(0, 25);
+    if (!gericht || !zutaten.length)
+      return { statusCode: 400, headers, body: JSON.stringify({
+        success: false, error: "Unvollstaendige Anfrage." }) };
+
+    const minuten = Math.min(240, Math.max(5,
+      Number.parseInt(body.minuten, 10) || 30));
+    const ausschluss = Array.isArray(body.ausschluss)
+      ? body.ausschluss.map((x) => normalize(x).trim().slice(0, 40))
+        .filter((x) => x.length > 1).slice(0, 15) : [];
+
+    const antwort = await rufeModell(apiKey,
+      buildStepPrompt({ gericht, zutaten, minuten }), headers, 2000);
+    if (antwort.httpFehler) return antwort.httpFehler;
+    const json = extractJson(antwort.text);
+    const rohSteps = json && Array.isArray(json.steps) ? json.steps : [];
+    const steps = rohSteps.map((st) => {
+      if (!st || !st.text) return null;
+      const schritt = { text: String(st.text).trim().slice(0, 600) };
+      const timer = parseInt(st.timer, 10);
+      if (Number.isFinite(timer) && timer > 0)
+        schritt.timer = Math.min(timer, 7200);
+      if (st.announce) schritt.announce = String(st.announce).trim().slice(0, 400);
+      return schritt;
+    }).filter(Boolean).slice(0, 20);
+
+    if (!steps.length)
+      return { statusCode: 502, headers, body: JSON.stringify({
+        success: false,
+        error: "Die Kochschritte konnten nicht erstellt werden. " +
+          "Bitte nochmal versuchen." }) };
+
+    // Sicherheitsnetz: Auch die Schritte duerfen keinen ausgeschlossenen
+    // Begriff enthalten - die KI koennte eine verbotene Zutat erwaehnen,
+    // obwohl sie nicht in der Zutatenliste steht.
+    const treffer = verletztAusschluss({ name: gericht, ingredients: [], steps },
+      ausschluss);
+    if (treffer)
+      return { statusCode: 200, headers, body: JSON.stringify({
+        success: false,
+        error: "Die Anleitung enthielt eine ausgeschlossene Zutat (" +
+          treffer + "). Bitte ein anderes Rezept waehlen." }) };
+
+    return { statusCode: 200, headers,
+      body: JSON.stringify({ success: true, steps }) };
+  }
+
   if (body && body.modus === "wochenplan") {
     if (!plusOk) {
       // Kostprobe fuer Free: 1 Plan pro Monat und Geraet
@@ -604,15 +706,19 @@ export const handler = async (event) => {
     ausschluss: Array.isArray(body.ausschluss)
       ? body.ausschluss.map((x) => normalize(x).trim().slice(0, 40))
         .filter((x) => x.length > 1).slice(0, 15) : [],
+    // Stufe 1: nur Auswahl-Informationen, keine Kochschritte.
+    kurz: body.modus === "kurz",
   };
 
   // ---- KI-Aufruf mit Timeout (FUSION v10: als Funktion, fuer Retry) ----
   async function frageKI(zusatz) {
     const ctrl = new AbortController();
-    // BUGFIX: 45 s war laenger als das Netlify-Limit (~26 s) - die
-    // eigene Notbremse konnte nie greifen, der Nutzer bekam statt der
-    // freundlichen Meldung den nackten Gateway-Fehler 504.
-    const timeout = setTimeout(() => ctrl.abort(), 20000);
+    // AUDIT: 45 s war laenger als jedes Plattform-Limit - die eigene
+    // Notbremse konnte NIE greifen. Auch 20 s waren zu grosszuegig:
+    // synchrone Netlify-Funktionen brechen je nach Tarif bereits nach
+    // 10 s ab. 9 s liegen unter JEDEM plausiblen Limit, damit immer die
+    // freundliche Meldung ankommt statt eines nackten 504.
+    const timeout = setTimeout(() => ctrl.abort(), 9000);
     try {
       const resp = await fetch(ANTHROPIC_URL, {
         method: "POST",
@@ -624,7 +730,9 @@ export const handler = async (event) => {
         },
         body: JSON.stringify({
           model: MODEL,
-          max_tokens: 8000,
+          // Stufe 1 braucht nur Namen und Zutaten - der Deckel begrenzt
+          // die Schreibzeit und damit die Gefahr des Gateway-Timeouts.
+          max_tokens: params.kurz ? 2500 : 8000,
           temperature: 0.8,
           messages: [{ role: "user",
             content: buildPrompt(params) + (zusatz || "") }],
@@ -661,7 +769,7 @@ export const handler = async (event) => {
   // Einmal automatisch nachfassen, wenn die Antwort kein verwertbares
   // JSON war - aber NUR, wenn noch Zeitbudget vor dem Netlify-Limit
   // (~26 s) bleibt; sonst wuerde der Retry selbst den 504 ausloesen.
-  if (!parsed && Date.now() - startZeit < 8000) {
+  if (!parsed && Date.now() - startZeit < 4000) {
     versuch = await frageKI("\n\nERINNERUNG: Antworte AUSSCHLIESSLICH " +
       "mit dem geforderten JSON-Objekt. Kein Markdown, keine Backticks, " +
       "kein Text davor oder danach.");
@@ -685,7 +793,7 @@ export const handler = async (event) => {
   let verworfenAusschluss = 0;
 
   for (const roh of rohListe) {
-    const rec = normalizeRecipe(roh);
+    const rec = normalizeRecipe(roh, params.kurz);
     if (!rec) continue;
 
     // 1. Allergie ist NICHT verhandelbar – KI-Ausgabe gegenpruefen.

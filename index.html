@@ -1352,6 +1352,12 @@ function styleScore(recipe) {
 let selectedRecipe = null;
 let stepIndex = 0;
 let timerInterval = null;
+// Restzeit des laufenden Garvorgangs (0 = kein Timer). Steuert, wie
+// aggressiv das Mikrofon im Kochmodus horcht: Wer auf den Ofen wartet,
+// sagt kein "fertig" - dort darf die Erkennung pausieren und damit den
+// Systemton sparen. Sobald es wieder um Handarbeit geht, hoert die App
+// dauerhaft zu.
+let timerRest = 0;
 let reminderTimeout = null;
 let recognition = null;
 let listening = false;
@@ -1465,7 +1471,9 @@ function muteMic() {
 
 function unmuteMic() {
   micMuted = false;
-  // Neustart uebernimmt der globale Controller (gvNeustart)
+  // Direkt nach der Ansage ist der Nutzer am Zug: sofort wieder
+  // aufnahmebereit, ohne Wartestufe.
+  gvBackoffZuruecksetzen();
   gvNeustart();
 }
 
@@ -1848,7 +1856,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION26";
+const APP_VERSION = "FUSION28";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -1858,6 +1866,16 @@ const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // irgendwo tippen startet es wieder).
 let GV_RUHE_MS = 20000; // v10: 20 s statt 90 s (Ton-Reduktion)
 let gvLetztesErgebnis = Date.now();
+// KERNURSACHE des Dauergepiepes (gemessen: 40 Neustarts/Minute).
+// Android beendet die Erkennung nach ~1,5 s Stille - auch bei
+// continuous=true. Jeder Neustart erzeugt den SYSTEMTON, den keine
+// Web-App abschalten kann. Einzige wirksame Stellschraube: seltener
+// neu starten, wenn nichts gesagt wird.
+// Nach jedem ergebnislosen Ende waechst die Wartezeit; jedes erkannte
+// Wort und jedes Ansage-Ende setzen sie sofort auf null zurueck.
+const GV_BACKOFF_MS = [300, 1200, 3000, 6000, 12000, 20000];
+let gvBackoffStufe = 0;
+function gvBackoffZuruecksetzen() { gvBackoffStufe = 0; }
 
 function gvChip(text, klasse) {
   const c = document.getElementById("gvChip");
@@ -1911,6 +1929,7 @@ function gvStart() {
 
     recognition.onresult = (ev) => {
       gvLetztesErgebnis = Date.now(); // Aktivitaet: Ruhepause-Zaehler zuruecksetzen
+      gvBackoffZuruecksetzen();       // es wird gesprochen -> wieder flott
       const said = ev.results[ev.results.length - 1][0].transcript.trim();
       if (!said) return;
       // 1) Hat die App sich selbst gehoert? -> verwerfen.
@@ -1970,16 +1989,32 @@ function gvStart() {
         tonSchlaf(); // deutlicher, absteigender Hinweiston
         return;
       }
-      if (GlobalVoice.aktiv) {
-        // BUGFIX: Endete die Erkennung waehrend einer Ansage, griff
-        // frueher KEIN Zweig - die App war danach taub, zeigte aber
-        // weiter gruen. Jetzt wird in jedem Fall wieder gestartet,
-        // waehrend einer Ansage nur etwas spaeter.
-        setTimeout(gvNeustart, micMuted ? 900 : 300);
-        gvChipStand();
-      } else {
+      if (!GlobalVoice.aktiv) {
         gvChip("🎤 aus – tippen zum Einschalten", "aus");
+        return;
       }
+      // Waehrend einer Ansage NICHT neu starten: das erzeugte
+      // Systemtoene, waehrend ohnehin die App redet. Den Neustart
+      // uebernimmt unmuteMic() unmittelbar nach dem letzten Wort -
+      // genau dann, wenn der Nutzer antworten will.
+      if (micMuted) { gvChipStand(); return; }
+      // ZIELSTRUKTUR KOCHMODUS: Das Mikrofon bleibt DAUERHAFT aktiv -
+      // mit teigigen Haenden darf kein "fertig" verlorengehen.
+      // Einzige Ausnahme: Waehrend eines laufenden Garvorgangs mit mehr
+      // als 45 s Restzeit wartet die Familie ohnehin auf den Timer.
+      // Dort pausiert die Erkennung und spart den Systemton - kurz vor
+      // Ablauf ist sie rechtzeitig wieder da.
+      const garpause = kochAn && timerRest > 45;
+      let warten;
+      if (kochAn && !garpause) {
+        warten = 300;                       // dauerhaft aufnahmebereit
+      } else {
+        const maxStufe = GV_BACKOFF_MS.length - 1;
+        warten = GV_BACKOFF_MS[Math.min(gvBackoffStufe, maxStufe)];
+        gvBackoffStufe++;
+      }
+      setTimeout(gvNeustart, warten);
+      gvChipStand();
     };
   }
   // Aktivton NUR beim echten Einschalten - nicht bei den internen
@@ -1988,6 +2023,7 @@ function gvStart() {
   const warAus = !GlobalVoice.aktiv;
   GlobalVoice.aktiv = true;
   gvLetztesErgebnis = Date.now();
+  gvBackoffZuruecksetzen();
   if (warAus) tonAktiv();
   try { recognition.start(); } catch (e) {}
 }
@@ -3467,8 +3503,59 @@ function leereEinkaufslisteVoice() {
 // =====================================================
 // KOCHMODUS (Schritt fuer Schritt mit Bestätigung)
 // =====================================================
-function startCooking() {
+// ZWEISTUFIGE RECHERCHE (FUSION26): Recherchierte Rezepte kommen
+// zunaechst OHNE Kochschritte - das haelt die Serveranfrage klein und
+// beendet die chronischen 504-Fehler. Die Schritte werden erst geholt,
+// wenn wirklich gekocht wird.
+// WICHTIG fuer die Mengen-Kontinuitaet (FUSION15): Wir schicken die
+// BEREITS SKALIERTEN Zutaten mit und lassen die KI genau diese Zahlen
+// verwenden. Dadurch gibt es KEINEN zweiten Skalierungsdurchlauf, und
+// der Waechter `_skaliert` bleibt unangetastet.
+let schritteLaden = false;
+async function schritteNachladen(rezept) {
+  if (schritteLaden) return false;
+  schritteLaden = true;
+  const status = document.getElementById("stepText");
+  if (status) status.textContent = "⏳ Ich schreibe die Kochschritte …";
+  try {
+    const r = await fetch("/api/rezept", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        modus: "schritte",
+        device: deviceId(),
+        code: (typeof syncCode !== "undefined" && syncCode) || "",
+        gericht: rezept.name,
+        minuten: rezept.timeMin,
+        zutaten: (rezept.ingredients || []).map((i) => ({
+          name: i.name, qty: i.qty, unit: i.unit })),
+        ausschluss: ausschlussListe(),
+      }),
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    if (!d.success || !Array.isArray(d.steps) || !d.steps.length)
+      throw new Error(d.error || "keine Schritte");
+    rezept.steps = d.steps;
+    return true;
+  } catch (e) {
+    if (status) status.textContent =
+      "❌ Die Kochschritte konnten nicht geladen werden. " +
+      "Bitte nochmal auf „Jetzt kochen“ tippen.";
+    speak("Die Kochschritte konnten nicht geladen werden. " +
+      "Bitte versuch es gleich nochmal.", true);
+    return false;
+  } finally { schritteLaden = false; }
+}
+
+async function startCooking() {
   if (!selectedRecipe) { goTab("rezepte"); return; }
+  if (!(selectedRecipe.steps || []).length) {
+    goTab("kochen");
+    document.getElementById("recipeTitle").textContent = selectedRecipe.name;
+    const ok = await schritteNachladen(selectedRecipe);
+    if (!ok) return;
+  }
   stepIndex = 0;
   goTab("kochen");
   document.getElementById("recipeTitle").textContent = selectedRecipe.name;
@@ -3537,7 +3624,19 @@ function showStep() {
 function restzeitAnsageFaellig(rest) {
   if (rest > 300) return rest % 120 === 0;   // > 5 Min: alle 2 Minuten
   if (rest >= 60) return rest % 60 === 0;    // 1-5 Min: jede Minute
-  return rest === 30 || rest === 10;         // Endspurt: 30 s und 10 s
+  return rest === 20 || rest === 10;         // Endspurt: 20 s und 10 s
+}
+
+// In den letzten 20 Sekunden zaehlt die App nicht nur herunter, sondern
+// fordert zur GARPROBE auf. Grund: Die letzten Sekunden entscheiden
+// darueber, ob das Essen auf den Punkt gegart oder verkocht ist - und
+// genau dann steht die Familie oft noch woanders. (pur & testbar)
+function garprobeText(step, rest) {
+  const wieViel = "Noch " + rest + " Sekunden. ";
+  const eigen = step && step.announce ? String(step.announce).trim() : "";
+  if (eigen) return wieViel + "Schau jetzt nach: " + eigen;
+  return wieViel + "Schau jetzt nach, ob es gar ist – lieber einmal zu " +
+    "früh probieren als verkochen lassen.";
 }
 
 
@@ -3551,20 +3650,27 @@ function startTimer(step) {
     box.textContent = `⏱ ${m}:${String(s).padStart(2, "0")}`;
   };
   render();
+  timerRest = remaining;
   timerInterval = setInterval(() => {
     remaining--;
+    timerRest = remaining;
     render();
     // Wunsch: Erinnerungsstimme meldet sich alle 45 Sekunden -
     // auch waehrend ein Koch-Timer laeuft (kurze Restzeit-Ansage)
     // Gestaffelte Restzeit-Ansagen (Feedback 23.07.: "sonst nervts")
     // > 5 Min: alle 2 Min · 1-5 Min: jede Minute · < 1 Min: 30 s + 10 s
     if (restzeitAnsageFaellig(remaining)) {
-      const mm = Math.floor(remaining / 60);
-      const ss = remaining % 60;
-      speak("Noch " + (mm ? mm + (mm === 1 ? " Minute" : " Minuten") +
-        (ss ? " " + ss : "") : ss + " Sekunden") + ".");
+      if (remaining === 20) {
+        speak(garprobeText(step, remaining));
+      } else {
+        const mm = Math.floor(remaining / 60);
+        const ss = remaining % 60;
+        speak("Noch " + (mm ? mm + (mm === 1 ? " Minute" : " Minuten") +
+          (ss ? " " + ss : "") : ss + " Sekunden") + ".");
+      }
     }
     if (remaining <= 0) {
+      timerRest = 0;
       clearInterval(timerInterval);
       box.textContent = "⏱ 0:00 – Zeit ist um!";
       speak(step.announce || "Die Zeit ist um.", true);
@@ -3573,11 +3679,39 @@ function startTimer(step) {
   }, 1000);
 }
 
+// Wie lange dauert ein Schritt voraussichtlich? (pur & testbar)
+// Schritte mit Timer: dessen Laufzeit. Schritte ohne Timer: die
+// restliche Gesamtzeit des Rezepts, gleichmaessig verteilt.
+// Frueher stand hier eine starre 90 - unabhaengig davon, ob der Schritt
+// "Zwiebel wuerfeln" (30 s) oder "Teig gehen lassen" (45 min) war.
+function schrittDauerSek(recipe, index) {
+  const steps = (recipe && recipe.steps) || [];
+  const step = steps[index];
+  if (!step) return 90;
+  if (step.timer > 0) return step.timer;
+  const gesamt = Math.max(1, Number(recipe.timeMin) || 30) * 60;
+  let mitTimer = 0, ohneTimer = 0;
+  steps.forEach((st) => {
+    if (st && st.timer > 0) mitTimer += st.timer; else ohneTimer++;
+  });
+  if (!ohneTimer) return 90;
+  const rest = Math.max(60, gesamt - mitTimer);
+  return Math.min(600, Math.max(45, Math.round(rest / ohneTimer)));
+}
+
+// Wann soll die naechste "Sag fertig"-Erinnerung kommen? (pur & testbar)
+// Erste Erinnerung bei drei Vierteln der veranschlagten Schrittdauer -
+// vorher waere sie Bevormundung. Danach hoechstens einmal pro Minute,
+// damit die Vorgabe "maximal zweimal pro Minute" sicher eingehalten ist.
+function reminderAbstandSek(recipe, index, stufe) {
+  if (stufe > 0) return [60, 90, 120][Math.min(stufe - 1, 2)];
+  return Math.max(40, Math.round(schrittDauerSek(recipe, index) * 0.75));
+}
+
 function armReminder(neuStarten) {
   clearTimeout(reminderTimeout);
   if (neuStarten) reminderStufe = 0;
-  const sek = REMINDER_STUFEN[Math.min(reminderStufe,
-    REMINDER_STUFEN.length - 1)];
+  const sek = reminderAbstandSek(selectedRecipe, stepIndex, reminderStufe);
   reminderTimeout = setTimeout(() => {
     speak("Kleine Erinnerung: Sag fertig oder erledigt, wenn du soweit " +
           "bist. Sag wiederhole, wenn ich den Schritt nochmal sagen soll.");
@@ -3676,7 +3810,7 @@ async function rechercheRezept(istWiederholung) {
   btn.disabled = true;
   retryBtn.disabled = true;
   status.textContent =
-    "🔍 Recherchiere 3 unterschiedliche Rezepte … (20–40 Sekunden)";
+    "🔍 Recherchiere 3 Rezeptvorschläge … (etwa 5 Sekunden)";
 
   const ernaehrungsformen = Object.keys(requiredDiets());
 
@@ -3685,6 +3819,7 @@ async function rechercheRezept(istWiederholung) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        modus: "kurz",           // Stufe 1: ohne Kochschritte (siehe startCooking)
         device: deviceId(),
         code: (typeof syncCode !== "undefined" && syncCode) || "",
         wunsch: wunsch,
@@ -3748,6 +3883,7 @@ async function rechercheRezept(istWiederholung) {
       rec.time = "ca. " + rec.timeMin + " Min.";
       rec.tags = ["🆕 neu recherchiert"].concat(rec.tags || []);
       // Defensive Defaults, falls der Server Felder nicht mitliefert
+      rec.steps = Array.isArray(rec.steps) ? rec.steps : [];
       rec.allergens = rec.allergens || [];
       rec.diet = rec.diet || ernaehrungsformen.slice();
       rec.varianten = rec.varianten || [];
@@ -3791,6 +3927,7 @@ function flashStep() {
 
 function clearTimers() {
   wakeLockAus(); // Kochen beendet -> Bildschirm darf wieder schlafen
+  timerRest = 0;
   clearInterval(timerInterval);
   clearTimeout(reminderTimeout);
 }
