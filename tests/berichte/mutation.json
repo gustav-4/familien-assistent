@@ -1,6 +1,6 @@
 {
-  "zeitpunkt": "2026-07-31T11:12:00.120Z",
-  "mutationen": 27,
+  "zeitpunkt": "2026-07-31T11:38:14.342Z",
+  "mutationen": 33,
   "luecken": 0,
   "ergebnisse": [
     {
@@ -21,7 +21,7 @@
     {
       "name": "Aktivton wieder bei jedem Neustart",
       "status": "bemerkt",
-      "rot": 1
+      "rot": 2
     },
     {
       "name": "Einschlafton entfernt",
@@ -137,6 +137,36 @@
       "name": "Endspurt-Hinweis wieder erst bei 30 s",
       "status": "bemerkt",
       "rot": 4
+    },
+    {
+      "name": "Eingabe-Modus spricht die Frage wieder aus",
+      "status": "bemerkt",
+      "rot": 3
+    },
+    {
+      "name": "Bereit-Banner wird nicht mehr angezeigt",
+      "status": "bemerkt",
+      "rot": 2
+    },
+    {
+      "name": "Chip flackert im Eingabe-Modus wieder",
+      "status": "bemerkt",
+      "rot": 1
+    },
+    {
+      "name": "Backoff-Pause auch waehrend der Eingabe",
+      "status": "bemerkt",
+      "rot": 1
+    },
+    {
+      "name": "Abbruchwort wird nicht mehr erkannt",
+      "status": "bemerkt",
+      "rot": 2
+    },
+    {
+      "name": "Redis-Aufruf wieder ohne Zeitlimit",
+      "status": "bemerkt",
+      "via": "servertest"
     }
   ]
 }

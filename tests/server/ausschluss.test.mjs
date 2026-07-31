@@ -124,5 +124,30 @@ p("Stufe 2 (schritte) existiert als eigener Zweig",
 p("Stufe 2 prueft die Schritte gegen den Ausschluss",
   /verletztAusschluss\(\{ name: gericht/.test(serverQuelle));
 
+// --- 5. Jeder Netzzugriff braucht ein Zeitlimit -------------------
+// AUDIT 3: Die beiden Redis-Aufrufe liefen ohne Frist. Haengt Upstash,
+// haengt die Funktion bis zum Gateway-Timeout - ein 504 ohne Meldung,
+// noch bevor die KI gefragt wurde.
+// Jeder fetch-Aufruf muss innerhalb der naechsten Zeilen ein signal
+// mitgeben. Blosses Zaehlen genuegt NICHT: Faellt eine Frist weg, bleibt
+// die Summe durch die uebrigen Aufrufe zufaellig gross genug.
+const fetchStellen = [];
+let suchAb = 0;
+for (;;) {
+  const i = serverQuelle.indexOf("await fetch(", suchAb);
+  if (i < 0) break;
+  fetchStellen.push(serverQuelle.slice(i, i + 260));
+  suchAb = i + 12;
+}
+const ohneFrist = fetchStellen.filter(
+  (block) => !/signal:\s*(?:ctrl|frist)\.signal/.test(block));
+p("JEDER Netzzugriff hat ein Zeitlimit (" +
+  (fetchStellen.length - ohneFrist.length) + " von " + fetchStellen.length + ")",
+  fetchStellen.length >= 4 && ohneFrist.length === 0);
+p("Redis-Frist ist kurz genug", /mitFrist\(1500\)/.test(serverQuelle));
+p("Eigener Abbruch ist von einem Gateway-Fehler unterscheidbar",
+  /statusCode: abbruch \? 503 : 502/.test(serverQuelle)
+  && /quelle: "app"/.test(serverQuelle));
+
 console.log("\nAusschluss-Servertest: " + ok + " bestanden, " + fail + " fehlgeschlagen");
 process.exit(fail ? 1 : 0);

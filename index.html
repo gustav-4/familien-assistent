@@ -168,6 +168,18 @@
   #gvChip.an { background:#e3f2e1; border-color:var(--accent2); }
   #gvChip.aus { background:#f4f4f4; color:#666; }
   #gvChip.redet { background:#fdf3e0; border-color:#d9a441; color:#7a5410; }
+  #gvChip.eingabe { background:#e6f0ff; border-color:#3a6ea5; color:#1c3d63;
+                    font-weight:700; }
+  /* Unuebersehbarer Hinweis: JETZT sprechen. Der kleine Chip allein
+     reichte nicht - der Nutzer wusste nie, wann die App bereit ist. */
+  #gvBereit { position:fixed; left:50%; transform:translateX(-50%);
+    bottom:120px; z-index:950; display:none; max-width:92vw;
+    background:#1c3d63; color:#fff; padding:12px 18px; border-radius:14px;
+    box-shadow:0 4px 16px rgba(0,0,0,.28); font-size:1rem; font-weight:700;
+    text-align:center; }
+  #gvBereit.sichtbar { display:block; }
+  #gvBereit .klein { display:block; font-weight:400; font-size:.8rem;
+    opacity:.85; margin-top:3px; }
   #micStatus.listening { background:#e3f2e1; color:var(--accent2);
                          font-weight:700; }
   .hidden { display:none; }
@@ -181,6 +193,8 @@
 </head>
 <body>
 <div id="gvChip" onclick="gvToggle()" title="Sprachsteuerung an/aus">🎤 starte …</div>
+<div id="gvBereit"><span id="gvBereitText">Sprich jetzt</span>
+  <span class="klein">„abbrechen“ beendet die Eingabe</span></div>
 <div id="onboarding" class="hidden">
  <div class="ob-box">
   <div class="ob-dots" id="obDots"></div>
@@ -1856,7 +1870,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION28";
+const APP_VERSION = "FUSION29";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -1894,6 +1908,14 @@ function gvChipAnsage() {
 
 // Chip auf den TATSAECHLICHEN Zustand zuruecksetzen.
 function gvChipStand() {
+  // Ein offener Eingabe-Modus hat Vorrang: Der Chip darf waehrend einer
+  // Rueckfrage NICHT zwischen "hoere", "gleich wieder da" und
+  // "Ruhepause" flackern - genau das machte unklar, wann man sprechen
+  // darf.
+  if (GlobalVoice.dialog && GlobalVoice.dialog.frage) {
+    gvChip("🎙️ " + GlobalVoice.dialog.frage, "eingabe");
+    return;
+  }
   if (!GlobalVoice.aktiv) { gvChip("🎤 aus – tippen zum Einschalten", "aus"); return; }
   if (listening) gvChip("🎤 an – ich höre", "an");
   else gvChip("🎤 gleich wieder da …", "");
@@ -2006,7 +2028,11 @@ function gvStart() {
       // Ablauf ist sie rechtzeitig wieder da.
       const garpause = kochAn && timerRest > 45;
       let warten;
-      if (kochAn && !garpause) {
+      // Offener Eingabe-Modus: Die App WARTET auf eine Antwort. Hier
+      // darf es keine Pause geben, sonst faellt das erste Wort weg.
+      if (GlobalVoice.dialog) {
+        warten = 250;
+      } else if (kochAn && !garpause) {
         warten = 300;                       // dauerhaft aufnahmebereit
       } else {
         const maxStufe = GV_BACKOFF_MS.length - 1;
@@ -2100,6 +2126,12 @@ function istZurueck(text) {
     || /^(?:nochmal|einmal)\s+zur(?:ü|ue)ck$/.test(t)
     || /^(?:vorheriger|vorherige|voriger|vorige|letzter|letzte)\s+(?:schritt|frage)$/.test(t)
     || /^(?:ein\s+)?schritt\s+zur(?:ü|ue)ck$/.test(t);
+}
+
+// Bricht eine laufende Spracheingabe ab (pur & testbar).
+function istAbbruch(text) {
+  const t = String(text).toLowerCase().trim().replace(/[.,!?]+$/g, "");
+  return /^(?:abbrechen|abbruch|vergiss es|vergessen|nichts|doch nicht|egal|stopp|stop)$/.test(t);
 }
 
 // Beendet die Einkaufs-Kette (mehrere Artikel nacheinander).
@@ -2245,8 +2277,11 @@ function einkaufKetteStart() {
 function einkaufKetteBereit() {
   if (!einkaufKetteAktiv) return;
   gvStart();
-  GlobalVoice.dialog = { onInput: einkaufKetteEingabe };
-  gvChip("🛒 Artikel sagen – „fertig“ beendet", "an");
+  gvBackoffZuruecksetzen();
+  GlobalVoice.dialog = { frage: "Artikel sagen – „fertig“ beendet",
+    onInput: einkaufKetteEingabe };
+  gvBereitAnzeigen("Artikel sagen");
+  gvChipStand();
   tonBereit();
 }
 
@@ -2254,6 +2289,7 @@ function einkaufKetteStop(stumm) {
   const lief = einkaufKetteAktiv;
   einkaufKetteAktiv = false;
   GlobalVoice.dialog = null;
+  gvBereitVerbergen();
   if (lief && !stumm) speak("Okay, Einkaufsliste geschlossen.", true);
   gvChipStand();
 }
@@ -2350,7 +2386,7 @@ function gvRoute(said) {
   if (k.typ === "rezept") {
     goTab("rezepte");
     if (k.rest) rezeptSucheMitText(k.rest);
-    else gvOneShot("Worauf habt ihr Lust?", rezeptSucheMitText);
+    else gvEingabe("Worauf habt ihr Lust?", rezeptSucheMitText);
     return;
   }
   if (k.typ === "einkauf") {
@@ -2889,18 +2925,67 @@ function rezeptVoiceStart() {
   gvOneShot("Worauf habt ihr Lust?", rezeptSucheMitText);
 }
 
-// ---------- Einmal-Zuhoeren fuer einfache Eingaben ----------
-function gvOneShot(frage, callback) {
+// ---------- EINGABE-MODUS (loest gvOneShot ab) ----------
+// Vorher: Die App STELLTE eine gesprochene Rueckfrage ("Worauf habt ihr
+// Lust?") und horchte gleichzeitig. Drei Fehler auf einmal:
+// 1. Sie hoerte ihre eigene Frage und verarbeitete sie als Antwort.
+// 2. Der Nutzer wusste nicht, ab wann er sprechen darf.
+// 3. Der Chip sprang zwischen "starte", "hoere" und "Ruhepause".
+// Jetzt: EIN Bereit-Ton, ein unuebersehbares Banner, ein stabiler Chip -
+// und die Erkennung laeuft ohne Pause, bis geantwortet oder abgebrochen
+// wurde. Kein gesprochener Satz, der zurueckgehoert werden koennte.
+const GV_EINGABE_MAX_MS = 25000;   // Notausstieg, damit das Mikro nicht ewig heiss bleibt
+let gvEingabeTimer = null;
+
+function gvBereitAnzeigen(text) {
+  const b = document.getElementById("gvBereit");
+  const t = document.getElementById("gvBereitText");
+  if (t) t.textContent = text;
+  if (b) b.classList.add("sichtbar");
+}
+
+function gvBereitVerbergen() {
+  const b = document.getElementById("gvBereit");
+  if (b) b.classList.remove("sichtbar");
+}
+
+function gvEingabeBeenden(stumm) {
+  clearTimeout(gvEingabeTimer);
+  gvEingabeTimer = null;
+  GlobalVoice.dialog = null;
+  gvBereitVerbergen();
+  gvChipStand();
+  if (!stumm) tonSchlaf();
+}
+
+// frage = NUR sichtbarer Text, wird bewusst NICHT gesprochen.
+function gvEingabe(frage, callback) {
+  clearTimeout(gvEingabeTimer);
   gvStart();
+  gvBackoffZuruecksetzen();
+  gvBereitAnzeigen(frage || "Sprich jetzt");
+  gvChip("🎙️ " + (frage || "Sprich jetzt"), "eingabe");
   GlobalVoice.dialog = {
+    frage: frage || "Sprich jetzt",
     onInput: (text) => {
-      GlobalVoice.dialog = null;
-      if (istUeberspringen(text)) { speak("Okay, übersprungen.", true); return; }
+      if (istUeberspringen(text) || istAbbruch(text)) {
+        gvEingabeBeenden(false);
+        speak("Okay, abgebrochen.", true);
+        return;
+      }
+      gvEingabeBeenden(true);
       callback(text);
     },
   };
-  if (frage) speak(frage, true);
+  tonBereit();
+  gvEingabeTimer = setTimeout(() => {
+    if (!GlobalVoice.dialog) return;
+    gvEingabeBeenden(false);
+  }, GV_EINGABE_MAX_MS);
 }
+
+// Kompatibilitaetshuelle fuer bestehende Aufrufe
+function gvOneShot(frage, callback) { gvEingabe(frage, callback); }
 
 // Kompatibilitaets-Huelle: das Kochmodul rief bisher
 // initRecognition() auf - jetzt startet das den Controller.
@@ -3846,17 +3931,25 @@ async function rechercheRezept(istWiederholung) {
       return;
     }
     if (!r.ok) {
-      // Serverfehler (502/504) sind meist Ausrutscher. Statt die
-      // Familie mit einer Fehlernummer stehen zu lassen, versucht die
-      // App EINMAL still nach zwei Sekunden neu. Erst dann Klartext.
-      if ((r.status === 502 || r.status === 504) && !rechercheZweiterAnlauf) {
+      // Serverfehler sind meist Ausrutscher: EINMAL still nachfassen.
+      if ((r.status === 502 || r.status === 503 || r.status === 504)
+          && !rechercheZweiterAnlauf) {
         rechercheZweiterAnlauf = true;
         status.textContent = "🔄 Kurzer Aussetzer – ich versuche es nochmal …";
         setTimeout(() => rechercheRezept(istWiederholung), 2000);
         return;
       }
       rechercheZweiterAnlauf = false;
-      status.textContent = fehlermeldungRecherche(location.protocol, r.status);
+      // DIAGNOSE: Kommt eine lesbare Antwort von UNSERER Funktion oder
+      // hat die Plattform die Verbindung gekappt? Vorher sah beides
+      // gleich aus ("Fehler 504") und war nicht auseinanderzuhalten.
+      let d = null;
+      try { d = await r.json(); } catch (e) {}
+      status.textContent = d && d.quelle === "app"
+        ? "❌ " + d.error + " (Server brauchte " +
+          Math.round((d.ms || 0) / 1000) + " s)"
+        : fehlermeldungRecherche(location.protocol, r.status) +
+          " [Verbindung vom Anbieter gekappt]";
       btn.disabled = false;
       return;
     }
@@ -4680,17 +4773,27 @@ function startTerminDialog(diktat) {
       fuelleTerminFormular(st.termin);
       saveTermin(); // spricht selbst "Termin ... gespeichert"
     }
-    if (r.sage) { melde(r.sage); speak(r.sage, true); }
-    if (r.fertig) GlobalVoice.dialog = null;
+    if (r.sage) { melde(r.sage); speak(r.sage, true, () => {
+      // Nach jeder Rueckfrage EIN Bereit-Ton: Der Nutzer weiss dadurch
+      // sekundengenau, ab wann er antworten darf.
+      if (GlobalVoice.dialog) { gvBackoffZuruecksetzen(); tonBereit(); }
+    }); }
+    if (r.fertig) { GlobalVoice.dialog = null; gvBereitVerbergen(); gvChipStand(); }
   }
 
   gvStart();
-  GlobalVoice.dialog = { onInput: (text) => schritt({ typ: "text", text }) };
+  gvBackoffZuruecksetzen();
+  GlobalVoice.dialog = { frage: "Termin sprechen",
+    onInput: (text) => schritt({ typ: "text", text }) };
+  gvBereitAnzeigen("Termin sprechen");
+  gvChipStand();
   if (diktat) {
     schritt({ typ: "text", text: diktat });
   } else {
+    // Frueher sagte die App "Ich höre. Sprich deinen Termin." - und
+    // hoerte sich dabei selbst zu. Jetzt: sichtbarer Hinweis + ein Ton.
     melde("🎤 Ich höre … sprich deinen Termin");
-    speak("Ich höre. Sprich deinen Termin.", true);
+    tonBereit();
   }
 }
 

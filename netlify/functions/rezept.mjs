@@ -30,12 +30,17 @@ async function pruefeTageskontingent(device) {
   try {
     const heute = new Date().toISOString().slice(0, 10);
     const key = `rl:rezept:${device}:${heute}`;
-    const resp = await fetch(url + "/pipeline", {
-      method: "POST",
-      headers: { Authorization: "Bearer " + token,
-        "Content-Type": "application/json" },
-      body: JSON.stringify([["INCR", key], ["EXPIRE", key, "93600", "NX"]]),
-    });
+    const frist = mitFrist(1500);
+    let resp;
+    try {
+      resp = await fetch(url + "/pipeline", {
+        method: "POST",
+        signal: frist.signal,
+        headers: { Authorization: "Bearer " + token,
+          "Content-Type": "application/json" },
+        body: JSON.stringify([["INCR", key], ["EXPIRE", key, "93600", "NX"]]),
+      });
+    } finally { frist.fertig(); }
     if (!resp.ok) return { erlaubt: true };
     const data = await resp.json();
     const anzahl = Number(data && data[0] && data[0].result);
@@ -62,13 +67,27 @@ function kanalVonCode(code) {
     .digest("hex").slice(0, 32);
 }
 
+// AUDIT 3 (Ursache des hartnaeckigen 504): Die beiden Redis-Aufrufe
+// liefen OHNE Zeitlimit. Haengt Upstash, haengt die ganze Funktion, bis
+// die Plattform sie abschiesst - Ergebnis: Gateway-Fehler 504, noch
+// bevor die KI ueberhaupt gefragt wurde. Kein Log, keine Meldung.
+// Grundsatz des Hauses: Verfuegbarkeit schlaegt Sperre. Antwortet der
+// Zaehler nicht binnen 1,5 s, laeuft die Recherche einfach weiter.
+function mitFrist(ms) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  return { signal: ctrl.signal, fertig: () => clearTimeout(t) };
+}
+
 async function redisEinzel(command) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) return null;
+  const frist = mitFrist(1500);
   try {
     const r = await fetch(url, {
       method: "POST",
+      signal: frist.signal,
       headers: { Authorization: "Bearer " + token,
         "Content-Type": "application/json" },
       body: JSON.stringify(command),
@@ -76,6 +95,7 @@ async function redisEinzel(command) {
     if (!r.ok) return null;
     return (await r.json()).result;
   } catch (e) { return null; }
+  finally { frist.fertig(); }
 }
 
 /** Genereller Modellaufruf mit Zeitbudget (fuer den Wochenplan). */
@@ -83,7 +103,7 @@ async function rufeModell(apiKey, prompt, headers, maxTokens) {
   const ctrl = new AbortController();
   // 9 s: liegt unter JEDEM plausiblen Netlify-Limit, damit der Nutzer
   // immer die freundliche Meldung statt eines nackten 504 bekommt.
-  const timeout = setTimeout(() => ctrl.abort(), 9000);
+  const timeout = setTimeout(() => ctrl.abort(), 7000);
   try {
     const resp = await fetch(ANTHROPIC_URL, {
       method: "POST",
@@ -712,13 +732,14 @@ export const handler = async (event) => {
 
   // ---- KI-Aufruf mit Timeout (FUSION v10: als Funktion, fuer Retry) ----
   async function frageKI(zusatz) {
+    const beginn = Date.now();
     const ctrl = new AbortController();
     // AUDIT: 45 s war laenger als jedes Plattform-Limit - die eigene
     // Notbremse konnte NIE greifen. Auch 20 s waren zu grosszuegig:
     // synchrone Netlify-Funktionen brechen je nach Tarif bereits nach
     // 10 s ab. 9 s liegen unter JEDEM plausiblen Limit, damit immer die
     // freundliche Meldung ankommt statt eines nackten 504.
-    const timeout = setTimeout(() => ctrl.abort(), 9000);
+    const timeout = setTimeout(() => ctrl.abort(), 7000);
     try {
       const resp = await fetch(ANTHROPIC_URL, {
         method: "POST",
@@ -754,8 +775,12 @@ export const handler = async (event) => {
       clearTimeout(timeout);
       const abbruch = e && e.name === "AbortError";
       console.error("Recherche-Ausnahme", e);
-      return { httpFehler: { statusCode: 504, headers,
-        body: JSON.stringify({ success: false,
+      // 503 statt 504: So laesst sich UNSER Abbruch eindeutig von
+      // einem Gateway-Timeout der Plattform unterscheiden - vorher sah
+      // beides identisch aus und war nicht diagnostizierbar.
+      return { httpFehler: { statusCode: abbruch ? 503 : 502, headers,
+        body: JSON.stringify({ success: false, quelle: "app",
+          ms: Date.now() - beginn,
           error: abbruch
             ? "Die Recherche hat zu lange gedauert. Bitte nochmal versuchen."
             : "Unerwarteter Fehler bei der Recherche." }) } };

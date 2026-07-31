@@ -332,9 +332,13 @@ pruefe("M11 Sprechblase haelt laenger als der alte 15-Sekunden-Deckel", (functio
 })());
 
 pruefe("M12 Ansage-Ende blendet die Sprechblase aus", (function () {
+  // War bis zur Reparatur der Testumgebung ein Scheintest: className
+  // blieb immer undefined, die Bedingung damit IMMER wahr. Jetzt wird
+  // erst die Sichtbarkeit BELEGT und dann das Ausblenden geprueft.
   gvSprechblase("Testansage");
+  const warSichtbar = el("gvSage").classList.contains("sichtbar");
   gvSprechblaseAus();
-  return String(el("gvSage").className || "").indexOf("sichtbar") === -1;
+  return warSichtbar && !el("gvSage").classList.contains("sichtbar");
 })());
 
 // ---------- M13-M16: Der Chip sagt die Wahrheit ----------
@@ -765,3 +769,112 @@ pruefe("P18 armReminder auf einem Timer-Schritt plant nach dessen Laufzeit", (fu
   try { armReminder(true); } finally { global.setTimeout = echt; }
   return fristen.indexOf(675000) >= 0; // 900 * 0,75
 })());
+
+// =====================================================================
+// Q: EINGABE-MODUS - "Wann darf ich sprechen?"
+// ---------------------------------------------------------------------
+// Beschwerde des Betreibers: Nach "Rezept" oder "Termin" sprang das
+// Mikrofon zwischen Start, Bereit und Ruhemodus; der Nutzer wusste nie,
+// wann die App zuhoert. Ursache: Die App STELLTE eine gesprochene
+// Rueckfrage und horchte gleichzeitig - sie hoerte sich selbst, der
+// Chip flackerte, und der Backoff legte waehrend des Wartens Pausen ein.
+// Zielbild: EIN Bereit-Ton, ein stabiler Hinweis, keine Pause.
+// =====================================================================
+
+pruefe("Q1 Eingabe-Modus spielt genau EINEN Bereit-Ton", (function () {
+  gvStopp(); gvStart(); toeneLeeren();
+  gvEingabe("Worauf habt ihr Lust?", () => {});
+  const t = toeneGespielt();
+  gvEingabeBeenden(true);
+  return t.length === 1;
+})());
+
+pruefe("Q2 Eingabe-Modus spricht NICHT (sonst hoert die App sich selbst)", (function () {
+  gvStopp(); gvStart(); gesprochenLeeren();
+  gvEingabe("Worauf habt ihr Lust?", () => {});
+  const gesagt = gesprochen.length;
+  gvEingabeBeenden(true);
+  return gesagt === 0;
+})());
+
+pruefe("Q3 Bereit-Banner wird sichtbar", (function () {
+  gvStopp(); gvStart();
+  gvEingabe("Termin sprechen", () => {});
+  const sichtbar = el("gvBereit").classList.contains("sichtbar");
+  const text = el("gvBereitText").textContent;
+  gvEingabeBeenden(true);
+  return sichtbar && text === "Termin sprechen";
+})());
+
+pruefe("Q4 Banner verschwindet nach der Eingabe", (function () {
+  gvStopp(); gvStart();
+  gvEingabe("Termin sprechen", () => {});
+  const vorher = el("gvBereit").classList.contains("sichtbar");
+  gvEingabeBeenden(true);
+  return vorher && !el("gvBereit").classList.contains("sichtbar");
+})());
+
+pruefe("Q5 Chip flackert waehrend der Eingabe NICHT", (function () {
+  gvStopp(); gvStart();
+  gvEingabe("Worauf habt ihr Lust?", () => {});
+  const a = String(el("gvChip").className || "");
+  listening = false; gvChipStand();     // wuerde sonst "gleich wieder da"
+  const b = String(el("gvChip").className || "");
+  GlobalVoice.aktiv = false; gvChipStand();  // wuerde sonst "aus"
+  const c = String(el("gvChip").className || "");
+  gvEingabeBeenden(true);
+  return a === "eingabe" && b === "eingabe" && c === "eingabe";
+})());
+
+pruefe("Q6 Waehrend der Eingabe gibt es KEINE Backoff-Pause", (function () {
+  el("tab-kochen").classList = { contains: () => true, add(){}, remove(){}, toggle(){} };
+  gvStopp(); micMuted = false; gvStart();
+  gvEingabe("Sprich jetzt", () => {});
+  gvBackoffStufe = 5;                   // waere sonst 20 s Pause
+  const echt = global.setTimeout;
+  const fristen = [];
+  global.setTimeout = function (fn, ms) { fristen.push(ms || 0); return 0; };
+  try { recInstanz.onend(); } finally { global.setTimeout = echt; }
+  gvEingabeBeenden(true);
+  return fristen.length > 0 && Math.min.apply(null, fristen) <= 250;
+})());
+
+pruefe("Q7 Eingabe-Modus verhindert die Ruhepause", (function () {
+  el("tab-kochen").classList = { contains: () => true, add(){}, remove(){}, toggle(){} };
+  gvStopp(); micMuted = false; gvStart();
+  gvEingabe("Sprich jetzt", () => {});
+  gvLetztesErgebnis = Date.now() - (GV_RUHE_MS + 10000);
+  const echt = global.setTimeout;
+  global.setTimeout = function () { return 0; };
+  try { recInstanz.onend(); } finally { global.setTimeout = echt; }
+  const nochAktiv = GlobalVoice.aktiv;
+  gvEingabeBeenden(true);
+  return nochAktiv === true;
+})());
+
+pruefe("Q8 Antwort erreicht die Rueckruffunktion", (function () {
+  gvStopp(); gvStart();
+  let bekommen = null;
+  gvEingabe("Worauf habt ihr Lust?", (t) => { bekommen = t; });
+  GlobalVoice.dialog.onInput("etwas mit Nudeln");
+  return bekommen === "etwas mit Nudeln";
+})());
+
+pruefe("Q9 'abbrechen' beendet die Eingabe", (function () {
+  gvStopp(); gvStart();
+  let bekommen = null;
+  gvEingabe("Worauf habt ihr Lust?", (t) => { bekommen = t; });
+  GlobalVoice.dialog.onInput("abbrechen");
+  return bekommen === null && GlobalVoice.dialog === null;
+})());
+
+pruefe("Q10 Abbruchwoerter erkannt, Alltagssatz nicht",
+  istAbbruch("abbrechen") && istAbbruch("vergiss es") && istAbbruch("egal")
+  && !istAbbruch("wir wollen etwas mit ei"));
+
+pruefe("Q11 Eingabe laeuft nicht ewig - Notausstieg vorhanden",
+  typeof GV_EINGABE_MAX_MS === "number" && GV_EINGABE_MAX_MS <= 40000);
+
+pruefe("Q12 Befehl 'rezept' ohne Zusatz oeffnet den Eingabe-Modus",
+  (erkenneKommando("rezept") || {}).typ === "rezept"
+  && (erkenneKommando("rezept") || {}).rest === "");

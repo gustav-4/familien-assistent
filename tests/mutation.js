@@ -165,7 +165,7 @@ const MUTATIONEN = [
   {
     name: "Zeitlimit des Servers wieder ueber der Plattformgrenze",
     datei: "netlify/functions/rezept.mjs",
-    suchen: "    const timeout = setTimeout(() => ctrl.abort(), 9000);",
+    suchen: "    const timeout = setTimeout(() => ctrl.abort(), 7000);",
     ersetzen: "    const timeout = setTimeout(() => ctrl.abort(), 45000);",
     erwarteRot: [],
     servertest: "tests/server/ausschluss.test.mjs",
@@ -174,8 +174,8 @@ const MUTATIONEN = [
   {
     name: "Kochmodus horcht nicht mehr dauerhaft",
     datei: "index.html",
-    suchen: "      if (kochAn && !garpause) {\n        warten = 300;                       // dauerhaft aufnahmebereit",
-    ersetzen: "      if (false) {\n        warten = 300;",
+    suchen: "      } else if (kochAn && !garpause) {\n        warten = 300;                       // dauerhaft aufnahmebereit",
+    ersetzen: "      } else if (false) {\n        warten = 300;",
     erwarteRot: ["P1", "P3"],
   },
   {
@@ -219,6 +219,51 @@ const MUTATIONEN = [
     suchen: "  return rest === 20 || rest === 10;         // Endspurt: 20 s und 10 s",
     ersetzen: "  return rest === 30 || rest === 10;",
     erwarteRot: ["P16", "E1"],
+  },
+  // --- Eingabe-Modus ---
+  {
+    name: "Eingabe-Modus spricht die Frage wieder aus",
+    datei: "index.html",
+    suchen: "  tonBereit();\n  gvEingabeTimer = setTimeout(() => {",
+    ersetzen: "  tonBereit();\n  speak(frage, true);\n  gvEingabeTimer = setTimeout(() => {",
+    erwarteRot: ["Q2"],
+  },
+  {
+    name: "Bereit-Banner wird nicht mehr angezeigt",
+    datei: "index.html",
+    suchen: "  gvBereitAnzeigen(frage || \"Sprich jetzt\");",
+    ersetzen: "  /* Banner entfernt */",
+    erwarteRot: ["Q3"],
+  },
+  {
+    name: "Chip flackert im Eingabe-Modus wieder",
+    datei: "index.html",
+    suchen: "  if (GlobalVoice.dialog && GlobalVoice.dialog.frage) {\n    gvChip(\"🎙️ \" + GlobalVoice.dialog.frage, \"eingabe\");\n    return;\n  }",
+    ersetzen: "",
+    erwarteRot: ["Q5"],
+  },
+  {
+    name: "Backoff-Pause auch waehrend der Eingabe",
+    datei: "index.html",
+    suchen: "      if (GlobalVoice.dialog) {\n        warten = 250;\n      } else if (kochAn && !garpause) {",
+    ersetzen: "      if (false) {\n        warten = 250;\n      } else if (kochAn && !garpause) {",
+    erwarteRot: ["Q6"],
+  },
+  {
+    name: "Abbruchwort wird nicht mehr erkannt",
+    datei: "index.html",
+    suchen: "  return /^(?:abbrechen|abbruch|vergiss es|vergessen|nichts|doch nicht|egal|stopp|stop)$/.test(t);",
+    ersetzen: "  return false;",
+    erwarteRot: ["Q9", "Q10"],
+  },
+  // --- Serverseitige Zeitbudgets (Ursache des hartnaeckigen 504) ---
+  {
+    name: "Redis-Aufruf wieder ohne Zeitlimit",
+    datei: "netlify/functions/rezept.mjs",
+    suchen: "      signal: frist.signal,\n      headers: { Authorization: \"Bearer \" + token,",
+    ersetzen: "      headers: { Authorization: \"Bearer \" + token,",
+    erwarteRot: [],
+    servertest: "tests/server/ausschluss.test.mjs",
   },
 ];
 

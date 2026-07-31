@@ -1,33 +1,12 @@
 {
-  "zeitpunkt": "2026-07-31T11:12:00.114Z",
-  "version": "FUSION28",
-  "gesamt": 157,
-  "bestanden": 153,
-  "fehlgeschlagen": 4,
+  "zeitpunkt": "2026-07-31T11:38:14.274Z",
+  "version": "FUSION29",
+  "gesamt": 169,
+  "bestanden": 169,
+  "fehlgeschlagen": 0,
   "selbstheilung": {
     "geschlosseneAttrappenLuecken": [],
     "hinweis": "Keine Attrappen-Luecken."
   },
-  "fehler": [
-    {
-      "name": "E1 20-Min-Timer: 2-Min-Takt, dann Minuten, dann 20/10 s",
-      "bestanden": false,
-      "fehlertext": ""
-    },
-    {
-      "name": "E2 3-Min-Timer: 180,120,60,20,10",
-      "bestanden": false,
-      "fehlertext": ""
-    },
-    {
-      "name": "E3 45-Sek-Timer: nur 20 und 10",
-      "bestanden": false,
-      "fehlertext": ""
-    },
-    {
-      "name": "P16 Endspurt-Ansage liegt bei 20 s, nicht mehr bei 30 s",
-      "bestanden": false,
-      "fehlertext": ""
-    }
-  ]
+  "fehler": []
 }

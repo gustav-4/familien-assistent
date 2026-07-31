@@ -67,7 +67,14 @@ function knotenRoh(id) {
       return { top: 0, left: 0, width: 100, height: 20, bottom: 20, right: 100 };
     },
     closest() { return null; },
-    className: undefined, // automatisch ergaenzt (Selbstheilung)
+    // AUDIT: className und classList waren getrennte Welten - eine
+    // Aenderung per classList.add() blieb in className unsichtbar.
+    // Tests, die className prueften, waren dadurch wirkungslos gruen.
+    // Jetzt teilen sich beide denselben Speicher, wie im echten Browser.
+    get className() { return [...this.classList._s].join(" "); },
+    set className(v) {
+      this.classList._s = new Set(String(v || "").split(/\s+/).filter(Boolean));
+    },
   };
 }
 
