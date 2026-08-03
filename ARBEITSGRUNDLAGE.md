@@ -1,8 +1,8 @@
-# ARBEITSGRUNDLAGE – Familien-Assistent FUSION29
+# ARBEITSGRUNDLAGE – Familien-Assistent FUSION30
 
 Maschinell aus dem Code extrahiert (nicht aus Erinnerung). Zweck: Bei
 jeder künftigen Reparatur sofort wissen, WAS wo liegt, ohne zu suchen.
-Stand: FUSION29 / sw `app-fusion29`, index.html siehe Systemkarte.
+Stand: FUSION30 / sw `app-fusion30`, index.html siehe Systemkarte.
 205.241 Bytes, BOM entfernt, alle 25 Textdateien valides UTF-8.
 
 ---
@@ -56,11 +56,11 @@ säubern → Stimme/Klangfarbe → Chunks) · `gvSprechblase`1546 ·
 `rezeptVorstellungsText`3298 · `startCooking`3636 · `showStep`3691 /
 `renderStep`3677 · `zutatenImSchritt`3661 · `startTimer`3728 ·
 `confirmStep`3810 · `repeatStep`3832 · `armReminder`3796 ·
-`flashStep`4013 · `clearTimers`4021 · Favoriten: `loadFavs`3078,
+`flashStep`4018 · `clearTimers`4026 · Favoriten: `loadFavs`3078,
 `saveFavs`3084, `addFavorite`3089, `renderFavoriten`3108
 
 **Mengen-Kontinuität (FUSION15, kritisch)**
-`portionFactor`4341 → `skaliereRezept`3456 schreibt das Rezept **einmal
+`portionFactor`4346 → `skaliereRezept`3456 schreibt das Rezept **einmal
 bei der Auswahl** fest (inkl. Zahlen in Schritt-Prosa via
 `smartMenge`3435 + `zahlVarianten`3441) → alle Anzeigen rechnen danach
 mit Faktor 1 (Wächter `_skaliert`). Formatierung überall:
@@ -71,22 +71,22 @@ EL/TL .5; Stück ganzzahlig).
 `buildShoppingList`3523 · `readShoppingList`3550 ·
 `leereEinkaufsliste`3569 (+Knopf/Voice-Varianten 2926/2929) ·
 `parseArtikelListe`2212 · `einkaufHinzufuegen`2227 ·
-`VERBRAUCH`5227 · `vState`5294 · `vbSave`5326 · `renderVerbrauch`5375 ·
-`vbRate`5296 · `vbReichtNochTage`5321 · `vbGekauft`5348 ·
-Einkaufs-Modus: `vbVoiceCheckoffStart`5555 / `vbVoiceCheckoffStop`5603 / `vbVoiceCheckoffToggle`5617,
-`vbVoiceHandle`5527, `vbMatchScore`5499
+`VERBRAUCH`5232 · `vState`5299 · `vbSave`5331 · `renderVerbrauch`5380 ·
+`vbRate`5301 · `vbReichtNochTage`5326 · `vbGekauft`5353 ·
+Einkaufs-Modus: `vbVoiceCheckoffStart`5560 / `vbVoiceCheckoffStop`5608 / `vbVoiceCheckoffToggle`5622,
+`vbVoiceHandle`5532, `vbMatchScore`5504
 
 **Familie / Termine**
-`mitglieder`4048 · `addMember`4349 · `renderMembers`4369 ·
-`personenAequivalent`4322 · `summePE`4336 ·
-`termine`4050 · `tLoad`4055 · `tSaveAll`4059 (**+ syncGeplant**) ·
-`formularTermin`4858 · `saveTermin`4877 · `findeKollisionen`4823 ·
-`terminDialogNext`4568 (Zustandsautomat) · `startTerminDialog`4738 ·
-`parseServer`4743 · `findeMitglied`4515 / `findeMitgliedImSatz`4542 ·
-`editierDistanz`4503 · `renderMatrix`4954 · `wocheWechseln`4941 ·
-`montagVon`4945 / `isoTag`4952 · `renderTerminListe`5026 ·
-`checkErinnerungen`5068 · `zeigeErinnerung`5090 · `reminderOk`5118 ·
-`routinen`4049 · `addRoutine`4909 · `renderRoutinen`4923
+`mitglieder`4053 · `addMember`4354 · `renderMembers`4374 ·
+`personenAequivalent`4327 · `summePE`4341 ·
+`termine`4055 · `tLoad`4060 · `tSaveAll`4064 (**+ syncGeplant**) ·
+`formularTermin`4863 · `saveTermin`4882 · `findeKollisionen`4828 ·
+`terminDialogNext`4573 (Zustandsautomat) · `startTerminDialog`4743 ·
+`parseServer`4748 · `findeMitglied`4520 / `findeMitgliedImSatz`4547 ·
+`editierDistanz`4508 · `renderMatrix`4959 · `wocheWechseln`4946 ·
+`montagVon`4950 / `isoTag`4957 · `renderTerminListe`5031 ·
+`checkErinnerungen`5073 · `zeigeErinnerung`5095 · `reminderOk`5123 ·
+`routinen`4054 · `addRoutine`4914 · `renderRoutinen`4928
 
 **Wochenplan (Plus)**
 `wpPlanen`2410 · `wpLaeuft`2409 → POST `/api/rezept` mit
@@ -112,12 +112,12 @@ konsolidierte Liste über `smartQty`
 `onboardingOeffnen`2814
 
 **Gerät / Infrastruktur**
-`deviceId`4068 (crypto.getRandomValues, g+32 Hex; Museums-Fallback
-djb2, **kein Math.random**) · `idbOpen`4095 / `idbSet`4103 ·
-`weckerPlan`4112 · `serverSync`4135 · `aktivierePush`4155 ·
-`pruefePushAbo`4201 · `b64ToUint8`4150 · `goTab`2999 ·
-`aktiverTab`4256 · `appBeenden`2732 · `loescheAlles`4304 (DSGVO) ·
-Feedback: `fbOeffnen`4260 / `fbSprechen`4267 / `fbSenden`4277
+`deviceId`4073 (crypto.getRandomValues, g+32 Hex; Museums-Fallback
+djb2, **kein Math.random**) · `idbOpen`4100 / `idbSet`4108 ·
+`weckerPlan`4117 · `serverSync`4140 · `aktivierePush`4160 ·
+`pruefePushAbo`4206 · `b64ToUint8`4155 · `goTab`2999 ·
+`aktiverTab`4261 · `appBeenden`2732 · `loescheAlles`4309 (DSGVO) ·
+Feedback: `fbOeffnen`4265 / `fbSprechen`4272 / `fbSenden`4282
 
 ---
 
@@ -174,10 +174,10 @@ Feedback: `fbOeffnen`4260 / `fbSprechen`4267 / `fbSenden`4277
 **Wichtige Serverfunktionen:** `pruefeTageskontingent`26 (INCR+EXPIRE,
 ausfallsicher) · `kanalVonCode`58/45 (**identisch in rezept.mjs und
 termine.mjs halten!** sha256("ka1|"+CODE), 32 Hex) · `rufeModell`82
-(20-s-Budget) · `wochenplanPrompt`143 · `normalizePlanItem`183 ·
-`verletztAllergen`269 / `verletztDiet`281 (**deterministischer
-Sicherheitsfilter nach der KI**) · `buildPrompt`392 ·
-`normalizeRecipe`490 · `faelligeRefs`/`anzeigeRefs` (wecker.mjs)
+(20-s-Budget) · `wochenplanPrompt`145 · `normalizePlanItem`185 ·
+`verletztAllergen`271 / `verletztDiet`283 (**deterministischer
+Sicherheitsfilter nach der KI**) · `buildPrompt`394 ·
+`normalizeRecipe`496 · `faelligeRefs`/`anzeigeRefs` (wecker.mjs)
 
 **Redis-Schlüssel (Upstash, Frankfurt):** `familie:<device>`
 (Alt-API pro Gerät, termine.mjs) · `wecker:<device>` ·
@@ -416,3 +416,99 @@ Ehrliche Grenze - das ist nur auf einem echten Geraet pruefbar:
 - Echte Laufzeit der KI-Recherche gegen das Netlify-Limit.
 - Echtes Verhalten der Android-Spracherkennung (Verzoegerung,
   getrennte Schreibweise zusammengesetzter Woerter).
+
+---
+
+## 12. Abnahmeregeln (ersetzt alle frueheren Formulierungen)
+
+### Warum die alten Regeln versagt haben
+"Hoechst effizient" und "absolut maximal hart testen" sind
+Anstrengungsbeschreibungen. Sie haben keine Abbruchbedingung: Man kann
+sie erfuellen und trotzdem Fehler ausliefern. Ausserdem ziehen sie
+gegeneinander - wer schneller sein will, prueft weniger. In der Sitzung
+vom 31.07. wurde dieser Ermessensspielraum systematisch zugunsten des
+Lieferns statt des Pruefens genutzt.
+
+### Die Aufloesung: zwei getrennte Achsen
+Der Widerspruch verschwindet, sobald beide Begriffe verschiedene Dinge
+steuern duerfen:
+
+| Begriff | Steuert | Darf NIE |
+| --- | --- | --- |
+| **Haerte** | den **Abnahmepunkt** - wann etwas fertig ist | verhandelt, verschoben oder abgekuerzt werden |
+| **Effizienz** | den **Weg** dorthin - Reihenfolge, Umfang, Wiederverwendung | Beweise weglassen |
+
+**Vorrangregel:** Kollidieren beide, gewinnt ausnahmslos die Haerte.
+Effizienz kuerzt den Weg zum Beweis, niemals den Beweis.
+
+Damit ist Effizienz nicht mehr "weniger pruefen", sondern: **zuerst das
+Billigste pruefen, das am ehesten fehlschlaegt.**
+
+### Die Pipeline ist die Regel
+Der Abnahmepunkt ist keine Absichtserklaerung, sondern der Rueckgabewert
+von `node tests/pipeline.js`. Exit 0 = abgenommen. Alles andere = nicht
+abgenommen. **Was nicht in der Pipeline steht, gilt nicht.**
+
+| Stufe | Inhalt | Laufzeit | Blockiert |
+| --- | --- | --- | --- |
+| **0** | Reproduktionsnachweis: jeder gemeldete Fehler hat Test **und** Mutation | < 1 s | alles |
+| **1** | Statische Evidenz: Syntax, Hausregeln, Listengleichstand, Zeitbudget, Versionsstempel | ~1 s | Stufe 2-3 |
+| **2** | Deterministische Isolation: Szenarien + Servertests, vollstaendig mit Attrappen | < 1 s | Stufe 3 |
+| **3** | Dynamische Haerte: Mutationsprobe - jede Reparatur wird zerstoert, die Tests MUESSEN rot werden | ~15 s | Abnahme |
+
+Fail-Fast: Bei der ersten roten Stufe bricht der Lauf ab. Spaetere
+Stufen laufen gar nicht erst - eine teure Mutationsprobe auf einem Code
+mit Syntaxfehler ist verschwendete Zeit.
+
+### Stufe 0 ist die eigentliche Neuerung
+Sie beantwortet die Frage, die ich mir in der Sitzung vom 31.07.
+mehrfach nicht gestellt habe: **Wird dieser Fehler ueberhaupt von einem
+Test bewacht?**
+
+Ablauf bei jeder Meldung des Betreibers:
+1. Eintrag in `tests/fehlerregister.json` - **Symptom im Wortlaut**, nicht
+   meine Deutung.
+2. Test oder Messung schreiben, die den Fehler nachstellt und **ROT** ist.
+   Die rote Zeile wird dem Betreiber gezeigt, bevor Code angefasst wird.
+3. Erst danach reparieren.
+4. Mutation in `tests/mutation.js` hinterlegen, die beweist, dass der
+   Test den Fehler wirklich faengt.
+
+Fehlt Schritt 1, 2 oder 4, ist Stufe 0 rot und **nichts** wird
+abgenommen.
+
+### Effizienz - erlaubte Mittel
+Ausschliesslich Mittel, die den Weg verkuerzen, nie den Beweis:
+* **Test Impact Analysis:** Jede Stufe kennt ihre Quelldateien. Aendert
+  sich keine davon, wird die Stufe uebersprungen.
+* **Zwischenspeicher:** Ergebnis wird per Inhalts-Hash gemerkt
+  (`tests/berichte/pipeline-cache.json`). Im CI mit `--alles` bewusst
+  ignoriert - dort zaehlt nur das vollstaendige Bild.
+* **Auto-Cancel:** Ein neuer Commit bricht den laufenden CI-Lauf ab
+  (`concurrency` in `qa.yml`).
+* **Billig vor teuer:** Stufe 1 kostet 1 Sekunde und faengt Syntax-,
+  Arithmetik- und Versionsfehler, fuer die Stufe 3 15 Sekunden braucht.
+
+### Harte Verbote
+1. **Keine Zahl ohne Messung.** Jede Zahl, Frist oder Grenze stammt aus
+   einem Befehl, dessen Ausgabe im selben Beitrag sichtbar ist. Nicht
+   messbar -> **[ungeprueft]** dahinterschreiben. Kein "ungefaehr",
+   kein "typisch".
+2. **Kein Fix ohne roten Test.** Siehe Stufe 0.
+3. **Ein gemeldeter Fehler pro Schritt.** Buendelung mehrerer Meldungen
+   ist untersagt - sie war 31.07. die Ursache veralteter
+   Mutationsmuster und uebersehener Zusammenhaenge.
+4. **Bei Zeitfehlern zuerst der Pfad.** Vor jeder Timing-Reparatur wird
+   JEDER Netzzugriff der Anfrage aufgelistet. Ohne diese Liste keine
+   Aenderung. (Zwei Redis-Aufrufe ohne Zeitlimit blieben so drei
+   Reparaturversuche lang unentdeckt.)
+5. **Kein Test, der nur Quelltext liest,** wo Verhalten pruefbar ist.
+   Solche Tests werden gruen, wenn man die Reparatur loescht, und rot,
+   wenn man sie verbessert.
+
+### Was die Pipeline NICHT kann
+Ehrliche Grenze, die kein Zusatz aufhebt: Toene, echte
+Spracherkennung, echte Netzlaufzeiten und das Verhalten des
+Android-Systemtons sind nur auf einem echten Geraet pruefbar. Fuer
+diesen Bereich gilt: Ergebnisse werden als **[ungeprueft]**
+gekennzeichnet, bis der Betreiber sie bestaetigt.

@@ -1,12 +1,18 @@
 {
-  "zeitpunkt": "2026-07-31T11:38:14.274Z",
-  "version": "FUSION29",
-  "gesamt": 169,
-  "bestanden": 169,
-  "fehlgeschlagen": 0,
+  "zeitpunkt": "2026-08-03T14:21:40.968Z",
+  "version": "FUSION30",
+  "gesamt": 174,
+  "bestanden": 173,
+  "fehlgeschlagen": 1,
   "selbstheilung": {
     "geschlosseneAttrappenLuecken": [],
     "hinweis": "Keine Attrappen-Luecken."
   },
-  "fehler": []
+  "fehler": [
+    {
+      "name": "F-013 'abbrechen' landet NICHT auf der Einkaufsliste",
+      "bestanden": false,
+      "fehlertext": ""
+    }
+  ]
 }

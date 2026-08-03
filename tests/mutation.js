@@ -165,7 +165,7 @@ const MUTATIONEN = [
   {
     name: "Zeitlimit des Servers wieder ueber der Plattformgrenze",
     datei: "netlify/functions/rezept.mjs",
-    suchen: "    const timeout = setTimeout(() => ctrl.abort(), 7000);",
+    suchen: "    const timeout = setTimeout(() => ctrl.abort(), 8500);",
     ersetzen: "    const timeout = setTimeout(() => ctrl.abort(), 45000);",
     erwarteRot: [],
     servertest: "tests/server/ausschluss.test.mjs",
@@ -264,6 +264,39 @@ const MUTATIONEN = [
     ersetzen: "      headers: { Authorization: \"Bearer \" + token,",
     erwarteRot: [],
     servertest: "tests/server/ausschluss.test.mjs",
+  },
+  {
+    name: "Gesamtbudget gesprengt (Redis-Frist zu grosszuegig)",
+    datei: "netlify/functions/rezept.mjs",
+    suchen: "function mitFrist(ms) {",
+    ersetzen: "function mitFrist(ms) {\n  ms = 3000;",
+    erwarteRot: [],
+    servertest: "tests/server/ausschluss.test.mjs",
+  },
+  {
+    name: "Kurzmodus macht wieder einen zweiten KI-Anlauf",
+    datei: "netlify/functions/rezept.mjs",
+    suchen: "  if (!parsed && !params.kurz && Date.now() - startZeit < 4000) {",
+    ersetzen: "  if (!parsed && Date.now() - startZeit < 4000) {",
+    erwarteRot: [],
+    servertest: "tests/server/ausschluss.test.mjs",
+  },
+  {
+    name: "F-013: Befehle haben in der Einkaufs-Kette keinen Vorrang mehr",
+    datei: "index.html",
+    suchen: "  const befehl = erkenneKommando(text);\n  if (befehl && befehl.typ !== \"einkauf\") {",
+    ersetzen: "  const befehl = null;\n  if (befehl) {",
+    erwarteRot: ["F-013 Echter Befehl"],
+  },
+  {
+    name: "F-013: Abbruchwort wird in der Kette nicht mehr erkannt",
+    datei: "index.html",
+    suchen: "  if (istKetteEnde(text) || istAbbruch(text)) {",
+    ersetzen: "  if (istKetteEnde(text)) {",
+    // Nur "abbrechen": "tschuess" faengt bereits istKetteEnde ab.
+    // Von der Gegenprobe aufgedeckt - die urspruengliche Erwartung war
+    // falsch, nicht die Reparatur.
+    erwarteRot: ["F-013 'abbrechen'"],
   },
 ];
 

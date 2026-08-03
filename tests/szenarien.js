@@ -878,3 +878,53 @@ pruefe("Q11 Eingabe laeuft nicht ewig - Notausstieg vorhanden",
 pruefe("Q12 Befehl 'rezept' ohne Zusatz oeffnet den Eingabe-Modus",
   (erkenneKommando("rezept") || {}).typ === "rezept"
   && (erkenneKommando("rezept") || {}).rest === "");
+
+// =====================================================================
+// F-013: "befehl wie abbrechen und tschüss werden auf liste gesetzt
+//        und nicht ausgeführt"
+// Ursache: einkaufKetteEingabe kannte nur istKetteEnde und istZurueck.
+// Alles andere - auch Abbruchwoerter und echte Befehle - ging
+// ungeprueft an einkaufHinzufuegen.
+// =====================================================================
+pruefe("F-013 'abbrechen' landet NICHT auf der Einkaufsliste", (function () {
+  vState.liste.length = 0;
+  einkaufKetteAktiv = true;
+  einkaufKetteEingabe("abbrechen");
+  einkaufKetteAktiv = false;
+  return vState.liste.length === 0;
+})());
+
+pruefe("F-013 'tschüss' landet NICHT auf der Einkaufsliste", (function () {
+  vState.liste.length = 0;
+  einkaufKetteAktiv = true;
+  einkaufKetteEingabe("tschüss");
+  einkaufKetteAktiv = false;
+  return vState.liste.length === 0;
+})());
+
+pruefe("F-013 'tschüss' beendet die Kette", (function () {
+  einkaufKetteAktiv = true;
+  einkaufKetteEingabe("tschüss");
+  const beendet = einkaufKetteAktiv === false;
+  einkaufKetteAktiv = false;
+  return beendet;
+})());
+
+pruefe("F-013 Echter Befehl wird AUSGEFUEHRT statt notiert", (function () {
+  vState.liste.length = 0;
+  einkaufKetteAktiv = true;
+  einkaufKetteEingabe("rezept nudeln");
+  const sauber = vState.liste.length === 0;
+  einkaufKetteAktiv = false;
+  return sauber;
+})());
+
+pruefe("F-013 Echte Artikel kommen weiterhin auf die Liste", (function () {
+  vState.liste.length = 0;
+  einkaufKetteAktiv = true;
+  einkaufKetteEingabe("Milch");
+  const drauf = vState.liste.length === 1;
+  einkaufKetteAktiv = false;
+  vState.liste.length = 0;
+  return drauf;
+})());

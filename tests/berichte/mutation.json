@@ -1,6 +1,6 @@
 {
-  "zeitpunkt": "2026-07-31T11:38:14.342Z",
-  "mutationen": 33,
+  "zeitpunkt": "2026-08-03T14:21:40.975Z",
+  "mutationen": 37,
   "luecken": 0,
   "ergebnisse": [
     {
@@ -161,12 +161,32 @@
     {
       "name": "Abbruchwort wird nicht mehr erkannt",
       "status": "bemerkt",
-      "rot": 2
+      "rot": 3
     },
     {
       "name": "Redis-Aufruf wieder ohne Zeitlimit",
       "status": "bemerkt",
       "via": "servertest"
+    },
+    {
+      "name": "Gesamtbudget gesprengt (Redis-Frist zu grosszuegig)",
+      "status": "bemerkt",
+      "via": "servertest"
+    },
+    {
+      "name": "Kurzmodus macht wieder einen zweiten KI-Anlauf",
+      "status": "bemerkt",
+      "via": "servertest"
+    },
+    {
+      "name": "F-013: Befehle haben in der Einkaufs-Kette keinen Vorrang mehr",
+      "status": "bemerkt",
+      "rot": 3
+    },
+    {
+      "name": "F-013: Abbruchwort wird in der Kette nicht mehr erkannt",
+      "status": "bemerkt",
+      "rot": 1
     }
   ]
 }

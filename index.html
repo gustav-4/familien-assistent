@@ -1870,7 +1870,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION29";
+const APP_VERSION = "FUSION30";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -2294,10 +2294,24 @@ function einkaufKetteStop(stumm) {
   gvChipStand();
 }
 
+// F-013: Frueher fielen ALLE Eingaben ausser "fertig" und "zurueck"
+// ungeprueft an einkaufHinzufuegen durch - auch "abbrechen", "tschuess"
+// und echte Befehle wie "rezept nudeln". Sie landeten als Artikel auf
+// der Liste, statt ausgefuehrt zu werden. Jetzt hat die Befehlserkennung
+// Vorrang; nur was KEIN Befehl ist, gilt als Artikel.
 function einkaufKetteEingabe(text) {
   GlobalVoice.dialog = null;
-  if (istKetteEnde(text)) { einkaufKetteStop(false); return; }
+  if (istKetteEnde(text) || istAbbruch(text)) {
+    einkaufKetteStop(false);
+    return;
+  }
   if (istZurueck(text)) { einkaufZurueck(einkaufKetteBereit); return; }
+  const befehl = erkenneKommando(text);
+  if (befehl && befehl.typ !== "einkauf") {
+    einkaufKetteStop(true);   // Kette still beenden, Befehl ausfuehren
+    gvRoute(text);
+    return;
+  }
   einkaufHinzufuegen(text, einkaufKetteBereit);
 }
 
@@ -3857,7 +3871,7 @@ function prevStep() {
 // KI-REZEPTRECHERCHE (laeuft nur in der Online-Version)
 // =====================================================
 let rechercheZyklen = 0;
-let rechercheZweiterAnlauf = false;
+let rechercheZweiterAnlauf = 0;
 let letzterWunsch = null;
 let bisherigeNamen = [];
 
@@ -3932,14 +3946,19 @@ async function rechercheRezept(istWiederholung) {
     }
     if (!r.ok) {
       // Serverfehler sind meist Ausrutscher: EINMAL still nachfassen.
+      // Bis zu ZWEI stille Wiederholungen: Der Server bricht nach 9 s
+      // selbst ab, ein zweiter Anlauf ist danach fast immer erfolgreich.
+      // Drei Versuche a ~7 s bleiben fuer die Familie ertraeglich und
+      // ersparen ihr die Fehlermeldung fast vollstaendig.
       if ((r.status === 502 || r.status === 503 || r.status === 504)
-          && !rechercheZweiterAnlauf) {
-        rechercheZweiterAnlauf = true;
-        status.textContent = "🔄 Kurzer Aussetzer – ich versuche es nochmal …";
-        setTimeout(() => rechercheRezept(istWiederholung), 2000);
+          && rechercheZweiterAnlauf < 2) {
+        rechercheZweiterAnlauf++;
+        status.textContent = "🔄 Der Server war zu langsam – Versuch " +
+          (rechercheZweiterAnlauf + 1) + " von 3 …";
+        setTimeout(() => rechercheRezept(istWiederholung), 1500);
         return;
       }
-      rechercheZweiterAnlauf = false;
+      rechercheZweiterAnlauf = 0;
       // DIAGNOSE: Kommt eine lesbare Antwort von UNSERER Funktion oder
       // hat die Plattform die Verbindung gekappt? Vorher sah beides
       // gleich aus ("Fehler 504") und war nicht auseinanderzuhalten.
@@ -3953,7 +3972,7 @@ async function rechercheRezept(istWiederholung) {
       btn.disabled = false;
       return;
     }
-    rechercheZweiterAnlauf = false;
+    rechercheZweiterAnlauf = 0;
     const data = await r.json();
 
     if (!data.success) {

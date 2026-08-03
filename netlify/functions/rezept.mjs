@@ -30,7 +30,7 @@ async function pruefeTageskontingent(device) {
   try {
     const heute = new Date().toISOString().slice(0, 10);
     const key = `rl:rezept:${device}:${heute}`;
-    const frist = mitFrist(1500);
+    const frist = mitFrist(600);
     let resp;
     try {
       resp = await fetch(url + "/pipeline", {
@@ -72,7 +72,9 @@ function kanalVonCode(code) {
 // die Plattform sie abschiesst - Ergebnis: Gateway-Fehler 504, noch
 // bevor die KI ueberhaupt gefragt wurde. Kein Log, keine Meldung.
 // Grundsatz des Hauses: Verfuegbarkeit schlaegt Sperre. Antwortet der
-// Zaehler nicht binnen 1,5 s, laeuft die Recherche einfach weiter.
+// Zaehler nicht binnen 0,6 s, laeuft die Recherche einfach weiter.
+// GESAMTBUDGET der Funktion: 2 x 0,6 s Redis + 8,5 s KI = 9,7 s.
+// Es muss unter 10 s bleiben - siehe Test in tests/server/ausschluss.
 function mitFrist(ms) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
@@ -83,7 +85,7 @@ async function redisEinzel(command) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) return null;
-  const frist = mitFrist(1500);
+  const frist = mitFrist(600);
   try {
     const r = await fetch(url, {
       method: "POST",
@@ -103,7 +105,7 @@ async function rufeModell(apiKey, prompt, headers, maxTokens) {
   const ctrl = new AbortController();
   // 9 s: liegt unter JEDEM plausiblen Netlify-Limit, damit der Nutzer
   // immer die freundliche Meldung statt eines nackten 504 bekommt.
-  const timeout = setTimeout(() => ctrl.abort(), 7000);
+  const timeout = setTimeout(() => ctrl.abort(), 8500);
   try {
     const resp = await fetch(ANTHROPIC_URL, {
       method: "POST",
@@ -428,8 +430,12 @@ WEICHE PRAEFERENZ (wenn moeglich beruecksichtigen): Stil ${stilTxt}.
 ZEITRAHMEN: Zubereitung zwischen ${p.minuten_min} und ${p.minuten_max} Minuten.${ausschlussTxt}${vermeideTxt}
 
 ${p.kurz ? `WICHTIG: Das Feld "steps" bleibt in dieser Anfrage LEER (\`[]\`). \
-Die Zubereitungsschritte werden spaeter getrennt angefragt. Konzentriere \
-dich auf treffende Namen und eine vollstaendige, realistische Zutatenliste.
+Die Zubereitungsschritte werden spaeter getrennt angefragt.
+SCHREIBE KNAPP – die Antwort muss in wenigen Sekunden fertig sein:
+- hoechstens 12 Zutaten je Rezept
+- hoechstens 1 Eintrag unter "varianten", Text maximal 12 Woerter
+- hoechstens 2 Eintraege unter "tags", je ein einzelnes Wort
+- keine Erklaerungen, keine Fliesstexte ausserhalb der Felder
 ` : ""}
 AUSGABEFORMAT: Antworte AUSSCHLIESSLICH mit gueltigem JSON, ohne Markdown, \
 ohne Kommentar, in dieser Struktur:
@@ -739,7 +745,7 @@ export const handler = async (event) => {
     // synchrone Netlify-Funktionen brechen je nach Tarif bereits nach
     // 10 s ab. 9 s liegen unter JEDEM plausiblen Limit, damit immer die
     // freundliche Meldung ankommt statt eines nackten 504.
-    const timeout = setTimeout(() => ctrl.abort(), 7000);
+    const timeout = setTimeout(() => ctrl.abort(), 8500);
     try {
       const resp = await fetch(ANTHROPIC_URL, {
         method: "POST",
@@ -753,7 +759,7 @@ export const handler = async (event) => {
           model: MODEL,
           // Stufe 1 braucht nur Namen und Zutaten - der Deckel begrenzt
           // die Schreibzeit und damit die Gefahr des Gateway-Timeouts.
-          max_tokens: params.kurz ? 2500 : 8000,
+          max_tokens: params.kurz ? 1500 : 8000,
           temperature: 0.8,
           messages: [{ role: "user",
             content: buildPrompt(params) + (zusatz || "") }],
@@ -794,7 +800,10 @@ export const handler = async (event) => {
   // Einmal automatisch nachfassen, wenn die Antwort kein verwertbares
   // JSON war - aber NUR, wenn noch Zeitbudget vor dem Netlify-Limit
   // (~26 s) bleibt; sonst wuerde der Retry selbst den 504 ausloesen.
-  if (!parsed && Date.now() - startZeit < 4000) {
+  // Im Kurzmodus KEIN zweiter Anlauf: Zwei KI-Aufrufe passen nicht in
+  // das Zeitbudget der Plattform. Den Wiederholversuch uebernimmt die
+  // App (ein stiller zweiter Anlauf nach zwei Sekunden).
+  if (!parsed && !params.kurz && Date.now() - startZeit < 4000) {
     versuch = await frageKI("\n\nERINNERUNG: Antworte AUSSCHLIESSLICH " +
       "mit dem geforderten JSON-Objekt. Kein Markdown, keine Backticks, " +
       "kein Text davor oder danach.");

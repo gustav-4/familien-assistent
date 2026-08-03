@@ -112,13 +112,24 @@ const werte = timeoutTreffer.map((t) => Number(t.match(/(\d+)/)[1]));
 // AUDIT 2: 20 s waren immer noch zu grosszuegig - synchrone Netlify-
 // Funktionen brechen je nach Tarif schon nach 10 s ab. Jeder KI-Aufruf
 // muss unter 10 s bleiben, damit die eigene Notbremse zuerst greift.
-p("Kein KI-Aufruf wartet laenger als 9 s",
-  werte.length > 0 && werte.every((w) => w <= 9000));
+p("Kein KI-Aufruf wartet laenger als 8,5 s",
+  werte.length > 0 && werte.every((w) => w <= 8500));
+
+// Das GESAMTE Zeitbudget muss unter 10 s bleiben, nicht nur der
+// KI-Aufruf: Vor ihm laufen zwei Redis-Abfragen nacheinander.
+const redisFrist = Number((serverQuelle.match(/mitFrist\((\d+)\)/) || [])[1] || 0);
+const kiFrist = Math.max.apply(null, werte);
+p("Gesamtbudget (2x Redis + KI) bleibt unter 10 s (" +
+  ((2 * redisFrist + kiFrist) / 1000).toFixed(1) + " s)",
+  redisFrist > 0 && 2 * redisFrist + kiFrist < 10000);
+p("Kurzmodus verzichtet auf den zweiten KI-Anlauf",
+  /!params\.kurz && Date\.now\(\) - startZeit/.test(serverQuelle));
+p("Stufe 1 schreibt knapp (Deckel 1500)",
+  /params\.kurz \? 1500 : 8000/.test(serverQuelle));
 p("Alle KI-Aufrufe haben eine Notbremse", werte.length >= 2);
 p("Retry-Fenster passt ins 9-Sekunden-Budget",
   /Date\.now\(\) - startZeit < 4000/.test(serverQuelle));
-p("Stufe 1 (kurz) begrenzt die Schreibmenge",
-  /params\.kurz \? 2500 : 8000/.test(serverQuelle));
+
 p("Stufe 2 (schritte) existiert als eigener Zweig",
   /body\.modus === "schritte"/.test(serverQuelle));
 p("Stufe 2 prueft die Schritte gegen den Ausschluss",
@@ -144,7 +155,20 @@ const ohneFrist = fetchStellen.filter(
 p("JEDER Netzzugriff hat ein Zeitlimit (" +
   (fetchStellen.length - ohneFrist.length) + " von " + fetchStellen.length + ")",
   fetchStellen.length >= 4 && ohneFrist.length === 0);
-p("Redis-Frist ist kurz genug", /mitFrist\(1500\)/.test(serverQuelle));
+p("Redis-Frist ist kurz genug", /mitFrist\(600\)/.test(serverQuelle));
+
+// Von der Mutationsprobe aufgedeckt: Der Test oben liest nur die Zahl
+// an der AUFRUFSTELLE. Wer die Frist INNERHALB von mitFrist ueberschreibt,
+// blieb unsichtbar. Deshalb wird die Funktion jetzt wirklich ausgefuehrt
+// und die tatsaechlich geplante Frist gemessen.
+const mitFrist = (0, eval)("(function(){" +
+  bloeckeAus(serverQuelle, ["mitFrist"]) + "return mitFrist;})()");
+let erfassteFrist = null;
+const echterTimeout = globalThis.setTimeout;
+globalThis.setTimeout = (fn, ms) => { erfassteFrist = ms; return 0; };
+try { mitFrist(600).fertig(); } finally { globalThis.setTimeout = echterTimeout; }
+p("mitFrist plant WIRKLICH die uebergebene Frist (" + erfassteFrist + " ms)",
+  erfassteFrist === 600);
 p("Eigener Abbruch ist von einem Gateway-Fehler unterscheidbar",
   /statusCode: abbruch \? 503 : 502/.test(serverQuelle)
   && /quelle: "app"/.test(serverQuelle));
