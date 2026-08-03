@@ -928,3 +928,56 @@ pruefe("F-013 Echte Artikel kommen weiterhin auf die Liste", (function () {
   vState.liste.length = 0;
   return drauf;
 })());
+
+// =====================================================================
+// F-009: "wenn ich app öffne und 'rezepte' sage, springt anwendung
+//        nicht zu rezept"
+// Nachmeldung: "wenn ich anwendung 'einkaufsliste' nutze und
+// sprachbefehl 'rezepte' oder 'rezept recherchieren' sage, kommt
+// immernoch 'rezepte ist auf der liste'"
+// Ursache: erkenneKommando kannte nur den Singular "rezept". Die
+// Mehrzahl "rezepte" war ueberhaupt kein Befehl - sie fiel in der
+// Einkaufs-Kette als Artikel durch. Zusaetzlich wurden Fuellverben
+// wie "recherchieren" oder "suchen" als Suchwunsch missdeutet.
+// =====================================================================
+pruefe("F-009 'rezepte' ist ein Befehl", (function () {
+  const k = erkenneKommando("rezepte");
+  return Boolean(k) && k.typ === "rezept" && k.rest === "";
+})());
+
+pruefe("F-009 'rezepte suchen' ist ein Befehl ohne Suchwunsch", (function () {
+  const k = erkenneKommando("rezepte suchen");
+  return Boolean(k) && k.typ === "rezept" && k.rest === "";
+})());
+
+pruefe("F-009 'rezept recherchieren' hat KEINEN Suchwunsch", (function () {
+  // Frueher: rest = "recherchieren" -> die App suchte Rezepte, die zu
+  // dem Wort "recherchieren" passen.
+  const k = erkenneKommando("rezept recherchieren");
+  return Boolean(k) && k.typ === "rezept" && k.rest === "";
+})());
+
+pruefe("F-009 Echter Suchwunsch bleibt erhalten", (function () {
+  const k = erkenneKommando("rezept mit nudeln");
+  return Boolean(k) && k.typ === "rezept" && k.rest === "mit nudeln";
+})());
+
+pruefe("F-009 'rezepte' landet NICHT auf der Einkaufsliste", (function () {
+  vState.liste.length = 0;
+  einkaufKetteAktiv = true;
+  einkaufKetteEingabe("rezepte");
+  const sauber = vState.liste.length === 0;
+  einkaufKetteAktiv = false;
+  vState.liste.length = 0;
+  return sauber;
+})());
+
+pruefe("F-009 'rezept recherchieren' landet NICHT auf der Einkaufsliste", (function () {
+  vState.liste.length = 0;
+  einkaufKetteAktiv = true;
+  einkaufKetteEingabe("rezept recherchieren");
+  const sauber = vState.liste.length === 0;
+  einkaufKetteAktiv = false;
+  vState.liste.length = 0;
+  return sauber;
+})());

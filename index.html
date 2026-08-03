@@ -1870,7 +1870,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION30";
+const APP_VERSION = "FUSION32";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -2190,8 +2190,21 @@ function erkenneKommando(text) {
   m = t.match(/^(?:(?:einkauf[:,]?\s+)?liste|einkaufs?liste)\s+(vorlesen|leeren|löschen|loeschen)$/);
   if (m) return { typ: "liste",
     aktion: m[1] === "vorlesen" ? "vorlesen" : "leeren" };
-  m = t.match(/^(?:rezept|suche|recherchiere)(?:[:,]?\s+(.+))?$/);
-  if (m) return { typ: "rezept", rest: (m[1] || "").trim() };
+  // F-009: Frueher stand hier nur der Singular "rezept". Die Mehrzahl
+  // "rezepte" war ueberhaupt kein Befehl und fiel in der Einkaufs-Kette
+  // als Artikel durch ("rezepte ist auf der liste"). Zusaetzlich wurden
+  // Fuellverben als Suchwunsch missdeutet: "rezept recherchieren"
+  // suchte nach Rezepten zum Stichwort "recherchieren".
+  m = t.match(/^(?:rezept(?:e|en)?|rezeptsuche|rezeptrecherche|suche|recherchiere)(?:[:,]?\s+(.+))?$/);
+  if (m) {
+    let rest = (m[1] || "").trim();
+    // Fuellverben und Hoeflichkeitsfloskeln sind KEIN Suchwunsch.
+    rest = rest.replace(
+      /^(?:recherchieren|recherchiere|suchen|such|suche|finden|find|zeigen|zeig|anzeigen|starten|start|öffnen|oeffnen|bitte|mal|doch)\b[\s,]*/g,
+      "").trim();
+    if (/^(?:bitte|mal|doch|jetzt)$/.test(rest)) rest = "";
+    return { typ: "rezept", rest: rest };
+  }
   m = t.match(/^(?:neuer\s+|neuen\s+)?termin[:,]?\s*(.*)$/);
   if (m) return { typ: "termin", rest: m[1].trim() };
   // RT1-02: "Kaufen wir am Samstag zusammen ein?" ist eine Frage, kein

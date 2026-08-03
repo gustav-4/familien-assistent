@@ -1,6 +1,6 @@
 {
-  "zeitpunkt": "2026-08-03T14:21:40.975Z",
-  "mutationen": 37,
+  "zeitpunkt": "2026-08-03T15:02:35.296Z",
+  "mutationen": 39,
   "luecken": 0,
   "ergebnisse": [
     {
@@ -181,12 +181,22 @@
     {
       "name": "F-013: Befehle haben in der Einkaufs-Kette keinen Vorrang mehr",
       "status": "bemerkt",
-      "rot": 3
+      "rot": 5
     },
     {
       "name": "F-013: Abbruchwort wird in der Kette nicht mehr erkannt",
       "status": "bemerkt",
       "rot": 1
+    },
+    {
+      "name": "F-009: Mehrzahl 'rezepte' wird nicht mehr erkannt",
+      "status": "bemerkt",
+      "rot": 3
+    },
+    {
+      "name": "F-009: Fuellverben gelten wieder als Suchwunsch",
+      "status": "bemerkt",
+      "rot": 2
     }
   ]
 }

@@ -1,4 +1,4 @@
-# ARBEITSREGELN — Version 3.1
+# ARBEITSREGELN — Version 3.2
 
 Diese Regeln liegen als REGELN.md im Repository. Das Register liegt als
 REGISTER.md im Repository. Diese Dateien sind die einzige Quelle der
@@ -123,7 +123,9 @@ der Belegform.
 **DAUERREGEL 2 — Freigaben**
 Eine ausdrückliche FREIGABE brauchst du nur noch in zwei Fällen:
 (a) Änderungen an Dateien unter `.github/workflows/`,
-(b) Aufnahme neuer Fremd-Bausteine/Abhängigkeiten.
+(b) Aufnahme neuer Fremd-Bausteine/Abhängigkeiten,
+(c) Änderungen an tests/pipeline.js und der übrigen
+    Abnahmeinfrastruktur (siehe Regel 5).
 Alle anderen Arbeiten — Dateien anlegen, Fehler beheben, Tests schreiben
 — führst du eigenständig aus. Rot vor grün genügt als Nachweis.
 SHA-256-Prüfsummen und Patch-Vorlagen vor Freigabe entfallen.
@@ -135,5 +137,5 @@ blockiert > störend > kosmetisch) und arbeitest sie in dieser Reihenfolge
 ab, ein Fehler pro Schritt. Nur bei neuem Verhalten (FEATURE) fragst du
 vor der Umsetzung.
 
-Dauerregel 2 hat Vorrang vor der Freigabepflicht in Regel 5, soweit es
-nicht um `.github/workflows/` oder neue Fremd-Bausteine geht.
+Die Freigabepflicht aus Regel 5 bleibt durch Dauerregel 2 unberührt:
+Abnahmeinfrastruktur ist und bleibt freigabepflichtig.

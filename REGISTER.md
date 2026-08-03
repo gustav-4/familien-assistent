@@ -60,9 +60,13 @@ mit der ID beginnt. `offen` und `nicht-reproduzierbar` nicht.
 
 ## F-009
 **Wortlaut:** wenn ich app öffne und "rezepte" sage, springt anwendung nicht zu rezept
-**Status:** offen
-**Test:** —
+**Nachmeldung (Wortlaut):** wenn ich anwendung "einkaufsliste" nutze und sprachbefehl "rezepte" oder "rezept recherchieren" sage, kommt immernoch "rezepte ist auf der liste" und die anwendung wechselt nicht zu rezeptrecherche!
+**Status:** behoben
+**Test:** F-009 'rezepte' ist ein Befehl (+5 weitere)
 **Priorität:** 2 — Haupteinstieg blockiert
+**Ursache:** erkenneKommando kannte nur den Singular "rezept". Die Mehrzahl "rezepte" war ueberhaupt kein Befehl und fiel in der Einkaufs-Kette als Artikel durch. Zusaetzlich wurden Fuellverben ("recherchieren", "suchen") als Suchwunsch missdeutet - die App suchte dann Rezepte zum Stichwort "recherchieren".
+**Mutationen:** F-009: Mehrzahl 'rezepte' wird nicht mehr erkannt / F-009: Fuellverben gelten wieder als Suchwunsch
+**Verlinkung:** Die Nachmeldung wurde zunaechst F-013 zugeordnet. F-013 (Befehlsvorrang in der Kette) war korrekt behoben, griff hier aber nicht, weil "rezepte" gar nicht als Befehl erkannt wurde.
 
 ## F-010
 **Wortlaut:** wenn termine falsch gesagt wurden o. nicht mehr aktuell sind soll eine funktion: sprachbefehl ... termin (z.b. papa donnerstag reiten) löschen integriert werden
@@ -89,3 +93,39 @@ mit der ID beginnt. `offen` und `nicht-reproduzierbar` nicht.
 **Priorität:** 1 — nicht bedienbar
 **Ursache:** einkaufKetteEingabe pruefte nur istKetteEnde und istZurueck; alles andere fiel ungeprueft an einkaufHinzufuegen durch. Jetzt hat die Befehlserkennung Vorrang.
 **Mutationen:** F-013: Befehle haben in der Einkaufs-Kette keinen Vorrang mehr / F-013: Abbruchwort wird in der Kette nicht mehr erkannt
+
+## F-014
+**Wortlaut:** SonarCloud meldet nach FUSION30 insgesamt 9 Security-Issues, davon 1 High.
+**Status:** behoben
+**Test:** F-014a pipeline.js stellt pruefeSkriptSyntax bereit (+9 weitere, tests/server/pipeline.test.mjs)
+**Priorität:** 1 — Sicherheit
+
+### F-014a — HIGH, behoben
+`tests/pipeline.js:151` — "Make sure that this dynamic injection or execution of code is safe."
+Die Stufe-1-Syntaxpruefung benutzte `new Function(code)` und erzeugte damit aus
+fremdem Quelltext ein aufrufbares Objekt. `pipeline.js` ist die Abnahmestelle und
+laeuft in der CI mit Schreibrechten. Ersetzt durch `new vm.Script(code)`: gleiche
+Pruefschaerfe, kein ausfuehrbares Artefakt, keine aufrufbare Rueckgabe.
+Belegt: absichtlicher Syntaxfehler in index.html wird weiterhin erkannt
+("Statische Evidenz - ROT ... Skriptblock 3: Unexpected token '{'").
+Nebenbefund mitbehoben: `require(pipeline.js)` startete den kompletten Lauf -
+die Abnahmestelle war selbst nicht pruefbar. Jetzt Trennung ueber `require.main`.
+
+### F-014b — 8x LOW, kein Risiko
+Alle acht liegen ausschliesslich in Testwerkzeugen. Weder `index.html` noch
+`sw.js` noch `netlify/functions/` sind betroffen — kein Fund erreicht die
+ausgelieferte App oder den Server.
+
+| Datei | Zeile | Meldung | Begruendung |
+| --- | --- | --- | --- |
+| tests/melde.mjs | 91 | log user-controlled data | Protokolliert den HTTP-Status der eigenen Meldeschnittstelle. Laeuft nur im CI, Ausgabe geht ins Lauf-Protokoll, nicht an Nutzer. |
+| tests/mutation.js | 305 | PATH variable | `execFileSync("node", ...)` ohne gesetztes PATH. Laeuft in der CI mit definierter Umgebung; ein Angreifer mit Schreibrecht auf PATH haette ohnehin Vollzugriff. |
+| tests/mutation.js | 349 | PATH variable | wie oben |
+| tests/redteam.mjs | 136 | log user-controlled data | Protokollfunktion des Testwerkzeugs, Daten stammen aus dem eigenen Repository. |
+| tests/redteam.mjs | 202 | PATH variable | wie mutation.js:305 |
+| tests/redteam.mjs | 252 | log user-controlled data | Rundenprotokoll des Testwerkzeugs. |
+| tests/redteam.mjs | 282 | PATH variable | wie mutation.js:305 |
+| tests/reparatur.mjs | 176 | log user-controlled data | Gibt die Begruendung eines Reparaturvorschlags im CI-Protokoll aus. |
+
+Bewertung: Risiko akzeptiert, keine Aenderung. Wird erneut geprueft, falls eines
+dieser Werkzeuge jemals ausserhalb der CI oder mit Fremddaten laufen soll.

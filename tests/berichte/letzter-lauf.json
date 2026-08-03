@@ -1,16 +1,21 @@
 {
-  "zeitpunkt": "2026-08-03T14:21:40.968Z",
-  "version": "FUSION30",
-  "gesamt": 174,
-  "bestanden": 173,
-  "fehlgeschlagen": 1,
+  "zeitpunkt": "2026-08-03T15:02:35.290Z",
+  "version": "FUSION31",
+  "gesamt": 180,
+  "bestanden": 178,
+  "fehlgeschlagen": 2,
   "selbstheilung": {
     "geschlosseneAttrappenLuecken": [],
     "hinweis": "Keine Attrappen-Luecken."
   },
   "fehler": [
     {
-      "name": "F-013 'abbrechen' landet NICHT auf der Einkaufsliste",
+      "name": "F-009 'rezepte suchen' ist ein Befehl ohne Suchwunsch",
+      "bestanden": false,
+      "fehlertext": ""
+    },
+    {
+      "name": "F-009 'rezept recherchieren' hat KEINEN Suchwunsch",
       "bestanden": false,
       "fehlertext": ""
     }

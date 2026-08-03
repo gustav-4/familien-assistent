@@ -28,6 +28,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const vm = require("vm");
 const { execFileSync } = require("child_process");
 
 const WURZEL = path.resolve(__dirname, "..");
@@ -46,6 +47,22 @@ function hashVon(dateien) {
     try { h.update(fs.readFileSync(p)); } catch (e) { h.update("fehlt"); }
   }
   return h.digest("hex").slice(0, 16);
+}
+
+// F-014a (SonarCloud HIGH): Frueher stand hier new Function(code).
+// Das erzeugt aus fremdem Quelltext ein AUSFUEHRBARES Objekt. Diese
+// Datei ist die Abnahmestelle und laeuft in der CI mit Schreibrechten -
+// dort darf aus index.html kein aufrufbares Artefakt entstehen.
+// vm.Script kompiliert und meldet Syntaxfehler mit derselben Schaerfe,
+// fuehrt aber nichts aus und gibt nichts Aufrufbares zurueck.
+// Rueckgabe: null = in Ordnung, sonst die Fehlermeldung als Text.
+function pruefeSkriptSyntax(code) {
+  try {
+    new vm.Script(String(code), { filename: "pruefling.js" });
+    return null;
+  } catch (e) {
+    return String((e && e.message) || e);
+  }
 }
 
 function dateienUnter(ordner, endung) {
@@ -148,9 +165,9 @@ function stufe1() {
     if (/type\s*=\s*["'][^"']*json/i.test(kopf)) return; // JSON-LD
     const code = roh.slice(kopfEnde + 1, roh.indexOf("</script>"));
     if (!code || code.trim().length < 50) return;
-    try { new Function(code); }
-    catch (e) { fehler.push("Syntaxfehler in index.html, Skriptblock " +
-      (i + 1) + ": " + e.message); }
+    const meldung = pruefeSkriptSyntax(code);
+    if (meldung) fehler.push("Syntaxfehler in index.html, Skriptblock " +
+      (i + 1) + ": " + meldung);
   });
 
   // 1c. Hausregeln, die kein Test abdeckt
@@ -268,6 +285,13 @@ const STUFEN = [
       .concat(dateienUnter("netlify/functions", ".mjs"))
       .concat(dateienUnter("tests/server", ".test.mjs")) },
 ];
+
+// F-014a: Ohne diese Trennung fuehrt jedes require(pipeline.js) den
+// kompletten Lauf aus - die Pipeline war nicht pruefbar, weil sie sich
+// beim Einbinden selbst startete.
+module.exports = { stufe0, stufe1, stufe2, stufe2b, stufe3,
+  pruefeSkriptSyntax };
+if (require.main !== module) return;
 
 const cache = cacheLesen();
 const neu = {};

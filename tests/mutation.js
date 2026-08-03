@@ -298,6 +298,20 @@ const MUTATIONEN = [
     // falsch, nicht die Reparatur.
     erwarteRot: ["F-013 'abbrechen'"],
   },
+  {
+    name: "F-009: Mehrzahl 'rezepte' wird nicht mehr erkannt",
+    datei: "index.html",
+    suchen: "  m = t.match(/^(?:rezept(?:e|en)?|rezeptsuche|rezeptrecherche|suche|recherchiere)(?:[:,]?\\s+(.+))?$/);",
+    ersetzen: "  m = t.match(/^(?:rezept|suche|recherchiere)(?:[:,]?\\s+(.+))?$/);",
+    erwarteRot: ["F-009 'rezepte' ist ein Befehl"],
+  },
+  {
+    name: "F-009: Fuellverben gelten wieder als Suchwunsch",
+    datei: "index.html",
+    suchen: "    rest = rest.replace(",
+    ersetzen: "    rest = String(rest).replace(/__nie__/,",
+    erwarteRot: ["F-009 'rezept recherchieren' hat KEINEN Suchwunsch"],
+  },
 ];
 
 function laufen() {
