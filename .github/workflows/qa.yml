@@ -17,10 +17,11 @@ on:
         type: boolean
         default: false
 
+# GEAENDERT (Sonar-Befund L21-23): Grundrecht fuer ALLE Jobs ist nur
+# noch Lesen. Schreibrechte gibt es gezielt dort, wo die Heilung sie
+# braucht - siehe Job "redteam". Prinzip der minimalen Rechte.
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+  contents: read
 
 jobs:
   szenarien:
@@ -65,6 +66,12 @@ jobs:
     needs: szenarien
     if: github.event_name == 'schedule' || inputs.redteam
     runs-on: ubuntu-latest
+    # GEAENDERT (Sonar-Befund L21-23): Nur DIESER Job darf schreiben,
+    # denn nur hier findet die Heilung statt (Branch + Pull Request).
+    # Die Szenarien oben laufen bewusst ohne Schreibrechte.
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -99,7 +106,11 @@ jobs:
 
       - name: Reparaturvorschlag als Pull Request
         if: always()
-        uses: peter-evans/create-pull-request@v6
+        # GEAENDERT (Sonar-Befund L102): Fremde Action auf festen Commit
+        # gepinnt statt auf verschiebbares Tag "@v6". Ein Tag kann vom
+        # Autor (oder einem Angreifer) nachtraeglich umgehaengt werden -
+        # ein Commit-Hash nicht. Der Hash entspricht Release v6.0.5.
+        uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e  # v6.0.5
         with:
           branch: qa/selbstheilung
           title: "QA: Selbstheilung + Red-Team-Befunde"
@@ -116,4 +127,3 @@ jobs:
             Bitte Verdachtsfaelle sichten: echter Defekt -> Fix beauftragen;
             falsche Annahme -> Testfall verwerfen.
           delete-branch: true
-
