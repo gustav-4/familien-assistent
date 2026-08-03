@@ -28,7 +28,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
-const vm = require("vm");
+const os = require("os");
 const { execFileSync } = require("child_process");
 
 const WURZEL = path.resolve(__dirname, "..");
@@ -49,19 +49,38 @@ function hashVon(dateien) {
   return h.digest("hex").slice(0, 16);
 }
 
-// F-014a (SonarCloud HIGH): Frueher stand hier new Function(code).
-// Das erzeugt aus fremdem Quelltext ein AUSFUEHRBARES Objekt. Diese
-// Datei ist die Abnahmestelle und laeuft in der CI mit Schreibrechten -
-// dort darf aus index.html kein aufrufbares Artefakt entstehen.
-// vm.Script kompiliert und meldet Syntaxfehler mit derselben Schaerfe,
-// fuehrt aber nichts aus und gibt nichts Aufrufbares zurueck.
+// F-014a (SonarCloud HIGH, zweimal nachgebessert):
+// Stand 1: new Function(code)  -> erzeugt ein aufrufbares Objekt.
+// Stand 2: new vm.Script(code) -> faellt unter DIESELBE Sonar-Regel
+//          ("dynamic injection or execution of code").
+// Stand 3 (hier): Der Code wird ueberhaupt nicht mehr im eigenen
+//          Prozess angefasst. Er wandert in eine temporaere Datei, und
+//          `node --check` prueft sie in einem KINDPROZESS. Dort gibt es
+//          keinen Code-Konstruktor, keine Ausfuehrung und keinen
+//          gemeinsamen Speicher mit der Abnahmestelle.
+//          Gleiche Pruefschaerfe: node --check ist derselbe Parser.
 // Rueckgabe: null = in Ordnung, sonst die Fehlermeldung als Text.
 function pruefeSkriptSyntax(code) {
+  let datei = null;
   try {
-    new vm.Script(String(code), { filename: "pruefling.js" });
-    return null;
+    datei = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "syntax-")),
+      "pruefling.js");
+    fs.writeFileSync(datei, String(code), "utf8");
+    const r = lauf("node", ["--check", datei]);
+    if (r.ok) return null;
+    // Erste aussagekraeftige Zeile der Fehlerausgabe zurueckgeben.
+    const zeilen = String(r.aus).split("\n")
+      .map((z) => z.trim())
+      .filter((z) => z && !z.startsWith("at ") && z.indexOf(datei) === -1);
+    const kern = zeilen.find((z) => /Error|error|Unexpected|Invalid|Missing/.test(z));
+    return kern || zeilen[0] || "Syntaxfehler";
   } catch (e) {
     return String((e && e.message) || e);
+  } finally {
+    if (datei) {
+      try { fs.rmSync(path.dirname(datei), { recursive: true, force: true }); }
+      catch (e) {}
+    }
   }
 }
 

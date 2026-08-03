@@ -1,21 +1,16 @@
 {
-  "zeitpunkt": "2026-08-03T15:02:35.290Z",
-  "version": "FUSION31",
-  "gesamt": 180,
-  "bestanden": 178,
-  "fehlgeschlagen": 2,
+  "zeitpunkt": "2026-08-03T15:29:05.269Z",
+  "version": "FUSION33",
+  "gesamt": 185,
+  "bestanden": 184,
+  "fehlgeschlagen": 1,
   "selbstheilung": {
     "geschlosseneAttrappenLuecken": [],
     "hinweis": "Keine Attrappen-Luecken."
   },
   "fehler": [
     {
-      "name": "F-009 'rezepte suchen' ist ein Befehl ohne Suchwunsch",
-      "bestanden": false,
-      "fehlertext": ""
-    },
-    {
-      "name": "F-009 'rezept recherchieren' hat KEINEN Suchwunsch",
+      "name": "F-011 Bereit-Banner erscheint im Kochmodus NICHT zusaetzlich",
       "bestanden": false,
       "fehlertext": ""
     }

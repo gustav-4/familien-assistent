@@ -64,8 +64,18 @@ const codeZeilen = quelle.split("\n")
   .filter((z) => !/^\s*(\/\/|\*|\/\*)/.test(z));
 p("F-014a Kein ausfuehrbares new Function mehr in pipeline.js",
   codeZeilen.join("\n").indexOf("new Function(") === -1);
-p("F-014a Syntaxpruefung benutzt vm.Script",
-  /new vm\.Script\(/.test(codeZeilen.join("\n")));
+// NACHARBEIT F-014a: vm.Script faellt unter dieselbe SonarCloud-Regel
+// wie new Function ("dynamic injection or execution of code"). Die
+// Pruefung darf ueberhaupt keinen Code-Konstruktor mehr verwenden -
+// weder Function, noch vm, noch eval.
+const code = codeZeilen.join("\n");
+p("F-014a Kein vm-Modul mehr in pipeline.js",
+  !/require\(["']vm["']\)/.test(code) && !/new vm\.Script\(/.test(code));
+p("F-014a Kein eval in pipeline.js", !/\beval\s*\(/.test(code));
+p("F-014a Kein Function-Konstruktor in pipeline.js",
+  !/\bFunction\s*\(/.test(code));
+p("F-014a Syntaxpruefung laeuft ueber node --check im Kindprozess",
+  /--check/.test(code));
 
 console.log("\nPipeline-Selbsttest: " + ok + " bestanden, " + fail + " fehlgeschlagen");
 process.exit(fail ? 1 : 0);

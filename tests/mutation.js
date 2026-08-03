@@ -312,6 +312,20 @@ const MUTATIONEN = [
     ersetzen: "    rest = String(rest).replace(/__nie__/,",
     erwarteRot: ["F-009 'rezept recherchieren' hat KEINEN Suchwunsch"],
   },
+  {
+    name: "F-011: Chip wird im Kochmodus wieder eingeblendet",
+    datei: "index.html",
+    suchen: "  c.className = (klasse || \"\") + (imKochen ? \" verborgen\" : \"\");",
+    ersetzen: "  c.className = (klasse || \"\");",
+    erwarteRot: ["F-011 Im Kochmodus ist der schwebende Chip"],
+  },
+  {
+    name: "F-011: Bereit-Banner erscheint im Kochmodus wieder zusaetzlich",
+    datei: "index.html",
+    suchen: "  if (b && !imKochen) b.classList.add(\"sichtbar\");",
+    ersetzen: "  if (b) b.classList.add(\"sichtbar\");",
+    erwarteRot: ["F-011 Bereit-Banner erscheint im Kochmodus NICHT"],
+  },
 ];
 
 function laufen() {

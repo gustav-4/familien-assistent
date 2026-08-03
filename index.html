@@ -168,6 +168,10 @@
   #gvChip.an { background:#e3f2e1; border-color:var(--accent2); }
   #gvChip.aus { background:#f4f4f4; color:#666; }
   #gvChip.redet { background:#fdf3e0; border-color:#d9a441; color:#7a5410; }
+  /* F-011: Im Kochmodus traegt die Statuszeile im Kochbereich den
+     Mikrofonzustand. Der schwebende Chip zeigte dieselbe Information
+     ein zweites Mal und verdeckte dabei Bedienelemente. */
+  #gvChip.verborgen { display:none; }
   #gvChip.eingabe { background:#e6f0ff; border-color:#3a6ea5; color:#1c3d63;
                     font-weight:700; }
   /* Unuebersehbarer Hinweis: JETZT sprechen. Der kleine Chip allein
@@ -1870,7 +1874,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION32";
+const APP_VERSION = "FUSION33";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -1895,7 +1899,13 @@ function gvChip(text, klasse) {
   const c = document.getElementById("gvChip");
   if (!c) return;
   c.textContent = text;
-  c.className = klasse || "";
+  // F-011: Ein Zustand, eine Anzeige. Im Kochmodus wandert der Text in
+  // die Statuszeile des Kochbereichs; der schwebende Chip verschwindet,
+  // damit er weder doppelt informiert noch Knoepfe verdeckt.
+  let imKochen = false;
+  try { imKochen = cookingVisible(); } catch (e) {}
+  c.className = (klasse || "") + (imKochen ? " verborgen" : "");
+  if (imKochen) gvKochStatus(text, klasse === "an" || klasse === "eingabe");
 }
 
 // BUGFIX: Der Chip zeigte waehrend einer Ansage weiter gruen "ich
@@ -2968,7 +2978,12 @@ function gvBereitAnzeigen(text) {
   const b = document.getElementById("gvBereit");
   const t = document.getElementById("gvBereitText");
   if (t) t.textContent = text;
-  if (b) b.classList.add("sichtbar");
+  // F-011: Im Kochmodus wuerde das Banner ueber den Kochschritten
+  // liegen - genau die Ueberlagerung, die stoerte. Dort genuegt die
+  // Statuszeile, die gvChip ohnehin mitfuehrt.
+  let imKochen = false;
+  try { imKochen = cookingVisible(); } catch (e) {}
+  if (b && !imKochen) b.classList.add("sichtbar");
 }
 
 function gvBereitVerbergen() {

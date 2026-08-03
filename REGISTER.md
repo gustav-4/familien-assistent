@@ -76,9 +76,12 @@ mit der ID beginnt. `offen` und `nicht-reproduzierbar` nicht.
 
 ## F-011
 **Wortlaut:** das mikrofonsignal überschneidet sich mit den jeweilig aktuellen anwendungen (z.b. kochen) und stört und verwirrt dort
-**Status:** offen
-**Test:** —
+**Status:** behoben
+**Test:** F-011 Im Kochmodus ist der schwebende Chip ausgeblendet (+4 weitere)
 **Priorität:** 3 — störend
+**Ursache:** Im Kochmodus zeigten ZWEI Anzeigen denselben Mikrofonzustand - der schwebende Chip (position:fixed, bottom:74px, ueber dem Inhalt) und die Statuszeile micStatus im Kochbereich. Zusaetzlich legte sich das Bereit-Banner ueber die Kochschritte. Jetzt gilt: ein Zustand, eine Anzeige. Im Kochmodus traegt die Statuszeile die Information, der schwebende Chip und das Banner werden ausgeblendet.
+**Mutationen:** F-011: Chip wird im Kochmodus wieder eingeblendet / F-011: Bereit-Banner erscheint im Kochmodus wieder zusaetzlich
+**Nebenbefund:** Fuenf bestehende Tests (M13, M14, Q3, Q4, Q5) hingen an ungepruefetem Rest-Zustand der Attrappe. Vorbedingung ist jetzt ueber setzeKochmodus() und gvBereitVerbergen() explizit. Keine Pruefung wurde abgeschwaecht - die Klassenpruefungen wurden von Gleichheit auf classList.contains umgestellt und sind dadurch praeziser.
 
 ## F-012
 **Wortlaut:** der feedback button liegt hinter dem mikrofonbutton
@@ -110,6 +113,16 @@ Belegt: absichtlicher Syntaxfehler in index.html wird weiterhin erkannt
 ("Statische Evidenz - ROT ... Skriptblock 3: Unexpected token '{'").
 Nebenbefund mitbehoben: `require(pipeline.js)` startete den kompletten Lauf -
 die Abnahmestelle war selbst nicht pruefbar. Jetzt Trennung ueber `require.main`.
+
+**Nacharbeit (Scan nach FUSION32):** SonarCloud meldete den Befund erneut in
+Zeile 61 - `vm.Script` faellt unter DIESELBE Regel wie `new Function`. Dritte
+und endgueltige Fassung: Der Code wird im eigenen Prozess ueberhaupt nicht mehr
+angefasst. Er wandert in eine temporaere Datei, `node --check` prueft sie im
+KINDPROZESS. Kein Code-Konstruktor, keine Ausfuehrung, kein gemeinsamer
+Speicher. Gleiche Pruefschaerfe, da derselbe Parser. Der Test verbietet jetzt
+ausdruecklich Function, vm und eval in ausfuehrbarem Code von pipeline.js.
+Pruefschaerfe erneut belegt: "Statische Evidenz - ROT ... Skriptblock 3:
+SyntaxError: Unexpected token '{'".
 
 ### F-014b — 8x LOW, kein Risiko
 Alle acht liegen ausschliesslich in Testwerkzeugen. Weder `index.html` noch

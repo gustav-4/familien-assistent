@@ -1,6 +1,6 @@
 {
-  "zeitpunkt": "2026-08-03T15:02:35.296Z",
-  "mutationen": 39,
+  "zeitpunkt": "2026-08-03T15:29:05.276Z",
+  "mutationen": 41,
   "luecken": 0,
   "ergebnisse": [
     {
@@ -197,6 +197,16 @@
       "name": "F-009: Fuellverben gelten wieder als Suchwunsch",
       "status": "bemerkt",
       "rot": 2
+    },
+    {
+      "name": "F-011: Chip wird im Kochmodus wieder eingeblendet",
+      "status": "bemerkt",
+      "rot": 2
+    },
+    {
+      "name": "F-011: Bereit-Banner erscheint im Kochmodus wieder zusaetzlich",
+      "status": "bemerkt",
+      "rot": 1
     }
   ]
 }

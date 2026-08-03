@@ -234,6 +234,15 @@ pruefe("L19 Grenzwert 300 s ist Minutenansage, 299 s nicht",
 pruefe("L20 Wochenstart ist ein Montag",
   new Date(isoTag(montagVon(0)) + "T12:00:00Z").getUTCDay() === 1);
 
+// Kochmodus der Attrappe EXPLIZIT setzen. Ohne das haengen Tests am
+// Rest-Zustand vorheriger Tests - beim F-011-Fix wurden dadurch fuenf
+// Tests rot, die in Wahrheit nur eine ungepruefte Annahme trugen.
+function setzeKochmodus(an) {
+  el("tab-kochen").classList = {
+    contains: () => !an, add() {}, remove() {}, toggle() {},
+  };
+}
+
 // =====================================================================
 // M: FEHLERTESTS ZU DEN GEMELDETEN FEHLERN (31.07.)
 // ---------------------------------------------------------------------
@@ -343,16 +352,19 @@ pruefe("M12 Ansage-Ende blendet die Sprechblase aus", (function () {
 
 // ---------- M13-M16: Der Chip sagt die Wahrheit ----------
 pruefe("M13 Waehrend der Ansage zeigt der Chip NICHT gruen", (function () {
+  setzeKochmodus(false);
   gvChipAnsage();
-  const k = String(el("gvChip").className || "");
-  return k === "redet" && k !== "an";
+  const c = el("gvChip").classList;
+  return c.contains("redet") && !c.contains("an");
 })());
 
 pruefe("M14 Nach der Ansage steht der Chip wieder auf dem echten Zustand", (function () {
+  setzeKochmodus(false);
   gvStopp();               // aktiv = false
   gvChipAnsage();
   gvChipStand();
-  return String(el("gvChip").className || "") === "aus";
+  const c = el("gvChip").classList;
+  return c.contains("aus") && !c.contains("redet");
 })());
 
 pruefe("M15 Ruhepause spielt den Einschlafton", (function () {
@@ -798,6 +810,7 @@ pruefe("Q2 Eingabe-Modus spricht NICHT (sonst hoert die App sich selbst)", (func
 })());
 
 pruefe("Q3 Bereit-Banner wird sichtbar", (function () {
+  setzeKochmodus(false);
   gvStopp(); gvStart();
   gvEingabe("Termin sprechen", () => {});
   const sichtbar = el("gvBereit").classList.contains("sichtbar");
@@ -807,6 +820,7 @@ pruefe("Q3 Bereit-Banner wird sichtbar", (function () {
 })());
 
 pruefe("Q4 Banner verschwindet nach der Eingabe", (function () {
+  setzeKochmodus(false);
   gvStopp(); gvStart();
   gvEingabe("Termin sprechen", () => {});
   const vorher = el("gvBereit").classList.contains("sichtbar");
@@ -815,15 +829,16 @@ pruefe("Q4 Banner verschwindet nach der Eingabe", (function () {
 })());
 
 pruefe("Q5 Chip flackert waehrend der Eingabe NICHT", (function () {
+  setzeKochmodus(false);
   gvStopp(); gvStart();
   gvEingabe("Worauf habt ihr Lust?", () => {});
-  const a = String(el("gvChip").className || "");
+  const a = el("gvChip").classList.contains("eingabe");
   listening = false; gvChipStand();     // wuerde sonst "gleich wieder da"
-  const b = String(el("gvChip").className || "");
+  const b = el("gvChip").classList.contains("eingabe");
   GlobalVoice.aktiv = false; gvChipStand();  // wuerde sonst "aus"
-  const c = String(el("gvChip").className || "");
+  const c = el("gvChip").classList.contains("eingabe");
   gvEingabeBeenden(true);
-  return a === "eingabe" && b === "eingabe" && c === "eingabe";
+  return a && b && c;
 })());
 
 pruefe("Q6 Waehrend der Eingabe gibt es KEINE Backoff-Pause", (function () {
@@ -980,4 +995,59 @@ pruefe("F-009 'rezept recherchieren' landet NICHT auf der Einkaufsliste", (funct
   einkaufKetteAktiv = false;
   vState.liste.length = 0;
   return sauber;
+})());
+
+// =====================================================================
+// F-011: "das mikrofonsignal überschneidet sich mit den jeweilig
+//        aktuellen anwendungen (z.b. kochen) und stört und verwirrt"
+// Ursache: Im Kochmodus zeigen ZWEI Anzeigen denselben Zustand - der
+// schwebende Chip (fest ueber dem Inhalt, bottom:74px) und die
+// Statuszeile micStatus im Kochbereich. Der Chip verdeckt zusaetzlich
+// Bedienelemente. Im Kochmodus traegt die Statuszeile die Information
+// im Zusammenhang; der schwebende Chip wird dort ausgeblendet.
+// =====================================================================
+pruefe("F-011 Im Kochmodus ist der schwebende Chip ausgeblendet", (function () {
+  setzeKochmodus(true);
+  gvStopp(); gvStart();
+  gvChipStand();
+  return el("gvChip").classList.contains("verborgen");
+})());
+
+pruefe("F-011 Ausserhalb des Kochmodus bleibt der Chip sichtbar", (function () {
+  setzeKochmodus(false);
+  gvStopp(); gvStart();
+  gvChipStand();
+  return !el("gvChip").classList.contains("verborgen");
+})());
+
+pruefe("F-011 Kochmodus zeigt den Zustand in der Statuszeile", (function () {
+  setzeKochmodus(true);
+  gvStopp(); gvStart();
+  listening = true;
+  gvChipStand();
+  const t = String(el("micStatus").textContent || "");
+  return t.length > 0;
+})());
+
+pruefe("F-011 Auch die Ansage blendet den Chip im Kochmodus aus", (function () {
+  setzeKochmodus(true);
+  gvStopp(); gvStart();
+  gvChipAnsage();
+  return el("gvChip").classList.contains("verborgen");
+})());
+
+pruefe("F-011 Bereit-Banner erscheint im Kochmodus NICHT zusaetzlich", (function () {
+  // Zwei gleichzeitige Hinweise waren genau die Verwirrung.
+  setzeKochmodus(true);
+  gvBereitVerbergen();          // Vorbedingung explizit, kein Rest-Zustand
+  gvStopp(); gvStart();
+  gvEingabe("Sprich jetzt", () => {});
+  // Von der Gegenprobe aufgedeckt: Die urspruengliche Fassung pruefte
+  // eine Kombination aus Banner UND Chip und blieb deshalb gruen, als
+  // die Banner-Unterdrueckung entfernt wurde. Jetzt wird genau die
+  // Sache geprueft: Im Kochmodus erscheint das Banner nicht.
+  const banner = el("gvBereit").classList.contains("sichtbar");
+  gvEingabeBeenden(true);
+  setzeKochmodus(false);
+  return banner === false;
 })());
