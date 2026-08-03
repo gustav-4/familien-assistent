@@ -8,15 +8,19 @@ on:
   repository_dispatch:
     types: [qa-reparatur, qa-live]
 
-permissions:
-  contents: write
-  pull-requests: write
+# GEAENDERT: Rechte-Block hier oben entfernt.
+# Jeder Job bekommt unten nur noch die Rechte, die er selbst braucht.
 
 jobs:
   reparatur:
     name: Tor 1 - Reparatur bauen und pruefen
     if: github.event.action == 'qa-reparatur'
     runs-on: ubuntu-latest
+    # GEAENDERT: Rechte nur fuer diesen Job.
+    # Er muss Code schreiben (Reparatur-Zweig) und einen Pull Request anlegen.
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -60,7 +64,9 @@ jobs:
           --tests=${{ steps.tests.outcome }} --rt=${{ steps.rt.outcome }}
 
       - name: Reparatur als Pull Request ablegen
-        uses: peter-evans/create-pull-request@v6
+        # GEAENDERT: Fremd-Baustein auf exakten Fingerabdruck (SHA) fixiert
+        # statt auf das verschiebbare Etikett "v6". Entspricht v6.1.0.
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6.1.0
         with:
           branch: qa/reparatur
           title: "QA-Reparatur (automatisch erzeugt, geprueft)"
@@ -80,6 +86,10 @@ jobs:
     name: Tor 2 - Reparatur live schalten
     if: github.event.action == 'qa-live'
     runs-on: ubuntu-latest
+    # GEAENDERT: Dieser Job braucht keine Pull-Request-Rechte,
+    # nur Schreibrecht auf den Code (fuer den Merge nach main).
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
