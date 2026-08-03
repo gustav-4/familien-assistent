@@ -1,6 +1,6 @@
 {
-  "zeitpunkt": "2026-08-03T15:29:05.276Z",
-  "mutationen": 41,
+  "zeitpunkt": "2026-08-03T15:45:24.965Z",
+  "mutationen": 42,
   "luecken": 0,
   "ergebnisse": [
     {
@@ -207,6 +207,11 @@
       "name": "F-011: Bereit-Banner erscheint im Kochmodus wieder zusaetzlich",
       "status": "bemerkt",
       "rot": 1
+    },
+    {
+      "name": "F-012: Feedback-Knopf rutscht wieder unter den Mikrofon-Chip",
+      "status": "bemerkt",
+      "rot": 2
     }
   ]
 }

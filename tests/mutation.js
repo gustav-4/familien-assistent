@@ -326,6 +326,14 @@ const MUTATIONEN = [
     ersetzen: "  if (b) b.classList.add(\"sichtbar\");",
     erwarteRot: ["F-011 Bereit-Banner erscheint im Kochmodus NICHT"],
   },
+  {
+    name: "F-012: Feedback-Knopf rutscht wieder unter den Mikrofon-Chip",
+    datei: "index.html",
+    suchen: 'style="position:fixed;right:14px;bottom:150px;z-index:901;width:54px;',
+    ersetzen: 'style="position:fixed;right:14px;bottom:78px;z-index:40;width:54px;',
+    erwarteRot: ["F-012 Feedback-Knopf und Mikrofon-Chip ueberlappen NICHT",
+      "F-012 Der Feedback-Knopf ist nicht mehr niedriger gestapelt"],
+  },
 ];
 
 function laufen() {

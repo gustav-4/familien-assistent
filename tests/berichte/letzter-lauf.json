@@ -1,16 +1,21 @@
 {
-  "zeitpunkt": "2026-08-03T15:29:05.269Z",
-  "version": "FUSION33",
-  "gesamt": 185,
-  "bestanden": 184,
-  "fehlgeschlagen": 1,
+  "zeitpunkt": "2026-08-03T15:45:24.957Z",
+  "version": "FUSION34",
+  "gesamt": 188,
+  "bestanden": 186,
+  "fehlgeschlagen": 2,
   "selbstheilung": {
     "geschlosseneAttrappenLuecken": [],
     "hinweis": "Keine Attrappen-Luecken."
   },
   "fehler": [
     {
-      "name": "F-011 Bereit-Banner erscheint im Kochmodus NICHT zusaetzlich",
+      "name": "F-012 Feedback-Knopf und Mikrofon-Chip ueberlappen NICHT",
+      "bestanden": false,
+      "fehlertext": ""
+    },
+    {
+      "name": "F-012 Der Feedback-Knopf ist nicht mehr niedriger gestapelt",
       "bestanden": false,
       "fehlertext": ""
     }

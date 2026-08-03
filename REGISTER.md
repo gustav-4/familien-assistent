@@ -85,9 +85,12 @@ mit der ID beginnt. `offen` und `nicht-reproduzierbar` nicht.
 
 ## F-012
 **Wortlaut:** der feedback button liegt hinter dem mikrofonbutton
-**Status:** offen
-**Test:** —
+**Status:** behoben
+**Test:** F-012 Feedback-Knopf und Mikrofon-Chip ueberlappen NICHT (+2 weitere)
 **Priorität:** 4 — kosmetisch, aber Funktion nicht erreichbar
+**Ursache:** Beide Elemente schweben unten rechts. fbBtn lag bei bottom:78px right:14px (54x54, z-index 40), gvChip bei bottom:74px right:10px (z-index 900). Die Rechtecke ueberlappten, der Chip lag darueber - der Feedback-Knopf war nicht antippbar. Jetzt bottom:150px und z-index:901: keine Ueberlappung mehr, und selbst bei kuenftigen Ueberdeckungen liegt er oben.
+**Mutation:** F-012: Feedback-Knopf rutscht wieder unter den Mikrofon-Chip
+**Nebenbefund:** Der erste Testentwurf las z-index mit px-Einheit aus und lieferte deshalb null. Ausdruck korrigiert - die Pruefung wurde dadurch schaerfer, nicht schwaecher.
 
 ## F-013
 **Wortlaut:** befehl wie abbrechen und tschüss werden auf liste gesetzt und nicht ausgeführt
@@ -103,7 +106,7 @@ mit der ID beginnt. `offen` und `nicht-reproduzierbar` nicht.
 **Test:** F-014a pipeline.js stellt pruefeSkriptSyntax bereit (+9 weitere, tests/server/pipeline.test.mjs)
 **Priorität:** 1 — Sicherheit
 
-### F-014a — HIGH, behoben
+### F-014a — HIGH, behoben und extern bestaetigt
 `tests/pipeline.js:151` — "Make sure that this dynamic injection or execution of code is safe."
 Die Stufe-1-Syntaxpruefung benutzte `new Function(code)` und erzeugte damit aus
 fremdem Quelltext ein aufrufbares Objekt. `pipeline.js` ist die Abnahmestelle und
@@ -123,6 +126,11 @@ Speicher. Gleiche Pruefschaerfe, da derselbe Parser. Der Test verbietet jetzt
 ausdruecklich Function, vm und eval in ausfuehrbarem Code von pipeline.js.
 Pruefschaerfe erneut belegt: "Statische Evidenz - ROT ... Skriptblock 3:
 SyntaxError: Unexpected token '{'".
+
+**Externe Bestaetigung (SonarCloud-Scan nach FUSION33):** 0 Security High,
+0 Critical. Verbleibend nur die 8 bekannten Low aus F-014b (100 % Low,
+Rating B). Der Vorbehalt "[ungeprueft, bitte nach dem Scan bestaetigen]"
+ist damit erledigt.
 
 ### F-014b — 8x LOW, kein Risiko
 Alle acht liegen ausschliesslich in Testwerkzeugen. Weder `index.html` noch

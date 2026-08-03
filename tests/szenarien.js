@@ -1051,3 +1051,65 @@ pruefe("F-011 Bereit-Banner erscheint im Kochmodus NICHT zusaetzlich", (function
   setzeKochmodus(false);
   return banner === false;
 })());
+
+// =====================================================================
+// F-012: "der feedback button liegt hinter dem mikrofonbutton"
+// Ursache: Beide schweben unten rechts. fbBtn bottom:78 right:14
+// (54x54, z-index 40), gvChip bottom:74 right:10 (z-index 900). Die
+// Rechtecke ueberlappen, der Chip liegt oben - der Feedback-Knopf ist
+// nicht antippbar.
+// Geprueft wird die tatsaechliche Geometrie aus den deklarierten
+// Werten. Eine Layout-Berechnung gibt es in der Attrappe nicht, aber
+// die Rechteck-Rechnung ist echte Pruefung und keine Textsuche.
+// =====================================================================
+function f012Kasten(quelle, id) {
+  // Sucht die Positionsangaben im style-Attribut bzw. im CSS-Block.
+  const idx = quelle.indexOf(id);
+  if (idx < 0) return null;
+  const abschnitt = quelle.slice(idx, idx + 600);
+  const zahl = (name) => {
+    const m = abschnitt.match(new RegExp(name + "\\s*:\\s*(-?\\d+)px"));
+    return m ? Number(m[1]) : null;
+  };
+  const breite = zahl("width");
+  const hoehe = zahl("height");
+  return {
+    rechts: zahl("right"),
+    unten: zahl("bottom"),
+    breite: breite === null ? 120 : breite,   // Chip: geschaetzte Textbreite
+    hoehe: hoehe === null ? 33 : hoehe,       // Chip: Zeilenhoehe + Polster
+    // z-index traegt keine Einheit - eigener Ausdruck noetig.
+    z: (function () {
+      const m = abschnitt.match(/z-index\s*:\s*(-?\d+)/);
+      return m ? Number(m[1]) : null;
+    })(),
+  };
+}
+
+function f012Ueberlappen(a, b) {
+  if (!a || !b || a.rechts === null || b.rechts === null) return true;
+  const waagerecht = a.rechts < b.rechts + b.breite
+    && b.rechts < a.rechts + a.breite;
+  const senkrecht = a.unten < b.unten + b.hoehe
+    && b.unten < a.unten + a.hoehe;
+  return waagerecht && senkrecht;
+}
+
+pruefe("F-012 Feedback-Knopf und Mikrofon-Chip ueberlappen NICHT", (function () {
+  const fb = f012Kasten(APPHTML, 'id="fbBtn"');
+  const chip = f012Kasten(APPHTML, "#gvChip {");
+  return fb !== null && chip !== null && !f012Ueberlappen(fb, chip);
+})());
+
+pruefe("F-012 Beide Knoepfe liegen im erreichbaren Bereich", (function () {
+  const fb = f012Kasten(APPHTML, 'id="fbBtn"');
+  return fb !== null && fb.unten >= 0 && fb.unten <= 400 && fb.rechts >= 0;
+})());
+
+pruefe("F-012 Der Feedback-Knopf ist nicht mehr niedriger gestapelt", (function () {
+  // Selbst bei Ueberlappung durch fremde Elemente muss er bedienbar
+  // bleiben: sein z-index darf nicht unter dem des Chips liegen.
+  const fb = f012Kasten(APPHTML, 'id="fbBtn"');
+  const chip = f012Kasten(APPHTML, "#gvChip {");
+  return fb.z !== null && chip.z !== null && fb.z >= chip.z;
+})());
