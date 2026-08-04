@@ -1113,3 +1113,80 @@ pruefe("F-012 Der Feedback-Knopf ist nicht mehr niedriger gestapelt", (function 
   const chip = f012Kasten(APPHTML, "#gvChip {");
   return fb.z !== null && chip.z !== null && fb.z >= chip.z;
 })());
+
+// =====================================================================
+// F-015: "möglicher abbruch der aktuellen anwendung (kochen,termin
+//        etc) mit sprachbefehl 'ende' impementieren"
+// Betreiber-Vorgabe: Kochmodus mit Rueckfrage; "ende" durch ein
+// sichereres Wort ersetzen.
+// Entscheidung: "abbrechen" (dreisilbig, kommt allein kaum im
+// Alltagsgespraech vor, ist in dieser App bereits das Abbruchwort).
+// "ende" bleibt nur in der Einkaufs-Kette gueltig - einsilbige Woerter
+// werden von der Spracherkennung zu leicht verwechselt.
+// =====================================================================
+pruefe("F-015 'abbrechen' ist ein Anwendungsabbruch", istAnwendungEnde("abbrechen"));
+pruefe("F-015 'anwendung beenden' ist ein Anwendungsabbruch",
+  istAnwendungEnde("anwendung beenden"));
+pruefe("F-015 'kochen beenden' ist ein Anwendungsabbruch",
+  istAnwendungEnde("kochen beenden"));
+pruefe("F-015 'abbruch' ist ein Anwendungsabbruch", istAnwendungEnde("abbruch"));
+
+pruefe("F-015 Satz mit 'ende' loest NICHTS aus",
+  !istAnwendungEnde("am ende des tages holen wir oma ab"));
+pruefe("F-015 Satz mit 'abbrechen' loest NICHTS aus",
+  !istAnwendungEnde("wir mussten den ausflug abbrechen weil es regnete"));
+pruefe("F-015 Einsilbiges 'ende' ist KEIN Anwendungsabbruch",
+  !istAnwendungEnde("ende"));
+
+pruefe("F-015 Kochmodus fragt zuerst nach", (function () {
+  setzeKochmodus(true);
+  selectedRecipe = { name: "Test", _skaliert: true, timeMin: 20,
+    ingredients: [{ name: "Reis", qty: 100, unit: "g" }],
+    steps: [{ text: "Eins" }, { text: "Zwei" }] };
+  stepIndex = 1;
+  abbruchWartetAufBestaetigung = false;
+  gvRoute("abbrechen");
+  const fragt = abbruchWartetAufBestaetigung === true;
+  const nochImKochen = stepIndex === 1;
+  abbruchWartetAufBestaetigung = false;
+  setzeKochmodus(false);
+  return fragt && nochImKochen;
+})());
+
+pruefe("F-015 Bestaetigung beendet den Kochmodus", (function () {
+  setzeKochmodus(true);
+  abbruchWartetAufBestaetigung = true;
+  gvRoute("ja");
+  const beendet = abbruchWartetAufBestaetigung === false;
+  setzeKochmodus(false);
+  return beendet;
+})());
+
+pruefe("F-015 'nein' setzt das Kochen fort", (function () {
+  setzeKochmodus(true);
+  stepIndex = 1;
+  abbruchWartetAufBestaetigung = true;
+  gvRoute("nein");
+  const weiter = abbruchWartetAufBestaetigung === false && stepIndex === 1;
+  setzeKochmodus(false);
+  return weiter;
+})());
+
+pruefe("F-015 Ausserhalb des Kochens wird OHNE Rueckfrage abgebrochen", (function () {
+  setzeKochmodus(false);
+  GlobalVoice.dialog = null;
+  abbruchWartetAufBestaetigung = false;
+  gvRoute("abbrechen");
+  return abbruchWartetAufBestaetigung === false;
+})());
+
+pruefe("F-015 Termin-Dialog wird durch 'abbrechen' verworfen", (function () {
+  setzeKochmodus(false);
+  let bekommen = null;
+  GlobalVoice.dialog = { frage: "Termin sprechen",
+    onInput: (t) => { bekommen = t; } };
+  gvRoute("abbrechen");
+  const verworfen = GlobalVoice.dialog === null && bekommen === null;
+  GlobalVoice.dialog = null;
+  return verworfen;
+})());

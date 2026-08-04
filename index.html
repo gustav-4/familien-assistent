@@ -1874,7 +1874,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION34";
+const APP_VERSION = "FUSION35";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -2138,6 +2138,56 @@ function istZurueck(text) {
     || /^(?:ein\s+)?schritt\s+zur(?:ü|ue)ck$/.test(t);
 }
 
+// F-015: Abbruch der laufenden Anwendung (Kochen, Termin, Einkauf).
+// WORTWAHL: Der Betreiber wollte ein sichereres Wort als "ende".
+// "ende" ist einsilbig und wird von der Android-Erkennung leicht mit
+// "Ente", "Haende" oder "Wende" verwechselt. "abbrechen" ist
+// dreisilbig, kommt allein kaum im Alltagsgespraech vor und ist in
+// dieser App bereits das Abbruchwort im Eingabe-Modus - ein Wort, eine
+// Bedeutung. "ende" bleibt nur in der Einkaufs-Kette gueltig.
+// Wie bei "weiter" und "zurueck" gilt die Alleinstehend-Sicherung:
+// "am ende des tages" darf nichts abbrechen.
+function istAnwendungEnde(text) {
+  const t = String(text).toLowerCase().trim().replace(/[.,!?]+$/g, "");
+  return /^(?:abbrechen|abbruch|bitte abbrechen)$/.test(t)
+    || /^(?:anwendung|kochen|kochmodus|termin|rezept|das|alles)\s+(?:abbrechen|beenden|schliessen|schließen)$/.test(t)
+    || /^(?:beende|beenden)\s+(?:das\s+)?(?:kochen|den termin|die anwendung)$/.test(t);
+}
+
+// Merker fuer die Rueckfrage im Kochmodus (Vorgabe des Betreibers:
+// dort NICHT sofort abbrechen - ein versehentliches Wort mitten im
+// Kochen waere aergerlich).
+let abbruchWartetAufBestaetigung = false;
+
+function istJa(text) {
+  const t = String(text).toLowerCase().trim().replace(/[.,!?]+$/g, "");
+  return /^(?:ja|jawohl|genau|richtig|stimmt|ja bitte|ja genau|bestaetigen|bestätigen)$/.test(t);
+}
+
+function istNein(text) {
+  const t = String(text).toLowerCase().trim().replace(/[.,!?]+$/g, "");
+  return /^(?:nein|nee|noe|nö|doch nicht|weitermachen|weiter kochen|abbrechen nein)$/.test(t);
+}
+
+// Bricht die gerade laufende Anwendung ab.
+function anwendungAbbrechen() {
+  abbruchWartetAufBestaetigung = false;
+  if (typeof einkaufKetteStop === "function") einkaufKetteStop(true);
+  GlobalVoice.dialog = null;
+  if (typeof gvBereitVerbergen === "function") gvBereitVerbergen();
+  let imKochen = false;
+  try { imKochen = cookingVisible(); } catch (e) {}
+  if (imKochen) {
+    clearTimers();          // Timer stoppen, Bildschirmsperre freigeben
+    stepIndex = 0;
+    goTab("rezepte");
+    speak("Kochen beendet.", true);
+  } else {
+    speak("Abgebrochen.", true);
+  }
+  if (typeof gvChipStand === "function") gvChipStand();
+}
+
 // Bricht eine laufende Spracheingabe ab (pur & testbar).
 function istAbbruch(text) {
   const t = String(text).toLowerCase().trim().replace(/[.,!?]+$/g, "");
@@ -2340,6 +2390,30 @@ function einkaufKetteEingabe(text) {
 
 // ---------- Zentrale Weiche ----------
 function gvRoute(said) {
+  // F-015: Offene Abbruch-Rueckfrage im Kochmodus zuerst beantworten.
+  if (abbruchWartetAufBestaetigung) {
+    if (istJa(said)) { anwendungAbbrechen(); return; }
+    if (istNein(said) || istAnwendungEnde(said)) {
+      abbruchWartetAufBestaetigung = false;
+      speak("Gut, wir kochen weiter.", true);
+      return;
+    }
+    // Alles andere: Rueckfrage verfaellt, Eingabe normal behandeln.
+    abbruchWartetAufBestaetigung = false;
+  }
+  // F-015: Abbruch hat Vorrang VOR dem Dialog - sonst liesse sich ein
+  // offener Termin-Dialog per Sprache nicht mehr verlassen.
+  if (istAnwendungEnde(said)) {
+    let imKochen = false;
+    try { imKochen = cookingVisible(); } catch (e) {}
+    if (imKochen) {
+      abbruchWartetAufBestaetigung = true;
+      speak("Wirklich das Kochen beenden? Sag ja oder nein.", true);
+      return;
+    }
+    anwendungAbbrechen();
+    return;
+  }
   // 1) Laufender Rueckfrage-Dialog hat Vorrang
   if (GlobalVoice.dialog) {
     GlobalVoice.dialog.onInput(said);

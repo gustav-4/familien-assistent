@@ -1,8 +1,8 @@
 {
-  "zeitpunkt": "2026-08-03T15:45:24.957Z",
-  "version": "FUSION34",
-  "gesamt": 188,
-  "bestanden": 186,
+  "zeitpunkt": "2026-08-04T13:20:58.773Z",
+  "version": "FUSION35",
+  "gesamt": 200,
+  "bestanden": 198,
   "fehlgeschlagen": 2,
   "selbstheilung": {
     "geschlosseneAttrappenLuecken": [],
@@ -10,12 +10,12 @@
   },
   "fehler": [
     {
-      "name": "F-012 Feedback-Knopf und Mikrofon-Chip ueberlappen NICHT",
+      "name": "F-015 Kochmodus fragt zuerst nach",
       "bestanden": false,
       "fehlertext": ""
     },
     {
-      "name": "F-012 Der Feedback-Knopf ist nicht mehr niedriger gestapelt",
+      "name": "F-015 Termin-Dialog wird durch 'abbrechen' verworfen",
       "bestanden": false,
       "fehlertext": ""
     }

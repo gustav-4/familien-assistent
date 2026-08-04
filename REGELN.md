@@ -1,4 +1,4 @@
-# ARBEITSREGELN — Version 3.2
+# ARBEITSREGELN — Version 3.3
 
 Diese Regeln liegen als REGELN.md im Repository. Das Register liegt als
 REGISTER.md im Repository. Diese Dateien sind die einzige Quelle der
@@ -84,11 +84,16 @@ REGISTER.md führt jeden Fehler mit: ID (F-XXX), Wortlaut im Original
 trägt die ID als Präfix.
 
 Status und Übergänge:
-- `offen` → `rot-belegt` → `behoben` (nur in dieser Reihenfolge)
+- `offen` → `rot-belegt` → `behoben` → `bestätigt` (nur in dieser Reihenfolge)
+- `behoben` bedeutet ausschließlich: die Belege des Assistenten liegen vor
+  (roter Test, grüner Test, Gegenprobe). Es bedeutet NICHT, dass der Fehler
+  aus Sicht des Betreibers erledigt ist.
+- `bestätigt` setzt ausschließlich der Betreiber, nachdem er die Wirkung
+  auf dem Gerät oder extern (z. B. Scan) geprüft hat.
 - `offen` → `nicht-reproduzierbar` (nur durch mich, nach dokumentiertem
   Reproduktionsversuch mit Befehlen und Ausgaben im Register)
 
-Die Testpflicht ist statusabhängig: `rot-belegt` und `behoben` erfordern
+Die Testpflicht ist statusabhängig: `rot-belegt`, `behoben` und `bestätigt` erfordern
 einen existierenden Test mit ID-Präfix; `offen` und
 `nicht-reproduzierbar` nicht. Stufe 0 prüft: Schemaversion, gültige
 Status, Testexistenz je nach Status, Testzähler.
@@ -128,6 +133,12 @@ Eine ausdrückliche FREIGABE brauchst du nur noch in zwei Fällen:
     Abnahmeinfrastruktur (siehe Regel 5).
 Alle anderen Arbeiten — Dateien anlegen, Fehler beheben, Tests schreiben
 — führst du eigenständig aus. Rot vor grün genügt als Nachweis.
+
+Eigenständiges Beheben gilt ausschließlich INNERHALB eines bereits
+freigegebenen Auftrags — niemals für neue F-Nummern. Eine neue F-Nummer
+wird aufgenommen, priorisiert und dem Betreiber vorgelegt; die Arbeit
+daran beginnt erst nach dessen Freigabe. Mehrere freigegebene Aufträge
+werden nacheinander abgearbeitet und einzeln übergeben, nicht gebündelt.
 SHA-256-Prüfsummen und Patch-Vorlagen vor Freigabe entfallen.
 
 **DAUERREGEL 3 — Reihenfolge**

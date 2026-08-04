@@ -334,6 +334,27 @@ const MUTATIONEN = [
     erwarteRot: ["F-012 Feedback-Knopf und Mikrofon-Chip ueberlappen NICHT",
       "F-012 Der Feedback-Knopf ist nicht mehr niedriger gestapelt"],
   },
+  {
+    name: "F-015: Kochmodus bricht ohne Rueckfrage sofort ab",
+    datei: "index.html",
+    suchen: "    if (imKochen) {\n      abbruchWartetAufBestaetigung = true;",
+    ersetzen: "    if (false) {\n      abbruchWartetAufBestaetigung = true;",
+    erwarteRot: ["F-015 Kochmodus fragt zuerst nach"],
+  },
+  {
+    name: "F-015: Alleinstehend-Sicherung des Abbruchworts entfaellt",
+    datei: "index.html",
+    suchen: "  return /^(?:abbrechen|abbruch|bitte abbrechen)$/.test(t)",
+    ersetzen: "  if (/abbrechen/.test(t)) return true;\n  return /^(?:abbrechen|abbruch|bitte abbrechen)$/.test(t)",
+    erwarteRot: ["F-015 Satz mit 'abbrechen' loest NICHTS aus"],
+  },
+  {
+    name: "F-015: Abbruch verliert den Vorrang vor dem Dialog",
+    datei: "index.html",
+    suchen: "  if (istAnwendungEnde(said)) {\n    let imKochen = false;",
+    ersetzen: "  if (false) {\n    let imKochen = false;",
+    erwarteRot: ["F-015 Termin-Dialog wird durch 'abbrechen' verworfen"],
+  },
 ];
 
 function laufen() {
