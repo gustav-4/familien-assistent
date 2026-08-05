@@ -1,21 +1,41 @@
 {
-  "zeitpunkt": "2026-08-04T13:20:58.773Z",
-  "version": "FUSION35",
-  "gesamt": 200,
-  "bestanden": 198,
-  "fehlgeschlagen": 2,
+  "zeitpunkt": "2026-08-05T11:38:24.455Z",
+  "version": "FUSION36",
+  "gesamt": 209,
+  "bestanden": 203,
+  "fehlgeschlagen": 6,
   "selbstheilung": {
     "geschlosseneAttrappenLuecken": [],
     "hinweis": "Keine Attrappen-Luecken."
   },
   "fehler": [
     {
-      "name": "F-015 Kochmodus fragt zuerst nach",
+      "name": "D1 Zutat wird festgeschrieben (200 g -> 250 g)",
       "bestanden": false,
       "fehlertext": ""
     },
     {
-      "name": "F-015 Termin-Dialog wird durch 'abbrechen' verworfen",
+      "name": "D2 Schritt-Prosa traegt dieselbe Zahl",
+      "bestanden": false,
+      "fehlertext": ""
+    },
+    {
+      "name": "D5 Einkaufsliste formatiert identisch",
+      "bestanden": false,
+      "fehlertext": ""
+    },
+    {
+      "name": "F-018 Kleine Mengen werden nie hochgerundet",
+      "bestanden": false,
+      "fehlertext": ""
+    },
+    {
+      "name": "F-018 Skalierung weicht nie mehr als 10 Prozent ab",
+      "bestanden": false,
+      "fehlertext": ""
+    },
+    {
+      "name": "F-018 Krumme Skalierung wird lesbar geglaettet",
       "bestanden": false,
       "fehlertext": ""
     }

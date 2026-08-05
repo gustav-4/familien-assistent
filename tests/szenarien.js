@@ -1190,3 +1190,63 @@ pruefe("F-015 Termin-Dialog wird durch 'abbrechen' verworfen", (function () {
   GlobalVoice.dialog = null;
   return verworfen;
 })());
+
+// =====================================================================
+// F-018: "Familien geben versehentlich viel zu viel von einer Zutat
+//        ein, weil die Menge falsch angezeigt wird"
+// Ursache (gemessen): smartQty rundete IMMER auf 25er- bzw. 50er-Raster,
+// auch beim Faktor 1 - also ohne jede Umrechnung. Belegt:
+//   105 g x1 -> 100 g | 33 g x1 -> 25 g | 7 g x1 -> 25 g (das 3,5-fache)
+// Bei Mehl verschmerzbar, bei Backpulver, Hefe, Salz oder Gewuerzen
+// nicht. Regel jetzt: Beim Faktor 1 wird NICHTS geglaettet, und auch
+// beim Skalieren nie staerker als 10 % Abweichung.
+// =====================================================================
+pruefe("F-018 Faktor 1 laesst Gramm unveraendert",
+  smartMenge({ name: "Mehl", qty: 105, unit: "g" }, 1) === "105 g");
+pruefe("F-018 Faktor 1 laesst kleine Mengen unveraendert",
+  smartMenge({ name: "Hefe", qty: 7, unit: "g" }, 1) === "7 g");
+pruefe("F-018 Faktor 1 laesst krumme Mengen unveraendert",
+  smartMenge({ name: "Zucker", qty: 33, unit: "g" }, 1) === "33 g");
+pruefe("F-018 Faktor 1 laesst Milliliter unveraendert",
+  smartMenge({ name: "Milch", qty: 180, unit: "ml" }, 1) === "180 ml");
+
+pruefe("F-018 Kleine Mengen werden nie hochgerundet", (function () {
+  // Der schlimmste Fall: 7 g Hefe wurden zu 25 g - das 3,5-fache.
+  const t = smartMenge({ name: "Hefe", qty: 7, unit: "g" }, 2);
+  const zahl = Number(String(t).match(/^([\d.,]+)/)[1].replace(",", "."));
+  return zahl <= 14 * 1.1;
+})());
+
+pruefe("F-018 Skalierung weicht nie mehr als 10 Prozent ab", (function () {
+  const faelle = [
+    { q: 105, u: "g", f: 2 }, { q: 33, u: "g", f: 3 },
+    { q: 7, u: "g", f: 2 }, { q: 180, u: "ml", f: 1.5 },
+    { q: 500, u: "g", f: 2 }, { q: 250, u: "ml", f: 0.5 },
+    { q: 12, u: "g", f: 1.5 }, { q: 3, u: "g", f: 2 },
+  ];
+  for (const c of faelle) {
+    const soll = c.q * c.f;
+    const t = smartMenge({ name: "X", qty: c.q, unit: c.u }, c.f);
+    const ist = Number(String(t).match(/^([\d.,]+)/)[1].replace(",", "."));
+    if (Math.abs(ist - soll) > soll * 0.1 + 0.001) return false;
+  }
+  return true;
+})());
+
+pruefe("F-018 Runde Mengen bleiben rund", (function () {
+  // Glaetten soll weiterhin stattfinden, wo es unschaedlich ist.
+  return smartMenge({ name: "Mehl", qty: 250, unit: "g" }, 2) === "500 g";
+})());
+
+pruefe("F-018 Krumme Skalierung wird lesbar geglaettet", (function () {
+  // 105 x 1,5 = 157,5 -> darf auf 160 geglaettet werden (1,6 % Abweichung),
+  // aber nicht auf 150 (4,8 %) und erst recht nicht auf 175.
+  const t = smartMenge({ name: "Mehl", qty: 105, unit: "g" }, 1.5);
+  const zahl = Number(String(t).match(/^([\d.,]+)/)[1].replace(",", "."));
+  return Math.abs(zahl - 157.5) <= 157.5 * 0.1;
+})());
+
+pruefe("F-018 Stueck-Mengen bleiben ganzzahlig", (function () {
+  const t = String(smartMenge({ name: "Eier", qty: 3, unit: "Stück" }, 1)).trim();
+  return t === "3";
+})());

@@ -1,6 +1,6 @@
 {
-  "zeitpunkt": "2026-08-04T13:20:58.780Z",
-  "mutationen": 45,
+  "zeitpunkt": "2026-08-05T11:38:24.461Z",
+  "mutationen": 47,
   "luecken": 0,
   "ergebnisse": [
     {
@@ -227,6 +227,16 @@
       "name": "F-015: Abbruch verliert den Vorrang vor dem Dialog",
       "status": "bemerkt",
       "rot": 2
+    },
+    {
+      "name": "F-018: Faktor 1 rundet wieder auf das 25er-Raster",
+      "status": "bemerkt",
+      "rot": 3
+    },
+    {
+      "name": "F-018: Zehn-Prozent-Grenze aufgehoben",
+      "status": "bemerkt",
+      "rot": 6
     }
   ]
 }

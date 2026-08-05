@@ -355,6 +355,21 @@ const MUTATIONEN = [
     ersetzen: "  if (false) {\n    let imKochen = false;",
     erwarteRot: ["F-015 Termin-Dialog wird durch 'abbrechen' verworfen"],
   },
+  {
+    name: "F-018: Faktor 1 rundet wieder auf das 25er-Raster",
+    datei: "index.html",
+    suchen: "  if (Math.abs(f - 1) < 0.001) return Math.round(q * 10) / 10;",
+    ersetzen: "  if (false) return Math.round(q * 10) / 10;",
+    erwarteRot: ["F-018 Faktor 1 laesst Gramm unveraendert"],
+  },
+  {
+    name: "F-018: Zehn-Prozent-Grenze aufgehoben",
+    datei: "index.html",
+    suchen: "  const grenze = q * 0.1;",
+    ersetzen: "  const grenze = q * 5;",
+    erwarteRot: ["F-018 Skalierung weicht nie mehr als 10 Prozent ab",
+      "F-018 Kleine Mengen werden nie hochgerundet"],
+  },
 ];
 
 function laufen() {

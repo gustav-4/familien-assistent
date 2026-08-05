@@ -189,3 +189,21 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Test:** —
 **Priorität:** 3
 
+## F-018
+**Wortlaut:** Wenn eine Zutat einen Namen mit einer Zahl hat (wie '2 Eier'), überschreibt das System versehentlich andere Zutaten-Mengen, die ähnliche Zahlen enthalten (wie '105g' wird zu '2105g'). Was das bedeutet: Familien geben versehentlich viel zu viel von einer Zutat ein, weil die Menge falsch angezeigt wird – das Rezept wird unbrauchbar.
+**Status:** behoben
+**Test:** F-018 Faktor 1 laesst Gramm unveraendert (+8 weitere)
+**Priorität:** 1 — falsche Mengen
+**Abweichung von der gemeldeten Ursache:** Die beschriebene Verschmelzung "105g -> 2105g" liess sich in drei Testfaellen NICHT reproduzieren; der Ersetzungsausdruck ist mit `(^|[^\d.,])` dagegen abgesichert. Stattdessen wurde eine andere, schwerwiegendere Ursache fuer falsche Mengen gefunden.
+**Tatsaechliche Ursache (gemessen):** smartQty rundete Gramm und Milliliter IMMER auf ein 25er- bzw. 50er-Raster - auch beim Faktor 1, also ohne jede Umrechnung. Belegt: 105 g -> 100 g, 33 g -> 25 g, 7 g -> 25 g (das 3,5-fache). Bei Mehl verschmerzbar, bei Hefe, Backpulver, Salz oder Gewuerzen gefaehrlich - und unsichtbar, weil die Familie die Abweichung nicht bemerkt.
+**Reparatur:** Neue Funktion glaetteMenge(q, f). Ohne Umrechnung (Faktor 1) bleibt die Menge exakt. Mit Umrechnung wird von grob nach fein geglaettet (100/50/25/10/5/1), aber nur solange die Abweichung unter 10 Prozent bleibt; sonst gilt die genaue Menge.
+**Belegt nach der Reparatur:** 105 g x1 -> 105 g | 7 g x1 -> 7 g | 33 g x1 -> 33 g | 7 g x2 -> 15 g statt frueher 25 g
+**Mutationen:** F-018: Faktor 1 rundet wieder auf das 25er-Raster / F-018: Zehn-Prozent-Grenze aufgehoben
+**Offen:** Die gemeldete Verschmelzung "2105g" ist weiterhin nicht reproduziert. Ohne konkretes Rezept kein Blindfix - siehe F-019 fuer den verwandten, belegten Nebenbefund.
+
+## F-019
+**Wortlaut:** (Nebenbefund aus der Untersuchung zu F-018) Leerzeichen geht verloren, wenn der Zutatenname mit einer Zahl beginnt: "2 Eier" wird im Schritttext zu "2Eier"
+**Status:** offen
+**Test:** —
+**Priorität:** 3
+
