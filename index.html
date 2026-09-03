@@ -229,8 +229,8 @@
     ② Keine Profile, keine Werbung, keine Cookies von Drittfirmen.
     ③ Volle Kontrolle – der Knopf „Alle Server-Daten löschen“ in der
     App entfernt eure anonymen Erinnerungsdaten jederzeit restlos.
-    ④ Bei der Rezept-Recherche wird nur euer anonymer Essenswunsch
-    (z.B. „etwas mit Kürbis, ohne Nüsse“) an den KI-Dienst gesendet –
+    ④ Die KI entwickelt eure Rezepte frisch – gesendet wird dafür nur
+    euer anonymer Essenswunsch (z.B. „etwas mit Kürbis, ohne Nüsse“),
     niemals Namen oder Familiendaten. <a href="/datenschutz.html" target="_blank">Zur vollständigen Datenschutzerklärung</a>.</details></div>
    </div>
 
@@ -239,9 +239,10 @@
     <div class="ob-funk">🍳 <b>Freihändig kochen:</b> Jeder Schritt wird
      vorgelesen – mit Mengen. Sag „fertig“, Timer laufen von allein.
      <i>Typisch: Hände im Teig, App sagt was zu tun ist.</i></div>
-    <div class="ob-funk">🔍 <b>Rezept-Recherche:</b> „Rezept – etwas mit
-     Kürbis“ → 3 sichere Vorschläge, geprüft gegen eure Allergien und
-     Ernährungsformen (vegan, vegetarisch, low carb …).</div>
+    <div class="ob-funk">🔍 <b>Rezept-Ideen von der KI:</b> „Rezept –
+     etwas mit Kürbis“ → 3 Vorschläge, frisch für euch entwickelt
+     (keine kopierten Rezepte aus dem Netz) und hart geprüft gegen eure
+     Allergien und Ernährungsformen (vegan, vegetarisch, low carb …).</div>
     <div class="ob-funk">🛒 <b>Einkaufsliste:</b> „Einkauf Milch“ ruft ihr
      durch die Wohnung – steht drauf. Rezept-Zutaten in euren Mengen
      per Satz: „Auf die Einkaufsliste“. Im Laden: Einkaufs-Modus zum
@@ -787,6 +788,12 @@
       <button class="btn" id="terminVoiceBtn" type="button"
               onclick="terminVoiceStart()">🎤 Jetzt sprechen</button>
       <p class="muted" id="terminVoiceStatus"></p>
+      <button class="btn ghost" id="lauschToggleBtn"
+              onclick="lauschUmschalten()">📣 Lausch-Modus: aus</button>
+      <p class="muted" id="lauschStatus">Lausch-Modus: Die App wartet
+        still auf den Zuruf „Termin“ – ganz ohne Dauergepiepe. Beim
+        Zuruf ertönt ein Bereitton, dann den Termin einfach sprechen.
+        (App muss geöffnet und der Bildschirm an sein.)</p>
     </div>
 
     <div class="card">
@@ -1874,7 +1881,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION36";
+const APP_VERSION = "FUSION39";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -1945,6 +1952,105 @@ function gvNeustart() {
   if (!recognition || !GlobalVoice.aktiv) return;
   try { recognition.start(); } catch (e) {}
 }
+
+/* =====================================================================
+   FUSION38 - LAUSCH-MODUS ("Termin" durch die Wohnung rufen)
+   ---------------------------------------------------------------------
+   Problemlage: Dauerlauschen ueber die Web-Speech-API erzeugt bei jedem
+   internen Neustart den Android-Systemton (nicht abschaltbar, F2).
+   Loesung: Ein WASM-Schluesselwort-Erkenner lauscht STILL ueber rohes
+   Mikrofon-Audio (getUserMedia loest keinen Systemton aus). Erst beim
+   erkannten Zuruf wird die Web-Speech-Erkennung EINMAL gestartet -
+   dieser eine Ton ist dann der gewuenschte Bereitton, danach laeuft
+   der normale Termindialog.
+
+   Der eigentliche Erkenner steckt austauschbar in wakeword-adapter.js
+   (Vertrag: window.KA_WAKEWORD = { start(onTreffer), stop() }).
+   Diese Zustandsmaschine ist bewusst davon getrennt und ohne Netz
+   testbar. Zustaende: aus -> lauscht -> pausiert (Diktat laeuft)
+   -> lauscht. Tests: Szenarien L-01 bis L-06.
+   ===================================================================== */
+const LAUSCH = { status: "aus", intervall: null };
+
+function lauschAdapter() {
+  return (typeof window !== "undefined" && window.KA_WAKEWORD) || null;
+}
+function lauschAnzeige(text) {
+  const s = document.getElementById("lauschStatus");
+  if (s) s.textContent = text;
+  const b = document.getElementById("lauschToggleBtn");
+  if (b) b.textContent = LAUSCH.status === "aus"
+    ? "📣 Lausch-Modus: aus" : "📣 Lausch-Modus: an";
+}
+function lauschStart() {
+  if (LAUSCH.status !== "aus") return true;
+  const a = lauschAdapter();
+  if (!a || typeof a.start !== "function" || typeof a.stop !== "function") {
+    lauschAnzeige("Kein Schluesselwort-Erkenner eingebunden. Bitte " +
+      "wakeword-adapter.js einrichten (Anleitung steht in der Datei).");
+    return false;
+  }
+  try { a.start(lauschTreffer); } catch (e) {
+    lauschAnzeige("Der Erkenner in wakeword-adapter.js liess sich " +
+      "nicht starten: " + (e && e.message));
+    return false;
+  }
+  LAUSCH.status = "lauscht";
+  wakeLockAn(); // Web-Grenze: nur bei wachem Bildschirm hoert das Mikro
+  lauschAnzeige("Ich lausche still auf \u201eTermin\u201c - der " +
+    "Bildschirm bleibt dafuer an. Beim Zuruf ertoent der Bereitton, " +
+    "dann einfach den Termin sprechen.");
+  return true;
+}
+function lauschStopp() {
+  const a = lauschAdapter();
+  if (a && typeof a.stop === "function") { try { a.stop(); } catch (e) {} }
+  if (LAUSCH.intervall) { clearInterval(LAUSCH.intervall); LAUSCH.intervall = null; }
+  const war = LAUSCH.status;
+  LAUSCH.status = "aus";
+  if (war !== "aus") wakeLockAus();
+  lauschAnzeige("Lausch-Modus beendet.");
+}
+function lauschUmschalten() {
+  if (LAUSCH.status === "aus") lauschStart(); else lauschStopp();
+}
+function lauschTreffer(wort) {
+  if (LAUSCH.status !== "lauscht") return;
+  if (!/termin/i.test(String(wort || ""))) return;
+  const a = lauschAdapter();
+  if (a && typeof a.stop === "function") { try { a.stop(); } catch (e) {} }
+  LAUSCH.status = "pausiert";
+  lauschAnzeige("Zuruf erkannt - ich hoere: sprich jetzt den Termin.");
+  // Der EINE Systemton von recognition.start() ist hier der Bereitton.
+  goTab("termine");
+  gvStart();
+  startTerminDialog(null);
+  if (!LAUSCH.intervall) {
+    LAUSCH.intervall = setInterval(lauschFortsetzen, 1500);
+  }
+}
+function lauschFortsetzen() {
+  if (LAUSCH.status !== "pausiert") return;
+  if (GlobalVoice.aktiv) return; // Diktat laeuft noch
+  const a = lauschAdapter();
+  if (!a || typeof a.start !== "function") { lauschStopp(); return; }
+  try { a.start(lauschTreffer); } catch (e) { lauschStopp(); return; }
+  LAUSCH.status = "lauscht";
+  if (LAUSCH.intervall) { clearInterval(LAUSCH.intervall); LAUSCH.intervall = null; }
+  lauschAnzeige("Ich lausche wieder still auf \u201eTermin\u201c.");
+}
+function lauschSichtbarkeit(versteckt) {
+  if (LAUSCH.status === "aus") return;
+  const a = lauschAdapter();
+  if (versteckt) {
+    if (a && typeof a.stop === "function") { try { a.stop(); } catch (e) {} }
+  } else if (LAUSCH.status === "lauscht" && a &&
+      typeof a.start === "function") {
+    try { a.start(lauschTreffer); } catch (e) {}
+  }
+}
+document.addEventListener("visibilitychange",
+  () => lauschSichtbarkeit(document.hidden));
 
 function gvStart() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -2674,14 +2780,32 @@ async function syncEntschluesseln(blob, code) {
 }
 
 function syncDaten() {
-  return { termine, routinen, mitglieder, verbrauch: vState };
+  return { termine, routinen, mitglieder, verbrauch: vState,
+    geloescht: syncTombstones() };
 }
 function syncUebernehmen(d) {
-  if (!d || typeof d !== "object") return;
-  if (Array.isArray(d.termine)) termine = d.termine;
-  if (Array.isArray(d.routinen)) routinen = d.routinen;
-  if (Array.isArray(d.mitglieder)) mitglieder = d.mitglieder;
-  if (d.verbrauch && typeof d.verbrauch === "object") vState = d.verbrauch;
+  // FUSION37: verschmilzt elementweise statt zu ersetzen - siehe
+  // Kommentarblock ueber syncMerge. Rueckgabe true, wenn dieses
+  // Geraet Eintraege kannte, die dem fernen Stand fehlten (dann
+  // muss der vereinigte Stand zurueckgesendet werden).
+  if (!d || typeof d !== "object") return false;
+  const m = syncMerge(syncDaten(), d);
+  const fernKennt = {};
+  [].concat(d.termine || [], d.routinen || [], d.mitglieder || [])
+    .forEach((e) => { if (e && e.id) fernKennt[e.id] = true; });
+  const lokalHatteMehr = [].concat(m.termine, m.routinen, m.mitglieder)
+    .some((e) => e && e.id && !fernKennt[e.id]);
+  termine = m.termine.map(syncTerminHeilen).filter(Boolean);
+  routinen = m.routinen;
+  mitglieder = m.mitglieder;
+  if (m.verbrauch && typeof m.verbrauch === "object") vState = m.verbrauch;
+  syncTombSchreiben(m.geloescht);
+  // Merkzettel auf den verschmolzenen Stand setzen, damit das naechste
+  // Stempeln fern uebernommene Eintraege nicht als Loeschung deutet.
+  syncStempelStand = {};
+  syncStempeln("termine", termine);
+  syncStempeln("routinen", routinen);
+  syncStempeln("mitglieder", mitglieder);
   try {
     localStorage.setItem("ka_termine", JSON.stringify(termine));
     localStorage.setItem("ka_routinen", JSON.stringify(routinen));
@@ -2692,6 +2816,7 @@ function syncUebernehmen(d) {
   try { renderTermineTab(); } catch (e) {}
   try { renderVerbrauch(); } catch (e) {}
   syncAnzeige();
+  return lokalHatteMehr;
 }
 
 // Nach jeder lokalen Aenderung: gebuendelt (2,5 s) hochladen
@@ -2704,6 +2829,24 @@ async function syncSenden() {
   if (!syncCode || syncAktivSendung) return;
   syncAktivSendung = true;
   try {
+    // FUSION37: Vor dem Senden den fernen Stand holen und elementweise
+    // einarbeiten. Damit schrumpft das Verlustfenster von bis zu 60 s
+    // (Poll-Takt) auf die Dauer dieses einen Abrufs - und selbst ein
+    // Zusammenstoss kostet dank ID-Vereinigung keinen Eintrag mehr.
+    try {
+      const vorab = await fetch("/api/termine?code=" +
+        encodeURIComponent(syncCode));
+      if (vorab.ok) {
+        const dv = await vorab.json();
+        if (dv.blob && Number(dv.stand) > syncStand) {
+          const fern = await syncEntschluesseln(dv.blob, syncCode);
+          syncStand = Number(dv.stand);
+          try { localStorage.setItem("ka_sync_stand",
+            String(syncStand)); } catch (e) {}
+          syncUebernehmen(fern);
+        }
+      }
+    } catch (e) { /* Netzfehler hier: einfach normal weitersenden */ }
     const stand = Date.now();
     const blob = await syncVerschluesseln(syncDaten(), syncCode);
     const r = await fetch("/api/termine", {
@@ -2733,7 +2876,10 @@ async function syncAbholen() {
       const obj = await syncEntschluesseln(d.blob, syncCode);
       syncStand = Number(d.stand);
       try { localStorage.setItem("ka_sync_stand", String(syncStand)); } catch (e) {}
-      syncUebernehmen(obj);
+      // FUSION37: elementweise verschmelzen; kannte dieses Geraet
+      // Eintraege, die druben fehlten, wird der vereinigte Stand
+      // zurueckgesendet, damit KEIN Geraet etwas verliert.
+      if (syncUebernehmen(obj)) syncGeplant();
     }
   } catch (e) {}
 }
@@ -3213,7 +3359,7 @@ function addFavorite() {
   }
   const kopie = JSON.parse(JSON.stringify(selectedRecipe));
   kopie.tags = (kopie.tags || [])
-    .filter(t => !String(t).includes("neu recherchiert"));
+    .filter(t => !String(t).includes("frisch entwickelt"));
   favs.unshift(kopie);
   saveFavs(favs);
   btn.disabled = true;
@@ -3436,6 +3582,17 @@ function rezeptVorstellen(r) {
   }
 }
 
+/* FUSION37: KI-Text (Rezeptname, Tags, Varianten-Hinweise) wird vor
+   jedem innerHTML-Einsatz entschaerft. Der Server kuerzt zwar, filtert
+   aber kein HTML - ein Modell-Ausrutscher oder eine ueber die eigene
+   Suchanfrage eingeschleuste Auszeichnung wuerde sonst ausgefuehrt.
+   Test: Szenario S-06. */
+function entschaerfeHtml(text) {
+  return String(text == null ? "" : text)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 let stdRezepteOffen = false;
 function toggleStdRezepte() {
   stdRezepteOffen = !stdRezepteOffen;
@@ -3473,14 +3630,17 @@ function renderRecipes() {
     stdShown++;
     const div = document.createElement("div");
     div.className = "card recipe" + (selectedRecipe === r ? " selected" : "");
-    let tags = r.tags.map(t => `<span class="tag">${t}</span>`).join("");
+    let tags = r.tags.map(t =>
+      `<span class="tag">${entschaerfeHtml(t)}</span>`).join("");
     if (score > 0)
       tags = `<span class="tag" style="background:#dde8d4;color:#4a6b3a">` +
         `✓ passt zu eurem Stil</span>` + tags;
     const hinweisHtml = hinweise.map(h =>
-      `<p class="muted" style="color:#7e9c6f;margin:4px 0 0">🔄 ${h}</p>`).join("");
-    div.innerHTML = `<h2>${r.name}</h2>` +
-      `<p class="muted">${r.time} &nbsp; ${tags}</p>${hinweisHtml}`;
+      `<p class="muted" style="color:#7e9c6f;margin:4px 0 0">` +
+      `🔄 ${entschaerfeHtml(h)}</p>`).join("");
+    div.innerHTML = `<h2>${entschaerfeHtml(r.name)}</h2>` +
+      `<p class="muted">${entschaerfeHtml(r.time)} &nbsp; ${tags}</p>` +
+      hinweisHtml;
     div.onclick = () => {
       selectedRecipe = r._skaliert ? r : skaliereRezept(r, portionFactor());
       document.getElementById("toShopBtn").disabled = false;
@@ -3498,9 +3658,9 @@ function renderRecipes() {
     const div = document.createElement("div");
     div.className = "card recipe" + (selectedRecipe === r ? " selected" : "");
     const tags = (r.tags || [])
-      .map(t => `<span class="tag">${t}</span>`).join("");
-    div.innerHTML = `<h2>${r.name}</h2>` +
-      `<p class="muted">${r.time} &nbsp; ${tags}</p>`;
+      .map(t => `<span class="tag">${entschaerfeHtml(t)}</span>`).join("");
+    div.innerHTML = `<h2>${entschaerfeHtml(r.name)}</h2>` +
+      `<p class="muted">${entschaerfeHtml(r.time)} &nbsp; ${tags}</p>`;
     div.onclick = () => {
       selectedRecipe = r._skaliert ? r : skaliereRezept(r, portionFactor());
       document.getElementById("toShopBtn").disabled = false;
@@ -3522,7 +3682,7 @@ function renderRecipes() {
     head.className = "card";
     head.style.borderLeft = "5px solid var(--accent)";
     head.innerHTML = "<h2>🔍 Deine Suchergebnisse</h2>" +
-      "<p class='muted'>Frisch recherchiert und sicherheitsgeprüft – " +
+      "<p class='muted'>Frisch für euch entwickelt und sicherheitsgeprüft – " +
       "bei der nächsten Suche werden sie ersetzt.</p>";
     resBox.insertBefore(head, resBox.firstChild);
   }
@@ -4118,7 +4278,7 @@ async function rechercheRezept(istWiederholung) {
       const rec = vorschlaege[i];
       rec.id = "ki_" + Date.now() + "_" + i;
       rec.time = "ca. " + rec.timeMin + " Min.";
-      rec.tags = ["🆕 neu recherchiert"].concat(rec.tags || []);
+      rec.tags = ["🆕 frisch entwickelt"].concat(rec.tags || []);
       // Defensive Defaults, falls der Server Felder nicht mitliefert
       rec.steps = Array.isArray(rec.steps) ? rec.steps : [];
       rec.allergens = rec.allergens || [];
@@ -4186,6 +4346,13 @@ const KATEGORIEN = {
   gruen:  { label: "Locker", farbe: "#7e9c6f",
             vorlauf: [30], wiederholMin: 15 },
 };
+/* FUSION37: Termine aus dem Familien-Sync koennen von einer anderen
+   App-Version stammen. Eine unbekannte Kategorie legte vorher die
+   komplette Terminliste UND die Erinnerungsmaschine per TypeError
+   lahm. Test: Szenario S-05. */
+function katVon(t) {
+  return (t && KATEGORIEN[t.kategorie]) || KATEGORIEN.orange;
+}
 const ROUTINE_FARBE = "#cfe0ec";
 const TAGE_KURZ = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
@@ -4200,7 +4367,107 @@ function tLoad(key, fallback) {
   try { return JSON.parse(localStorage.getItem(key)) || fallback; }
   catch (e) { return fallback; }
 }
+/* =====================================================================
+   FUSION37 - SYNC-VERSCHMELZUNG (Befund: stiller Terminverlust)
+   ---------------------------------------------------------------------
+   Vorher ersetzte der Familien-Sync den KOMPLETTEN Zustand nach
+   Letzter-gewinnt: Trugen beide Elternteile innerhalb des 60-Sekunden-
+   Poll-Fensters je einen Termin ein, ueberschrieb der spaetere Stand
+   den frueheren - ein Termin verschwand lautlos auf allen Geraeten.
+
+   Jetzt gilt: Jeder Eintrag traegt eine eigene ID und einen
+   Aenderungsstempel (ts). Verschmolzen wird ELEMENTWEISE:
+   - verschiedene IDs -> Vereinigung (nichts geht verloren)
+   - gleiche ID       -> der neuere Stempel gewinnt
+   - Loeschungen      -> Grabsteine (Tombstones), damit ein geloeschter
+                         Termin nicht vom anderen Geraet aufersteht
+   Der Stempel wird ZENTRAL beim Speichern vergeben (syncStempeln in
+   tSaveAll) - so ist jeder Aenderungsweg automatisch erfasst, ohne
+   dass einzelne Aufrufstellen daran denken muessen.
+   Tests: Szenarien S-01 bis S-04.
+   ===================================================================== */
+function syncNeueId() {
+  const a = new Uint8Array(6);
+  crypto.getRandomValues(a);
+  return Array.from(a, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+let syncStempelStand = {};   // Merkzettel: key -> { id: Serialisierung }
+function syncTombstones() {
+  return tLoad("ka_sync_tombs", []);
+}
+function syncTombSchreiben(liste) {
+  try {
+    const kompakt = liste.slice().sort((a, b) => (b.ts || 0) - (a.ts || 0))
+      .slice(0, 500);
+    localStorage.setItem("ka_sync_tombs", JSON.stringify(kompakt));
+  } catch (e) {}
+}
+function syncStempeln(key, liste) {
+  const vorher = syncStempelStand[key] || {};
+  const jetzt = {};
+  const now = Date.now();
+  for (const e of liste) {
+    if (!e || typeof e !== "object") continue;
+    if (!e.id) { e.id = syncNeueId(); e.ts = now; }
+    const ser = JSON.stringify({ ...e, ts: 0 });
+    if (vorher[e.id] !== undefined && vorher[e.id] !== ser) e.ts = now;
+    if (!Number.isFinite(e.ts)) e.ts = now;
+    jetzt[e.id] = ser;
+  }
+  const tombs = syncTombstones();
+  let neueTombs = false;
+  for (const id of Object.keys(vorher)) {
+    if (!(id in jetzt)) { tombs.push({ id, ts: now }); neueTombs = true; }
+  }
+  if (neueTombs) syncTombSchreiben(tombs);
+  syncStempelStand[key] = jetzt;
+}
+function syncMerge(lokal, fern) {
+  const L = lokal || {}, F = fern || {};
+  const tombs = {};
+  for (const g of [].concat(L.geloescht || [], F.geloescht || [])) {
+    if (!g || !g.id) continue;
+    const ts = Number(g.ts) || 0;
+    if (tombs[g.id] === undefined || ts > tombs[g.id]) tombs[g.id] = ts;
+  }
+  const mische = (a, b) => {
+    const nachId = {};
+    for (const e of [].concat(a || [], b || [])) {
+      if (!e || typeof e !== "object") continue;
+      const id = e.id || syncNeueId();
+      const ts = Number(e.ts) || 0;
+      if (tombs[id] !== undefined && tombs[id] >= ts) continue;
+      if (!nachId[id] || ts >= (Number(nachId[id].ts) || 0)) {
+        nachId[id] = { ...e, id, ts };
+      }
+    }
+    return Object.values(nachId);
+  };
+  return {
+    termine: mische(L.termine, F.termine),
+    routinen: mische(L.routinen, F.routinen),
+    mitglieder: mische(L.mitglieder, F.mitglieder),
+    verbrauch: (F.verbrauch && typeof F.verbrauch === "object")
+      ? F.verbrauch : (L.verbrauch || {}),
+    geloescht: Object.keys(tombs).map((id) => ({ id, ts: tombs[id] }))
+      .sort((a, b) => b.ts - a.ts).slice(0, 500),
+  };
+}
+/* Fremddaten koennen von einer anderen App-Version stammen -
+   Pflichtfelder absichern, bevor sie in die Anzeige laufen. */
+function syncTerminHeilen(t) {
+  if (!t || typeof t !== "object") return null;
+  if (!t.bestaetigt || typeof t.bestaetigt !== "object") t.bestaetigt = {};
+  if (!t.zuletztErinnert || typeof t.zuletztErinnert !== "object")
+    t.zuletztErinnert = {};
+  if (!Number.isFinite(Number(t.dauerMin))) t.dauerMin = 30;
+  return t;
+}
+
 function tSaveAll() {
+  syncStempeln("termine", termine);
+  syncStempeln("routinen", routinen);
+  syncStempeln("mitglieder", mitglieder);
   try {
     localStorage.setItem("ka_mitglieder", JSON.stringify(mitglieder));
     localStorage.setItem("ka_routinen", JSON.stringify(routinen));
@@ -4257,7 +4524,7 @@ function weckerPlan() {
   const eintraege = [];
   const texte = {};
   termine.forEach((t) => {
-    const kat = KATEGORIEN[t.kategorie];
+    const kat = katVon(t);
     const start = new Date(t.datum + "T" + t.zeit).getTime()
       - (t.wegzeitMin || 0) * 60000;
     if (start < Date.now() - 3600000) return;
@@ -5159,7 +5426,7 @@ function renderMatrix() {
     termine.forEach((t) => {
       if (t.datum === tagIso)
         block(minuten(t.zeit), minuten(t.zeit) + t.dauerMin,
-          KATEGORIEN[t.kategorie].farbe,
+          katVon(t).farbe,
           t.zeit + " " + t.titel + " (" + t.person + ")", false);
     });
     grid.appendChild(col);
@@ -5184,7 +5451,7 @@ function renderTerminListe() {
     div.className = "entry";
     const dot = document.createElement("span");
     dot.style.cssText = `display:inline-block;width:12px;height:12px;` +
-      `border-radius:50%;background:${KATEGORIEN[t.kategorie].farbe};` +
+      `border-radius:50%;background:${katVon(t).farbe};` +
       `margin-right:6px;flex-shrink:0`;
     const span = document.createElement("span");
     span.style.flex = "1";
@@ -5216,7 +5483,7 @@ function checkErinnerungen() {
     const start = new Date(t.datum + "T" + t.zeit).getTime()
       - (t.wegzeitMin || 0) * 60000;
     if (start < jetzt - 60000) continue;
-    const kat = KATEGORIEN[t.kategorie];
+    const kat = katVon(t);
     for (const min of kat.vorlauf) {
       const stage = String(min);
       if (t.bestaetigt[stage]) continue;
@@ -5236,7 +5503,7 @@ function zeigeErinnerung(t, stage, min) {
   const wann = min >= 60
     ? Math.round(min / 60) + " Stunden" : min + " Minuten";
   const weg = t.wegzeitMin ? ` (inkl. ${t.wegzeitMin} Min. Wegzeit)` : "";
-  const text = `${KATEGORIEN[t.kategorie].label}: ${t.titel} für ${t.person} ` +
+  const text = `${katVon(t).label}: ${t.titel} für ${t.person} ` +
     `in ${wann}${weg}` +
     (t.verantwortlich ? ` – ${t.verantwortlich} übernimmt` : "");
   document.getElementById("reminderText").textContent = "⏰ " + text;
@@ -5764,6 +6031,7 @@ function vbVoiceCheckoffToggle() {
 }
 </script>
 <script src="/install.js" defer></script>
+<script src="/wakeword-adapter.js" defer></script>
 <footer id="rechtsFooter">
   <a href="/impressum.html">Impressum</a> ·
   <a href="/datenschutz.html">Datenschutz</a> ·

@@ -9,7 +9,7 @@
  * dieses Strings reicht, damit der Browser die sw.js als
  * geändert erkennt und den Update-Zyklus (Weg A) auslöst.
  */
-const VERSION = "app-fusion36";
+const VERSION = "app-fusion39";
 
 self.addEventListener("install", (e) => self.skipWaiting());
 
@@ -58,12 +58,18 @@ function fallbackNotification() {
 self.addEventListener("push", (e) => {
   e.waitUntil((async () => {
     let gezeigt = 0;
+    // FUSION37: data MUSS ausserhalb des if(device)-Blocks leben.
+    // Vorher war es dort per const gefangen; die QA-/Digest-Bloecke
+    // unten liefen in einen still geschluckten ReferenceError, und
+    // weil der Server die Zaehler per GETDEL liefert, war das Signal
+    // damit unwiederbringlich zerstoert. Test: tests/server/sw-push.
+    let data = null;
     try {
       const device = await idbGet("device");
       if (device) {
         const r = await fetch("/api/wecker?device=" +
           encodeURIComponent(device) + "&due=1");
-        const data = await r.json();
+        data = await r.json();
         const refs = (data && data.refs) || [];
         const texte = (await idbGet("refs")) || {};
         for (const ref of refs.slice(0, 3)) {
