@@ -1,0 +1,15 @@
+{
+  "zeitpunkt": "2026-09-04T05:43:02.586Z",
+  "modell": "claude-sonnet-4-6",
+  "erzeugteTestfaelle": 8,
+  "bestanden": 216,
+  "verdachtsfaelle": [
+    {
+      "name": "RT3-01 Zutatname enthaelt Zahl: '2 EL Oel' – die '2' im Namen darf nicht als Mengenangabe ersetzt werden",
+      "bestanden": false,
+      "fehlertext": ""
+    }
+  ],
+  "bestandsfehler": [],
+  "stoerung": ""
+}

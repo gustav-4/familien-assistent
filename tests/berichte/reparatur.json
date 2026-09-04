@@ -1,0 +1,12 @@
+{
+  "zeitpunkt": "2026-09-04T05:40:57.824Z",
+  "modell": "claude-sonnet-4-6",
+  "begruendung": "personenAequivalent(null) wirft keinen Fehler, weil 'm.geschlecht' auf null zugreift und einen TypeError ausloesen sollte, stattdessen aber durch fehlende Null-Pruefung eine Zahl liefert.",
+  "aenderungen": [
+    {
+      "datei": "index.html",
+      "alt": "function personenAequivalent(m) {\n  // RT1-07: Number(0) ist falsy - ein Saeugling zaehlte als Erwachsener.\n  const roh = Number(m && m.alter);",
+      "neu": "function personenAequivalent(m) {\n  // RT1-07: Number(0) ist falsy - ein Saeugling zaehlte als Erwachsener.\n  if (m == null) throw new TypeError(\"personenAequivalent: m ist null/undefined\");\n  const r"
+    }
+  ]
+}

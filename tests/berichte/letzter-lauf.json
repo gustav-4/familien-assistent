@@ -1,41 +1,16 @@
 {
-  "zeitpunkt": "2026-08-05T11:38:24.455Z",
-  "version": "FUSION36",
-  "gesamt": 209,
-  "bestanden": 203,
-  "fehlgeschlagen": 6,
+  "zeitpunkt": "2026-09-04T05:43:02.579Z",
+  "version": "FUSION39",
+  "gesamt": 217,
+  "bestanden": 216,
+  "fehlgeschlagen": 1,
   "selbstheilung": {
     "geschlosseneAttrappenLuecken": [],
     "hinweis": "Keine Attrappen-Luecken."
   },
   "fehler": [
     {
-      "name": "D1 Zutat wird festgeschrieben (200 g -> 250 g)",
-      "bestanden": false,
-      "fehlertext": ""
-    },
-    {
-      "name": "D2 Schritt-Prosa traegt dieselbe Zahl",
-      "bestanden": false,
-      "fehlertext": ""
-    },
-    {
-      "name": "D5 Einkaufsliste formatiert identisch",
-      "bestanden": false,
-      "fehlertext": ""
-    },
-    {
-      "name": "F-018 Kleine Mengen werden nie hochgerundet",
-      "bestanden": false,
-      "fehlertext": ""
-    },
-    {
-      "name": "F-018 Skalierung weicht nie mehr als 10 Prozent ab",
-      "bestanden": false,
-      "fehlertext": ""
-    },
-    {
-      "name": "F-018 Krumme Skalierung wird lesbar geglaettet",
+      "name": "RT3-01 Zutatname enthaelt Zahl: '2 EL Oel' – die '2' im Namen darf nicht als Mengenangabe ersetzt werden",
       "bestanden": false,
       "fehlertext": ""
     }

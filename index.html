@@ -4732,7 +4732,8 @@ async function loescheAlles() {
 // ---------- Familienprofil ----------
 function personenAequivalent(m) {
   // RT1-07: Number(0) ist falsy - ein Saeugling zaehlte als Erwachsener.
-  const roh = Number(m && m.alter);
+  if (m == null) throw new TypeError("personenAequivalent: m ist null/undefined");
+  const roh = Number(m.alter);
   const a = Number.isFinite(roh) && roh >= 0 ? roh : 30;
   const w = m.geschlecht === "w";
   if (a <= 3) return 0.5;
