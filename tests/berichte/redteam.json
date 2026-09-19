@@ -1,0 +1,15 @@
+{
+  "zeitpunkt": "2026-09-19T05:17:57.476Z",
+  "modell": "claude-sonnet-4-6",
+  "erzeugteTestfaelle": 16,
+  "bestanden": 224,
+  "verdachtsfaelle": [
+    {
+      "name": "RT2-15 'rezept: ' ohne Zusatz (mit Doppelpunkt und Leerzeichen) ergibt leeren rest",
+      "bestanden": false,
+      "fehlertext": ""
+    }
+  ],
+  "bestandsfehler": [],
+  "stoerung": ""
+}
