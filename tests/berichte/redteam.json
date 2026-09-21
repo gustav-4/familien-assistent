@@ -1,14 +1,9 @@
 {
-  "zeitpunkt": "2026-09-21T06:18:37.739Z",
-  "version": "FUSION39",
-  "gesamt": 215,
+  "zeitpunkt": "2026-09-21T06:18:37.746Z",
+  "modell": "claude-fable-5",
+  "erzeugteTestfaelle": 6,
   "bestanden": 210,
-  "fehlgeschlagen": 5,
-  "selbstheilung": {
-    "geschlosseneAttrappenLuecken": [],
-    "hinweis": "Keine Attrappen-Luecken."
-  },
-  "fehler": [
+  "verdachtsfaelle": [
     {
       "name": "RT3-01 'auf die liste milch' traegt den Artikel ein statt ihn in der Auffangregel zu verlieren",
       "bestanden": false,
@@ -34,5 +29,7 @@
       "bestanden": false,
       "fehlertext": ""
     }
-  ]
+  ],
+  "bestandsfehler": [],
+  "stoerung": ""
 }

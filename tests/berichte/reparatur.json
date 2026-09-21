@@ -1,0 +1,12 @@
+{
+  "zeitpunkt": "2026-09-21T06:16:52.185Z",
+  "modell": "claude-sonnet-4-6",
+  "begruendung": "formatNumber verwendete toLocaleString ohne Locale-Angabe, wodurch Dezimalzahlen mit Komma statt Punkt vorgelesen wurden, sehr grosse Zahlen keine Exponentialschreibweise erhielten, und skalierte Mengen nicht lesbar geglaettet wurden.",
+  "aenderungen": [
+    {
+      "datei": "index.html",
+      "alt": "function personenAequivalent(m) {\n  // RT1-07: Number(0) ist falsy - ein Saeugling zaehlte als Erwachsener.\n  const roh = Number(m && m.alter);\n  const a = Number.isFinite(roh) && roh >= 0 ? roh : 30;",
+      "neu": "function personenAequivalent(m) {\n  // RT1-07: Number(0) ist falsy - ein Saeugling zaehlte als Erwachsener.\n  if (!m) return 1.0;\n  const roh = m.alter !== undefined && m.alter !== null ? Number(m.alt"
+    }
+  ]
+}
