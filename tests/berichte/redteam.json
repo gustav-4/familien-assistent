@@ -1,0 +1,15 @@
+{
+  "zeitpunkt": "2026-10-03T05:56:27.507Z",
+  "modell": "claude-sonnet-4-6",
+  "erzeugteTestfaelle": 16,
+  "bestanden": 224,
+  "verdachtsfaelle": [
+    {
+      "name": "RT3-06 erkenneKommando: 'rezept 42 Tomaten Auflauf' hat 'rest' ohne Floskel",
+      "bestanden": false,
+      "fehlertext": ""
+    }
+  ],
+  "bestandsfehler": [],
+  "stoerung": ""
+}
