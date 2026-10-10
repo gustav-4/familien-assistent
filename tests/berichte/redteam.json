@@ -1,0 +1,15 @@
+{
+  "zeitpunkt": "2026-10-10T06:33:44.270Z",
+  "modell": "claude-sonnet-4-6",
+  "erzeugteTestfaelle": 16,
+  "bestanden": 224,
+  "verdachtsfaelle": [
+    {
+      "name": "RT2-14 'Rezept:' ohne Suchwunsch (nur Doppelpunkt) liefert rezept mit leerem rest",
+      "bestanden": false,
+      "fehlertext": ""
+    }
+  ],
+  "bestandsfehler": [],
+  "stoerung": ""
+}
