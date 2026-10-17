@@ -1,0 +1,15 @@
+{
+  "zeitpunkt": "2026-10-17T05:13:17.845Z",
+  "modell": "claude-sonnet-4-6",
+  "erzeugteTestfaelle": 16,
+  "bestanden": 224,
+  "verdachtsfaelle": [
+    {
+      "name": "RT2-13 erkenneKommando: 'rezept 42 kürbisSuppe' liefert rest '42 kürbisSuppe'",
+      "bestanden": false,
+      "fehlertext": ""
+    }
+  ],
+  "bestandsfehler": [],
+  "stoerung": ""
+}
