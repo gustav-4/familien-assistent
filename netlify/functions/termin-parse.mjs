@@ -7,7 +7,8 @@
  * anschliessend OHNE KI geprueft.
  */
 
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
+const ANTHROPIC_URL = (process.env.ANTHROPIC_BASE_URL ||
+  "https://api.anthropic.com").replace(/\/+$/, "") + "/v1/messages";
 const MODEL = "claude-haiku-4-5-20251001";
 
 function antwort(statusCode, obj) {
@@ -27,7 +28,7 @@ function safeJsonParse(text) {
   } catch { return null; }
 }
 
-export const handler = async (event) => {
+const handler = async (event) => {
   if (event.httpMethod !== "POST")
     return antwort(405, { success: false, error: "Nur POST" });
 
@@ -123,4 +124,22 @@ Datum nie in der Vergangenheit - im Zweifel der naechste passende Tag.`;
     return antwort(500, { success: false,
       error: "Verstehen fehlgeschlagen: " + String(e).slice(0, 120) });
   }
+};
+
+
+// ---- Netlify Functions v2 (Request -> Response) ----
+// Der Gateway injiziert ANTHROPIC_API_KEY/ANTHROPIC_BASE_URL nur in die
+// v2-Laufzeit. Die bisherige Logik bleibt unveraendert in `handler`;
+// diese Huelle uebersetzt nur zwischen Request/Response und dem alten
+// Ereignisformat. Route bleibt /.netlify/functions/<name> (netlify.toml).
+export default async (req) => {
+  const event = {
+    httpMethod: req.method,
+    body: req.method === "GET" || req.method === "HEAD" ? "" : await req.text(),
+  };
+  const r = await handler(event);
+  const status = r.statusCode || 200;
+  const ohneBody = status === 204 || status === 304;
+  return new Response(ohneBody ? null : (r.body ?? ""), {
+    status, headers: r.headers || {} });
 };

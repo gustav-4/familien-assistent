@@ -57,7 +57,8 @@ async function pruefeTageskontingent(device) {
 const MODEL = process.env.LLM_MODEL || "claude-haiku-4-5-20251001";
 import crypto from "node:crypto";
 
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
+const ANTHROPIC_URL = (process.env.ANTHROPIC_BASE_URL ||
+  "https://api.anthropic.com").replace(/\/+$/, "") + "/v1/messages";
 
 /** Muss identisch zu termine.mjs bleiben (Plus-Kanal-Hash). */
 function kanalVonCode(code) {
@@ -556,7 +557,7 @@ function normalizeRecipe(raw, ohneSchritte) {
   };
 }
 
-export const handler = async (event) => {
+const handler = async (event) => {
   const headers = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
@@ -878,4 +879,22 @@ export const handler = async (event) => {
     meta: { angefragt: rohListe.length, geliefert: sicher.length,
       verworfenAllergen, verworfenDiet, verworfenAusschluss },
   }) };
+};
+
+
+// ---- Netlify Functions v2 (Request -> Response) ----
+// Der Gateway injiziert ANTHROPIC_API_KEY/ANTHROPIC_BASE_URL nur in die
+// v2-Laufzeit. Die bisherige Logik bleibt unveraendert in `handler`;
+// diese Huelle uebersetzt nur zwischen Request/Response und dem alten
+// Ereignisformat. Route bleibt /.netlify/functions/<name> (netlify.toml).
+export default async (req) => {
+  const event = {
+    httpMethod: req.method,
+    body: req.method === "GET" || req.method === "HEAD" ? "" : await req.text(),
+  };
+  const r = await handler(event);
+  const status = r.statusCode || 200;
+  const ohneBody = status === 204 || status === 304;
+  return new Response(ohneBody ? null : (r.body ?? ""), {
+    status, headers: r.headers || {} });
 };
