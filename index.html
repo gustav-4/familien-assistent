@@ -740,6 +740,14 @@
       per Stimme und lernt euren echten Verbrauch mit.</p>
       <button class="btn ghost" type="button" onclick="vbVoiceAdd()">
         🎤 Artikel per Sprache hinzufügen</button>
+      <button class="btn ghost" type="button" id="bonScanBtn"
+        onclick="scanStarten('bonFoto')">🧾 Kassenbon scannen</button>
+      <input type="file" id="bonFoto" accept="image/*" capture="environment"
+        class="hidden" onchange="bonFotoGewaehlt(this)">
+      <p class="muted" style="margin:4px 0 0">Foto vom Bon: Die App erkennt
+      Verbrauchsgüter und rechnet ihre Reichweite neu. 🔒 Das Foto wird
+      <b>nur auf diesem Gerät</b> gelesen und nicht gespeichert.</p>
+      <div id="bonErgebnis" class="muted" style="margin-top:6px"></div>
       <details style="margin-top:12px">
         <summary style="cursor:pointer;color:var(--accent);font-weight:600">
           Alle Artikel verwalten (Reichweiten ansehen)</summary>
@@ -787,7 +795,12 @@
       für Lena, dauert eine Stunde, Mama bringt hin, sehr wichtig“</p>
       <button class="btn" id="terminVoiceBtn" type="button"
               onclick="terminVoiceStart()">🎤 Jetzt sprechen</button>
+      <button class="btn ghost" id="zettelScanBtn" type="button"
+              onclick="scanStarten('zettelFoto')">📷 Schulzettel scannen</button>
+      <input type="file" id="zettelFoto" accept="image/*" capture="environment"
+             class="hidden" onchange="zettelFotoGewaehlt(this)">
       <p class="muted" id="terminVoiceStatus"></p>
+      <div id="zettelErgebnis" style="margin-top:6px"></div>
       <button class="btn ghost" id="lauschToggleBtn"
               onclick="lauschUmschalten()">📣 Lausch-Modus: aus</button>
       <p class="muted" id="lauschStatus">Lausch-Modus: Die App wartet
@@ -1409,26 +1422,68 @@ let ttsDanach = null;
 // ---------- Bildschirm wachhalten (Feedback 23.07.) ----------
 // Beim Kochen darf das Handy nicht in den Ruhezustand fallen -
 // mit Teigfingern entsperren ist der Tod des Kochmodus.
+// KUECHEN-DISPLAY-SPERRE: Mehrere Bereiche brauchen den wachen
+// Bildschirm (Kochen, Lausch-Modus). Jeder meldet seinen GRUND an;
+// die Sperre faellt erst, wenn KEIN Grund mehr besteht. Vorher gab
+// das Ende des einen Bereichs die Sperre des anderen mit frei.
+// Wichtig fuers Mikrofon: Mobile Systeme beenden die Web-Spracherkennung,
+// sobald das Display abdunkelt - wacher Bildschirm = offenes Mikrofon.
 let wakeLockHandle = null;
-async function wakeLockAn() {
+let wakeLockAnfrageLaeuft = false;
+const wakeLockGruende = new Set();
+async function wakeLockAnfordern() {
+  if (!wakeLockGruende.size || wakeLockHandle || wakeLockAnfrageLaeuft) return;
+  if (!navigator.wakeLock || document.hidden) return;
+  wakeLockAnfrageLaeuft = true;
   try {
-    if (!navigator.wakeLock || wakeLockHandle) return;
-    wakeLockHandle = await navigator.wakeLock.request("screen");
-    wakeLockHandle.addEventListener("release", () => {
-      wakeLockHandle = null;
+    const h = await navigator.wakeLock.request("screen");
+    // Waehrend der Anfrage beendet? Dann sofort wieder freigeben.
+    if (!wakeLockGruende.size) { try { h.release(); } catch (e) {} return; }
+    wakeLockHandle = h;
+    h.addEventListener("release", () => {
+      if (wakeLockHandle === h) wakeLockHandle = null;
+      // Vom SYSTEM freigegeben (z. B. Energiesparen), obwohl noch
+      // gekocht wird und die App sichtbar ist: sofort neu anfordern.
+      if (wakeLockGruende.size && !document.hidden)
+        setTimeout(wakeLockAnfordern, 500);
     });
   } catch (e) { wakeLockHandle = null; /* Gerät kann es nicht: egal */ }
+  finally { wakeLockAnfrageLaeuft = false; }
 }
-function wakeLockAus() {
-  try {
-    if (wakeLockHandle) wakeLockHandle.release();
-  } catch (e) {}
+function wakeLockAn(grund) {
+  wakeLockGruende.add(grund || "koch");
+  return wakeLockAnfordern();
+}
+function wakeLockAus(grund) {
+  wakeLockGruende.delete(grund || "koch");
+  if (wakeLockGruende.size) return;
+  const h = wakeLockHandle;
   wakeLockHandle = null;
+  try { if (h) h.release(); } catch (e) {}
+}
+function wakeLockAktiv() { return Boolean(wakeLockHandle); }
+
+// Koch-Modul-Status: "aktiv", solange ein Rezept laeuft.
+let kochAktiv = false;
+function kochSitzungStart() {
+  kochAktiv = true;
+  wakeLockAn("koch");
+}
+function kochSitzungEnde() {
+  kochAktiv = false;
+  wakeLockAus("koch");
 }
 // Nach Tab-Wechsel/Displaysperre gibt das System die Sperre frei -
-// beim Zurueckkehren in den Kochmodus erneut anfordern.
+// beim Zurueckkehren erneut anfordern, solange ein Grund besteht.
+// Im aktiven Kochmodus wird ausserdem das Mikrofon sofort wieder
+// geoeffnet (auch wenn es vorher in der Ruhepause war).
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden && cookingVisible()) wakeLockAn();
+  if (document.hidden) return;
+  wakeLockAnfordern();
+  if (kochAktiv && cookingVisible() && typeof GlobalVoice !== "undefined"
+      && !GlobalVoice.aktiv && !micMuted) {
+    try { gvStart(); } catch (e) {}
+  }
 });
 
 
@@ -1881,7 +1936,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION39";
+const APP_VERSION = "FUSION40";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -1996,7 +2051,7 @@ function lauschStart() {
     return false;
   }
   LAUSCH.status = "lauscht";
-  wakeLockAn(); // Web-Grenze: nur bei wachem Bildschirm hoert das Mikro
+  wakeLockAn("lausch"); // Web-Grenze: nur bei wachem Bildschirm hoert das Mikro
   lauschAnzeige("Ich lausche still auf \u201eTermin\u201c - der " +
     "Bildschirm bleibt dafuer an. Beim Zuruf ertoent der Bereitton, " +
     "dann einfach den Termin sprechen.");
@@ -2008,7 +2063,7 @@ function lauschStopp() {
   if (LAUSCH.intervall) { clearInterval(LAUSCH.intervall); LAUSCH.intervall = null; }
   const war = LAUSCH.status;
   LAUSCH.status = "aus";
-  if (war !== "aus") wakeLockAus();
+  if (war !== "aus") wakeLockAus("lausch");
   lauschAnzeige("Lausch-Modus beendet.");
 }
 function lauschUmschalten() {
@@ -2284,7 +2339,8 @@ function anwendungAbbrechen() {
   let imKochen = false;
   try { imKochen = cookingVisible(); } catch (e) {}
   if (imKochen) {
-    clearTimers();          // Timer stoppen, Bildschirmsperre freigeben
+    clearTimers();          // Timer stoppen
+    kochSitzungEnde();      // Bildschirmsperre freigeben
     stepIndex = 0;
     goTab("rezepte");
     speak("Kochen beendet.", true);
@@ -3259,6 +3315,14 @@ function initRecognition() {
 // TABS
 // =====================================================
 function goTab(name) {
+  // Koch-Modul nicht sichtbar = inaktiv -> Display-Sperre aufheben.
+  // Laufende Garzeit-Timer bleiben bewusst bestehen (kurzer Blick auf
+  // die Einkaufsliste darf die Nudeln nicht vergessen lassen); bei der
+  // Rueckkehr in ein laufendes Rezept wird die Sperre neu angefordert.
+  if (typeof kochAktiv !== "undefined") {
+    if (name !== "kochen") wakeLockAus("koch");
+    else if (kochAktiv) wakeLockAn("koch");
+  }
   // NEU (Einkaufs-Voice): Freihändig-Modus beenden, wenn man Einkauf verlässt
   // (verhindert Mikrofon-Konflikt mit der Koch-Spracherkennung)
   if (name !== "einkauf" && typeof vbVoiceCheckoffStop === "function")
@@ -3951,7 +4015,7 @@ async function startCooking() {
   favBtn.textContent = "⭐ Das war lecker – als Favorit speichern";
   speak(`Los geht's mit ${selectedRecipe.name}. Sag jeweils fertig, ` +
         `wenn ein Schritt geschafft ist.`, true);
-  wakeLockAn(); // Bildschirm bleibt an, solange gekocht wird
+  kochSitzungStart(); // Bildschirm + Mikrofon bleiben an, solange gekocht wird
   showStep(); // laeuft sofort - unabhaengig von der Ansage
 }
 
@@ -4122,6 +4186,7 @@ function confirmStep() {
     document.getElementById("stepText").textContent =
       "🎉 Alles geschafft! Guten Appetit!";
     document.getElementById("favoriteBox").classList.remove("hidden");
+    kochSitzungEnde(); // Rezept beendet -> Bildschirm darf wieder schlafen
     speak("Alles geschafft. Du bist großartig. Guten Appetit! " +
           "Wenn es allen geschmeckt hat, kannst du das Gericht " +
           "jetzt als Favorit speichern.", true);
@@ -4143,6 +4208,8 @@ function prevStep() {
   if (stepIndex > 0) {
     stepIndex--;
     document.getElementById("favoriteBox").classList.add("hidden");
+    // Nach "Alles geschafft" zurueckgeblaettert: Rezept laeuft wieder.
+    if (!kochAktiv) kochSitzungStart();
     showStep();
     flashStep();
   } else {
@@ -4323,7 +4390,9 @@ function flashStep() {
 }
 
 function clearTimers() {
-  wakeLockAus(); // Kochen beendet -> Bildschirm darf wieder schlafen
+  // Die Display-Sperre haengt NICHT mehr an den Timern: clearTimers()
+  // laeuft bei jedem Schritt - frueher fiel die Sperre dadurch schon
+  // nach Schritt 1. Sie endet jetzt nur mit kochSitzungEnde().
   timerRest = 0;
   clearInterval(timerInterval);
   clearTimeout(reminderTimeout);
@@ -5303,6 +5372,300 @@ function saveTermin() {
   speak(`Termin ${neu.titel} gespeichert.`, true);
 }
 
+// =====================================================================
+// LOKALE SCANNER: Kassenbon -> Verbrauchs-Planer, Schulzettel -> Termine
+// ---------------------------------------------------------------------
+// OCR laeuft vollstaendig auf dem Geraet (scanner-lokal.js, Tesseract).
+// Fotos und erkannter Text verlassen das Geraet nie. Eingetragene Termine
+// und Kaeufe laufen ueber die bestehenden Speicherwege (tSaveAll/vbSave)
+// und damit unveraendert durch den Ende-zu-Ende-verschluesselten
+// Familien-Sync.
+// =====================================================================
+function scanStarten(inputId) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  el.value = "";
+  el.click();
+}
+function scanStatusText(status, anteil) {
+  const s = String(status || "");
+  const was = /load|initializ/.test(s) ? "Texterkennung wird vorbereitet"
+    : /recogniz/.test(s) ? "Lese Text" : "Arbeite";
+  return "🔍 " + was + " – direkt auf diesem Gerät … " +
+    Math.round((Number(anteil) || 0) * 100) + " %";
+}
+function scanFehlerText(e) {
+  return "❌ Das Foto konnte nicht gelesen werden" +
+    (e && e.message ? " (" + String(e.message).slice(0, 80) + ")" : "") +
+    ". Tipp: gerade von oben, gutes Licht, ganzes Blatt im Bild.";
+}
+function heuteLokalIso() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") +
+    "-" + String(d.getDate()).padStart(2, "0");
+}
+function elMit(tag, text, stil) {
+  const el = document.createElement(tag);
+  if (text != null) el.textContent = text;
+  if (stil) el.style.cssText = stil;
+  return el;
+}
+function rohtextDetails(text) {
+  const d = document.createElement("details");
+  d.style.marginTop = "6px";
+  d.appendChild(elMit("summary", "Erkannten Text ansehen", "cursor:pointer"));
+  d.appendChild(elMit("pre", String(text || "").slice(0, 4000),
+    "white-space:pre-wrap;font-size:12px;max-height:220px;overflow:auto"));
+  return d;
+}
+
+// ---------- Kassenbon ----------
+async function bonFotoGewaehlt(input) {
+  const datei = input && input.files && input.files[0];
+  const box = document.getElementById("bonErgebnis");
+  if (!datei || !box) return;
+  if (!window.ScannerLokal) {
+    box.textContent = "❌ Der Scanner ist noch nicht geladen – bitte kurz warten.";
+    return;
+  }
+  box.textContent = scanStatusText("load", 0);
+  let text = "";
+  try {
+    text = await window.ScannerLokal.erkenne(datei, { art: "bon",
+      onFortschritt: (s, p) => { box.textContent = scanStatusText(s, p); } });
+  } catch (e) { box.textContent = scanFehlerText(e); return; }
+  const funde = window.ScannerLokal.bonArtikel(text)
+    .filter((f) => VERBRAUCH.some((v) => v.id === f.id));
+  bonVorschau(funde, text, box);
+}
+
+function bonVorschau(funde, text, box) {
+  box.innerHTML = "";
+  if (!funde.length) {
+    box.appendChild(elMit("p", "Auf dem Bon habe ich keine Verbrauchsgüter " +
+      "aus eurem Planer erkannt."));
+    box.appendChild(rohtextDetails(text));
+    return;
+  }
+  box.appendChild(elMit("p", "🧾 Erkannt – bitte kurz prüfen:", "font-weight:600;margin:4px 0"));
+  const zeilen = [];
+  funde.forEach((f) => {
+    const item = VERBRAUCH.find((v) => v.id === f.id);
+    const div = document.createElement("div");
+    div.className = "entry";
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.checked = true;
+    const name = elMit("span", " " + item.name, "flex:1");
+    const anz = document.createElement("input");
+    anz.type = "number"; anz.min = "1"; anz.max = "20";
+    anz.value = String(f.menge || 1);
+    anz.style.cssText = "width:56px;padding:4px";
+    anz.setAttribute("aria-label", "Anzahl " + item.name);
+    div.appendChild(cb); div.appendChild(name);
+    div.appendChild(elMit("span", "Anzahl:", "margin-right:4px"));
+    div.appendChild(anz);
+    box.appendChild(div);
+    zeilen.push({ id: f.id, cb, anz });
+  });
+  const ok = elMit("button", "✓ Als gekauft übernehmen");
+  ok.className = "btn green"; ok.type = "button";
+  ok.onclick = () => {
+    const gebucht = bonUebernehmen(zeilen.filter((z) => z.cb.checked)
+      .map((z) => ({ id: z.id, menge: parseInt(z.anz.value, 10) || 1 })));
+    box.innerHTML = "";
+    box.appendChild(elMit("p", gebucht.length
+      ? "✅ Übernommen. Neue Reichweite: " + gebucht.join(" · ")
+      : "Nichts übernommen."));
+    if (gebucht.length) speak(gebucht.length === 1
+      ? "Ein Artikel vom Bon übernommen."
+      : gebucht.length + " Artikel vom Bon übernommen.", true);
+  };
+  box.appendChild(ok);
+  box.appendChild(rohtextDetails(text));
+}
+
+/** Kaeufe verbuchen (pur bis auf vbSave); liefert Reichweiten-Texte. */
+function bonUebernehmen(eintraege) {
+  const texte = [];
+  (eintraege || []).forEach((e) => {
+    if (!vbKaufVerbuchen(e.id, e.menge)) return;
+    // Steht der Artikel auf der Verbrauchs-Einkaufsliste: abhaken.
+    for (let i = vState.liste.length - 1; i >= 0; i--)
+      if (vState.liste[i].id === e.id) vState.liste.splice(i, 1);
+    const item = VERBRAUCH.find((v) => v.id === e.id);
+    const tage = vbIntervalTage(item) > 0 ? vbReichtNochTage(item) : null;
+    texte.push(item.name + (tage != null ? " ~" + tage + " Tage" : ""));
+  });
+  if (texte.length) { vbSave(); renderVerbrauch(); }
+  return texte;
+}
+
+// ---------- Schulzettel ----------
+async function zettelFotoGewaehlt(input) {
+  const datei = input && input.files && input.files[0];
+  const box = document.getElementById("zettelErgebnis");
+  if (!datei || !box) return;
+  if (!window.ScannerLokal || !window.TerminRegel) {
+    box.textContent = "❌ Der Scanner ist noch nicht geladen – bitte kurz warten.";
+    return;
+  }
+  box.textContent = scanStatusText("load", 0);
+  let text = "";
+  try {
+    text = await window.ScannerLokal.erkenne(datei, { art: "zettel",
+      onFortschritt: (s, p) => { box.textContent = scanStatusText(s, p); } });
+  } catch (e) { box.textContent = scanFehlerText(e); return; }
+  const funde = window.TerminRegel.ausDokument(text, heuteLokalIso(),
+    mitgliederNamen());
+  zettelVorschau(funde, text, box);
+}
+
+/** Vorschlag fuer die Wegzeit: zuletzt genutzte Wegzeit bei gleichem Titel. */
+function wegzeitVorschlag(titel) {
+  const t = String(titel || "").toLowerCase().split(" – ")[0];
+  for (let i = termine.length - 1; i >= 0; i--) {
+    const x = termine[i];
+    if (x.wegzeitMin > 0 && String(x.titel || "").toLowerCase().split(" – ")[0] === t)
+      return x.wegzeitMin;
+  }
+  return 0;
+}
+
+/** Terminobjekt im App-Format aus einem geprueften Regel-Termin. */
+function terminAusRegel(r, id) {
+  return {
+    id: id,
+    titel: String(r.titel || "Termin").slice(0, 60),
+    person: r.person || "Familie",
+    verantwortlich: r.verantwortlich || "",
+    datum: r.datum,
+    zeit: r.zeit,
+    dauerMin: Math.max(5, Number(r.dauer_min) || 60),
+    wegzeitMin: Math.max(0, Number(r.wegzeit_min) || 0),
+    kategorie: r.kategorie || "orange",
+    bestaetigt: {},
+    zuletztErinnert: {},
+  };
+}
+
+/** Kollisionen + Ueberlastung fuer einen Termin (pur). */
+function terminWarnungen(t) {
+  const k = findeKollisionen(t).map((x) => "Kollision mit " + x);
+  const u = window.TerminRegel ? window.TerminRegel.ueberlastung(t, termine, routinen) : [];
+  return k.concat(u);
+}
+
+function zettelVorschau(funde, text, box) {
+  box.innerHTML = "";
+  if (!funde.length) {
+    box.appendChild(elMit("p", "Auf dem Zettel habe ich kein Datum gefunden. " +
+      "Ihr könnt den Termin unten von Hand eintragen.", "margin:4px 0"));
+    box.appendChild(rohtextDetails(text));
+    return;
+  }
+  box.appendChild(elMit("p", "📄 " + funde.length + (funde.length === 1
+    ? " Termin" : " Termine") + " erkannt – bitte prüfen und eintragen:",
+    "font-weight:600;margin:4px 0"));
+  const basis = Date.now();
+  funde.forEach((r, idx) => {
+    const karte = document.createElement("div");
+    karte.className = "karte";
+    karte.style.cssText = "margin:8px 0;padding:10px;border:1px solid #ddd;border-radius:10px";
+    const feld = (label, el) => {
+      const l = elMit("label", label + " ", "display:block;margin:4px 0");
+      l.appendChild(el); karte.appendChild(l); return el;
+    };
+    const titel = document.createElement("input");
+    titel.type = "text"; titel.value = r.titel; titel.style.width = "70%";
+    feld("Titel:", titel);
+    const datum = document.createElement("input");
+    datum.type = "date"; datum.value = r.datum;
+    feld("Datum:", datum);
+    const zeit = document.createElement("input");
+    zeit.type = "time"; zeit.value = r.zeit;
+    feld("Uhrzeit:", zeit);
+    if (r.zeitGeschaetzt) karte.appendChild(elMit("p",
+      "⚠️ Auf dem Zettel stand keine Uhrzeit – bitte ergänzen.",
+      "color:#b86e00;margin:2px 0"));
+    const person = document.createElement("select");
+    ["Familie"].concat(mitgliederNamen()).forEach((n) => {
+      const o = document.createElement("option"); o.value = n; o.textContent = n;
+      person.appendChild(o);
+    });
+    if ([...person.options].some((o) => o.value === r.person)) person.value = r.person;
+    feld("Für wen:", person);
+    const wer = document.createElement("select");
+    [""].concat(mitgliederNamen()).forEach((n) => {
+      const o = document.createElement("option"); o.value = n;
+      o.textContent = n || "– niemand –"; wer.appendChild(o);
+    });
+    if (r.verantwortlich) wer.value = r.verantwortlich;
+    feld("Wer übernimmt:", wer);
+    const dauer = document.createElement("input");
+    dauer.type = "number"; dauer.min = "5"; dauer.max = "720";
+    dauer.value = String(r.dauer_min || 60); dauer.style.width = "80px";
+    feld("Dauer (Min.):", dauer);
+    // Wegzeit-Abfrage: Ein Zettel nennt fast nie den Weg. Die App fragt
+    // deshalb ausdruecklich nach und schlaegt die zuletzt genutzte Zeit
+    // fuer denselben Anlass vor.
+    const weg = document.createElement("input");
+    weg.type = "number"; weg.min = "0"; weg.max = "240";
+    weg.value = String(r.wegzeit_min || wegzeitVorschlag(r.titel) || 0);
+    weg.style.cssText = "width:80px;outline:2px solid #f0b400;border-radius:6px";
+    feld("🚗 Wie lange ist der Weg dorthin? (Min.)", weg);
+    const warn = elMit("p", "", "color:#d64545;margin:4px 0");
+    karte.appendChild(warn);
+    const id = "z" + basis + "_" + idx;
+    const aktuell = () => terminAusRegel({
+      titel: titel.value.trim(), person: person.value, verantwortlich: wer.value,
+      datum: datum.value, zeit: zeit.value, dauer_min: parseInt(dauer.value, 10),
+      wegzeit_min: parseInt(weg.value, 10), kategorie: r.kategorie }, id);
+    const pruefe = () => {
+      const t = aktuell();
+      const w = t.titel && t.datum && t.zeit ? terminWarnungen(t) : [];
+      warn.textContent = w.length ? "⚠️ " + w.join(" · ") : "";
+      return w;
+    };
+    [titel, datum, zeit, person, wer, dauer, weg].forEach((el) => {
+      el.addEventListener("change", pruefe);
+      el.addEventListener("input", pruefe);
+    });
+    pruefe();
+    const ein = elMit("button", "📅 In die Wochen-Matrix eintragen");
+    ein.className = "btn green"; ein.type = "button";
+    ein.onclick = () => {
+      const t = aktuell();
+      if (!t.titel || !t.datum || !t.zeit) {
+        warn.textContent = "Bitte Titel, Datum und Uhrzeit angeben.";
+        return;
+      }
+      const w = pruefe();
+      if (w.length && !confirm("⚠️ " + w.join("\n") + "\n\nTrotzdem eintragen?"))
+        return;
+      zettelTerminEintragen(t);
+      karte.innerHTML = "";
+      karte.appendChild(elMit("p", "✅ „" + t.titel + "“ am " +
+        t.datum.split("-").reverse().join(".") + " um " + t.zeit +
+        " eingetragen.", "margin:0"));
+    };
+    karte.appendChild(ein);
+    box.appendChild(karte);
+    if (idx === 0) setTimeout(() => { try { weg.focus(); } catch (e) {} }, 50);
+  });
+  box.appendChild(rohtextDetails(text));
+}
+
+/** In die Wochen-Matrix eintragen – gleicher Weg wie saveTermin(). */
+function zettelTerminEintragen(t) {
+  if (termine.some((x) => x.id === t.id)) return false;
+  termine.push(t);
+  termine.sort((a, b) => (a.datum + a.zeit).localeCompare(b.datum + b.zeit));
+  tSaveAll(); // lokal + Weckplan + E2E-Familien-Sync
+  renderTermineTab();
+  speak(`Termin ${t.titel} eingetragen.`, true);
+  return true;
+}
+
 // ---------- Routinen ----------
 function renderTageBoxen() {
   const box = document.getElementById("rTage");
@@ -5731,7 +6094,9 @@ function vbStatus(item) {
 }
 function vbReichtNochTage(item) {
   const s = vbStatus(item);
-  const intervall = vbIntervalTage(item) * s.faktor;
+  // Mehrere Packungen auf einmal gekauft (z. B. vom Kassenbon): der
+  // Vorrat reicht entsprechend laenger.
+  const intervall = vbIntervalTage(item) * s.faktor * vbMenge(s);
   return Math.round((s.zuletzt + intervall * 86400000 - Date.now()) / 86400000);
 }
 function vbSave() {
@@ -5756,21 +6121,33 @@ function vbZurueckstellen(id) {
   s.faktor = Math.min(s.faktor * 1.1, 3);
   vbSave(); renderVerbrauch();
 }
+function vbMenge(s) {
+  const n = Number(s && s.menge);
+  return Number.isFinite(n) && n >= 1 ? Math.min(n, 20) : 1;
+}
+// Einen Kauf verbuchen und den echten Verbrauch lernen. Gemeinsamer
+// Kern fuer "abgehakt" (Einkaufsliste) und den Kassenbon-Scanner.
+function vbKaufVerbuchen(id, menge) {
+  const item = VERBRAUCH.find((x) => x.id === id);
+  if (!item) return false;
+  const s = vbStatus(item);
+  // Lernen pro Packung: Wer letztes Mal 3 Stueck kaufte, hat in der
+  // gemessenen Zeit auch 3 Stueck verbraucht.
+  const tatsaechlich = (Date.now() - s.zuletzt) / 86400000 / vbMenge(s);
+  const basis = vbIntervalTage(item);
+  if (basis > 0 && tatsaechlich > 1) {
+    s.faktor = Math.min(Math.max(
+      s.faktor * 0.7 + (tatsaechlich / basis) * 0.3, 0.4), 3);
+  }
+  s.zuletzt = Date.now();
+  s.menge = vbMenge({ menge: menge });
+  s.inListe = false;
+  s.snoozeUntil = 0;
+  return true;
+}
 function vbGekauft(eintragIdx) {
   const eintrag = vState.liste[eintragIdx];
-  if (eintrag && eintrag.id) {
-    const item = VERBRAUCH.find((x) => x.id === eintrag.id);
-    const s = vbStatus(item);
-    const tatsaechlich = (Date.now() - s.zuletzt) / 86400000;
-    const basis = vbIntervalTage(item);
-    if (basis > 0 && tatsaechlich > 1) {
-      s.faktor = Math.min(Math.max(
-        s.faktor * 0.7 + (tatsaechlich / basis) * 0.3, 0.4), 3);
-    }
-    s.zuletzt = Date.now();
-    s.inListe = false;
-    s.snoozeUntil = 0;
-  }
+  if (eintrag && eintrag.id) vbKaufVerbuchen(eintrag.id, 1);
   vState.liste.splice(eintragIdx, 1);
   vbSave(); renderVerbrauch();
 }
@@ -6032,6 +6409,8 @@ function vbVoiceCheckoffToggle() {
 </script>
 <script src="/install.js" defer></script>
 <script src="/wakeword-adapter.js" defer></script>
+<script src="/termin-regel.js" defer></script>
+<script src="/scanner-lokal.js" defer></script>
 <footer id="rechtsFooter">
   <a href="/impressum.html">Impressum</a> ·
   <a href="/datenschutz.html">Datenschutz</a> ·
