@@ -222,3 +222,14 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Belegt:** Rot vor Fix: 4 FEHL (null/Zahl wirft TypeError). Gruen nach Fix in UTC, Berlin, New_York: 216 bestanden.
 **Mutationen:** F-020: defekte Eintraege im Speicher werden nicht mehr uebersprungen
 **Nicht geprueft:** ob dies die Ursache auf dem Geraet des Betreibers ist; beschaedigte Eintraege in tieferen Feldern (z. B. Termin ohne datum) sind nicht abgefangen; der Sync-Weg (`mitglieder = m.mitglieder`) laedt ungefiltert.
+
+## F-021
+**Wortlaut:** (Betreiber, 08.11.) wie aktualisiere ich die app auf meinem handy? — Vorschlag 1 freigegeben: Versionsanzeige und „Nach Update suchen"-Knopf
+**Status:** behoben
+**Test:** F-021 ohne Service Worker: Browser kann sich nicht selbst aktualisieren (+8 weitere)
+**Priorität:** 3
+**Vermerk:** Die Versionsanzeige bestand schon (Fusszeile `#appVersion`, Sprachbefehl „Version"). Neu ist der Knopf.
+**Umsetzung:** `updateZustand`, `updateText`, `updatePruefen` vor `initTermine`; Knopf und Statusfeld in der Fusszeile. Der Knopf ruft `registration.update()`; eine neue sw.js uebernimmt sich per skipWaiting, der vorhandene controllerchange-Handler laedt die Seite einmal neu. Keine Daten werden beruehrt. Version FUSION42.
+**Belegt:** Rot vor Fix: 9 FEHL (ein Scheintest „deutscher Text" war vorher faelschlich gruen und wurde korrigiert). Gruen nach Fix in UTC, Berlin, New_York: 225 bestanden.
+**Mutationen:** F-021: neue Version wird nicht mehr erkannt / F-021: Update-Knopf loescht lokale Daten
+**Nicht geprueft:** Verhalten auf echten Geraeten (iOS-Standalone, Android-App-Modus); dass `update()` hinter Netlify-Caches sofort die neue sw.js sieht.

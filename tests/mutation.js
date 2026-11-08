@@ -386,6 +386,20 @@ const MUTATIONEN = [
     erwarteRot: ["F-020 intakte Mitglieder bleiben",
       "F-020 Speicher ohne Liste", "F-020 defekte Termine und Routinen"],
   },
+  {
+    name: "F-021: neue Version wird nicht mehr erkannt",
+    datei: "index.html",
+    suchen: 'return (reg.installing || reg.waiting) ? "neu" : "aktuell";',
+    ersetzen: 'return "aktuell";',
+    erwarteRot: ["F-021 neue Version wartet oder installiert"],
+  },
+  {
+    name: "F-021: Update-Knopf loescht lokale Daten",
+    datei: "index.html",
+    suchen: 'if (el) el.textContent = "Suche nach Updates …";',
+    ersetzen: 'localStorage.clear(); if (el) el.textContent = "Suche nach Updates …";',
+    erwarteRot: ["F-021 updatePruefen loescht und aendert keine lokalen Daten"],
+  },
 ];
 
 function laufen() {

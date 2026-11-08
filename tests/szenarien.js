@@ -1322,3 +1322,45 @@ pruefe("F-018 Stueck-Mengen bleiben ganzzahlig", (function () {
     familienStile = sichern.s;
   }
 })();
+
+// F-021: "Nach Update suchen" - holt die neue Version, ohne Daten zu loeschen.
+(function () {
+  const sicher = (f) => { try { return f(); } catch (e) { return "FEHLER:" + e.message; } };
+  pruefe("F-021 ohne Service Worker: Browser kann sich nicht selbst aktualisieren",
+    sicher(() => updateZustand(null, true)) === "nichtUnterstuetzt");
+  pruefe("F-021 ohne Internet: Zustand offline",
+    sicher(() => updateZustand({ installing: null, waiting: null }, false)) === "offline");
+  pruefe("F-021 neue Version wartet oder installiert: Zustand neu",
+    sicher(() => updateZustand({ installing: {}, waiting: null }, true)) === "neu" &&
+    sicher(() => updateZustand({ installing: null, waiting: {} }, true)) === "neu");
+  pruefe("F-021 nichts Neues: Zustand aktuell",
+    sicher(() => updateZustand({ installing: null, waiting: null }, true)) === "aktuell");
+  pruefe("F-021 jeder Zustand hat einen deutschen Text",
+    ["neu", "aktuell", "offline", "nichtUnterstuetzt"].every((z) =>
+      sicher(() => typeof updateText(z) === "string" && updateText(z).length > 10) === true));
+  pruefe("F-021 Text 'aktuell' nennt die Version",
+    sicher(() => updateText("aktuell").includes(APP_VERSION)) === true);
+  pruefe("F-021 Seite hat Knopf und Statusfeld",
+    APPHTML.includes('onclick="updatePruefen()"') && APPHTML.includes('id="updateStatus"'));
+  warte(async () => {
+    const vorher = JSON.stringify(localStorage._d);
+    const navAlt = Object.getOwnPropertyDescriptor(navigator, "serviceWorker");
+    let updateAufgerufen = 0;
+    try {
+      Object.defineProperty(navigator, "serviceWorker", { configurable: true,
+        value: { getRegistration: async () => ({ installing: null, waiting: null,
+          update: async () => { updateAufgerufen++; } }) } });
+      const z = await updatePruefen();
+      pruefe("F-021 updatePruefen fragt den Service Worker und meldet 'aktuell'",
+        z === "aktuell" && updateAufgerufen === 1);
+      pruefe("F-021 updatePruefen loescht und aendert keine lokalen Daten",
+        JSON.stringify(localStorage._d) === vorher);
+    } catch (e) {
+      pruefe("F-021 updatePruefen fragt den Service Worker und meldet 'aktuell'", false);
+      pruefe("F-021 updatePruefen loescht und aendert keine lokalen Daten", false);
+    } finally {
+      if (navAlt) Object.defineProperty(navigator, "serviceWorker", navAlt);
+      else delete navigator.serviceWorker;
+    }
+  });
+})();
