@@ -378,6 +378,14 @@ const MUTATIONEN = [
     erwarteRot: ["F-008 isoTag liefert das lokale Datum",
       "F-008 Wochenstart ist in jeder Zeitzone ein Montag"],
   },
+  {
+    name: "F-020: defekte Eintraege im Speicher werden nicht mehr uebersprungen",
+    datei: "index.html",
+    suchen: "return Array.isArray(w) ? w.filter(istGueltig) : [];",
+    ersetzen: "return w;",
+    erwarteRot: ["F-020 intakte Mitglieder bleiben",
+      "F-020 Speicher ohne Liste", "F-020 defekte Termine und Routinen"],
+  },
 ];
 
 function laufen() {

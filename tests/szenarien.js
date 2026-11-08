@@ -1276,3 +1276,49 @@ pruefe("F-018 Stueck-Mengen bleiben ganzzahlig", (function () {
   const t = String(smartMenge({ name: "Eier", qty: 3, unit: "Stück" }, 1)).trim();
   return t === "3";
 })());
+
+// F-020: Ein defekter Eintrag im lokalen Speicher (z. B. null in
+// ka_mitglieder) darf weder den Start noch den Terminplaner blockieren.
+// Defekte Eintraege werden uebersprungen, intakte bleiben erhalten.
+(function () {
+  const speicherVorher = Object.assign({}, localStorage._d);
+  const sichern = { m: mitglieder, r: routinen, t: termine, s: familienStile };
+  function ladenMit(daten) {
+    localStorage._d = {};
+    Object.keys(daten).forEach((k) => { localStorage._d[k] = daten[k]; });
+    let fehler = null;
+    try { termineLaden(); } catch (e) { fehler = e; }
+    return { fehler, m: mitglieder, r: routinen, t: termine };
+  }
+  try {
+    const a = ladenMit({ ka_mitglieder: JSON.stringify(
+      [null, { name: "Anna", alter: 5, geschlecht: "w" }, 42, "Bob", [1]]) });
+    pruefe("F-020 null/Zahl in ka_mitglieder wirft nicht", a.fehler === null);
+    pruefe("F-020 intakte Mitglieder bleiben (Objekt und alter String)",
+      a.fehler === null && a.m.length === 2 && a.m[0].name === "Anna" &&
+      a.m[1].name === "Bob" && Array.isArray(a.m[0].allergien) &&
+      Array.isArray(a.m[1].ernaehrung));
+
+    const b = ladenMit({ ka_mitglieder: '{"a":1}', ka_routinen: "7",
+      ka_termine: '"text"' });
+    pruefe("F-020 Speicher ohne Liste (Objekt/Zahl/Text) ergibt leere Listen",
+      b.fehler === null && Array.isArray(b.m) && b.m.length === 0 &&
+      Array.isArray(b.r) && b.r.length === 0 &&
+      Array.isArray(b.t) && b.t.length === 0);
+
+    const c = ladenMit({ ka_termine: JSON.stringify(
+      [null, { id: "t1", titel: "Zahnarzt" }, 5, "x"]),
+      ka_routinen: JSON.stringify([null, { id: "r1" }, false]) });
+    pruefe("F-020 defekte Termine und Routinen werden uebersprungen",
+      c.fehler === null && c.t.length === 1 && c.t[0].id === "t1" &&
+      c.r.length === 1 && c.r[0].id === "r1");
+
+    const d = ladenMit({ ka_mitglieder: "kaputt{", ka_termine: "}{" });
+    pruefe("F-020 unlesbares JSON ergibt weiter leere Listen",
+      d.fehler === null && d.m.length === 0 && d.t.length === 0);
+  } finally {
+    localStorage._d = speicherVorher;
+    mitglieder = sichern.m; routinen = sichern.r; termine = sichern.t;
+    familienStile = sichern.s;
+  }
+})();

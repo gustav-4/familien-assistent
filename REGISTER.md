@@ -211,3 +211,14 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Test:** —
 **Priorität:** 3
 
+
+## F-020
+**Wortlaut:** funktioniert nicht, ich kome nicht in den terminplaner, weder durch sprache noch durch antippen
+**Status:** behoben
+**Test:** F-020 null/Zahl in ka_mitglieder wirft nicht (+3 weitere)
+**Priorität:** 1 — Terminplaner nicht erreichbar
+**Vermerk:** Auf dem Geraet des Betreibers NICHT reproduziert. Belegt ist nur eine moegliche Ursache: ein defekter Eintrag (z. B. null) in ka_mitglieder warf beim Start `Cannot read properties of null (reading 'allergien')` und brach die Initialisierung ab.
+**Umsetzung:** Laden in `termineLaden()` ausgelagert (reine Umformung, 211 Tests gruen); `ladeListe` ueberspringt Eintraege ohne Objekt/String-Typ und ersetzt Nicht-Listen durch leere Listen. Version FUSION41.
+**Belegt:** Rot vor Fix: 4 FEHL (null/Zahl wirft TypeError). Gruen nach Fix in UTC, Berlin, New_York: 216 bestanden.
+**Mutationen:** F-020: defekte Eintraege im Speicher werden nicht mehr uebersprungen
+**Nicht geprueft:** ob dies die Ursache auf dem Geraet des Betreibers ist; beschaedigte Eintraege in tieferen Feldern (z. B. Termin ohne datum) sind nicht abgefangen; der Sync-Weg (`mitglieder = m.mitglieder`) laedt ungefiltert.

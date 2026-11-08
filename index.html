@@ -1936,7 +1936,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION40";
+const APP_VERSION = "FUSION41";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -5912,8 +5912,20 @@ function reminderOk() {
 }
 
 // ---------- Start ----------
-(function initTermine() {
-  mitglieder = tLoad("ka_mitglieder", []);
+// Laedt Mitglieder, Routinen, Termine und Stile aus dem lokalen Speicher.
+// Eigene Funktion, damit sie testbar ist (F-020).
+// F-020: Defekte Eintraege (null, Zahlen, falscher Typ) werden uebersprungen,
+// statt den ganzen Start bzw. den Terminplaner zu blockieren.
+function istDatenObjekt(x) {
+  return x !== null && typeof x === "object" && !Array.isArray(x);
+}
+function ladeListe(key, istGueltig) {
+  const w = tLoad(key, []);
+  return Array.isArray(w) ? w.filter(istGueltig) : [];
+}
+function termineLaden() {
+  mitglieder = ladeListe("ka_mitglieder",
+    (m) => typeof m === "string" || istDatenObjekt(m));
   // Migration: alte Namens-Strings -> Profil-Objekte; fehlende
   // Felder (allergien, ernaehrung) defensiv ergaenzen.
   mitglieder = mitglieder.map((m) => {
@@ -5923,9 +5935,12 @@ function reminderOk() {
     if (!Array.isArray(obj.ernaehrung)) obj.ernaehrung = [];
     return obj;
   });
-  routinen = tLoad("ka_routinen", []);
-  termine = tLoad("ka_termine", []);
+  routinen = ladeListe("ka_routinen", istDatenObjekt);
+  termine = ladeListe("ka_termine", istDatenObjekt);
   familienStile = tLoad("ka_stile", []); // weiche Stil-Vorlieben laden
+}
+(function initTermine() {
+  termineLaden();
   renderMembers();
   if ("Notification" in window && Notification.permission === "default") {
     setTimeout(() => { try { Notification.requestPermission(); } catch (e) {} },
