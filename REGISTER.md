@@ -238,7 +238,7 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Status:** behoben
 **Test:** F-021 ohne Service Worker: Browser kann sich nicht selbst aktualisieren (+8 weitere)
 **Priorität:** 3
-**Vermerk:** Die Versionsanzeige bestand schon (Fusszeile `#appVersion`, Sprachbefehl „Version"). Neu ist der Knopf.
+**Vermerk:** KORREKTUR (08.11., FUSION46): Die Versionsanzeige in der Fusszeile zeigte NIE etwas an. Das Feld `#appVersion` steht nach dem Skript, das es fuellte; beim Start existierte es noch nicht. Behoben im Nachtrag (`versionAnzeigen` + DOMContentLoaded, 2 Tests, 1 Mutation). Der Sprachbefehl „Version" funktionierte schon. Der Knopf ist neu.
 **Umsetzung:** `updateZustand`, `updateText`, `updatePruefen` vor `initTermine`; Knopf und Statusfeld in der Fusszeile. Der Knopf ruft `registration.update()`; eine neue sw.js uebernimmt sich per skipWaiting, der vorhandene controllerchange-Handler laedt die Seite einmal neu. Keine Daten werden beruehrt. Version FUSION42.
 **Belegt:** Rot vor Fix: 9 FEHL (ein Scheintest „deutscher Text" war vorher faelschlich gruen und wurde korrigiert). Gruen nach Fix in UTC, Berlin, New_York: 225 bestanden.
 **Mutationen:** F-021: neue Version wird nicht mehr erkannt / F-021: Update-Knopf loescht lokale Daten
@@ -265,3 +265,13 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Befund beim Schreiben (nicht behoben, Entscheidung noetig):** Der Familien-Code geht im Klartext in jeder Sync-Anfrage zum Server (`/api/termine?code=…`, POST-Body); er ist zugleich der Schluessel der Verschluesselung (PBKDF2). Der Server speichert nur einen Hash, kann die Daten technisch aber entschluesseln, und der Code kann in Zugriffsprotokollen stehen. Das widerspricht dem Satz „Klartexte erreichen den Server nie" im Kommentar von termine.mjs. Abhilfe waere, Kanal-Kennung und Schluessel getrennt abzuleiten (Server + Migration), eigener Auftrag.
 **Befund 2:** Gesprochene Termine gehen IMMER an /api/termin-parse (KI); der lokale Regel-Parser wird nur fuer Scanner-Dokumente benutzt.
 **Nicht geprueft:** Aussagen zur Browser-Spracherkennung stammen aus allgemeinem Wissen (Chrome sendet Audio ueblicherweise an einen Server des Herstellers), nicht aus eigener Messung; Server-Code nur in Teilen gelesen.
+
+## F-024
+**Wortlaut:** (Betreiber, 08.11.) Vorschlag 6 freigegeben: Heute-Seite (Termine, Essen, Einkauf auf einen Blick)
+**Status:** behoben
+**Test:** F-024 heutige Termine stehen nach Uhrzeit sortiert, ohne Essen und andere Tage (+10 weitere)
+**Priorität:** 3
+**Umsetzung:** Neuer Reiter „📍 Heute" (nav-heute, tab-heute, `heuteUebersicht`, `renderHeute`), Sprachbefehl „gehe zu heute". Zeigt heutige Termine (vergangene abgeblendet), das geplante Abendessen (Wochenplan-Eintraege mit „🍽"), den naechsten Termin und die Zahl der Einkaufsartikel. Startseite bleibt „Familie". Version FUSION46.
+**Belegt:** Rot vor Fix: 11 FEHL (ein Scheintest „goTab laeuft durch" wurde vorher durch einen echten ersetzt). Gruen danach in UTC, Berlin, New_York.
+**Mutationen:** F-024: Heute rechnet den Tag wieder ueber UTC / ... nicht mehr nach Uhrzeit sortiert / ... vergangene Termine nicht mehr markiert / ... Abendessen nicht mehr getrennt / ... naechster Termin ist der letzte
+**Nicht geprueft:** Aussehen auf echten Handys (7 Reiter in der unteren Leiste), Routinen erscheinen nicht auf der Heute-Seite, kein Start auf „Heute".

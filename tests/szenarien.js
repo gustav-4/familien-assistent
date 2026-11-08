@@ -1571,3 +1571,73 @@ warte(async () => {
   pruefe("F-023 Die Seite hat Bereich und Container",
     APPHTML.includes('id="datenschutzSeite"') && APPHTML.includes("Was verlässt mein Handy"));
 })();
+
+// F-024: "Heute"-Seite. Reine Auswertung (heuteUebersicht) plus Bedienung.
+(function () {
+  const sicher = (f) => { try { return f(); } catch (e) { return "FEHLER:" + e.message; } };
+  const T = (id, datum, zeit, titel, person) => ({ id, datum, zeit, titel: titel || "T" + id,
+    person: person || "Lena", dauerMin: 30, wegzeitMin: 0, bestaetigt: {}, zuletztErinnert: {} });
+  const jetzt = new Date(2026, 10, 8, 15, 0, 0);
+  const liste = [
+    T("a", "2026-11-08", "16:00", "Zahnarzt", "Max"), T("b", "2026-11-08", "09:00", "Schule"),
+    T("c", "2026-11-08", "18:00", "🍽 Nudeln mit Tomatensauce", "Familie"),
+    T("d", "2026-11-07", "10:00", "Gestern"), T("e", "2026-11-12", "08:00", "Spaeter"),
+    T("f", "2026-11-10", "07:30", "Frueher als e"), null, 5, "x", { datum: "2026-11-08" },
+  ];
+  const u = sicher(() => heuteUebersicht(liste, 4, jetzt));
+  const ok = u && typeof u === "object" && !String(u).startsWith("FEHLER");
+  pruefe("F-024 heutige Termine stehen nach Uhrzeit sortiert, ohne Essen und andere Tage",
+    ok && Array.isArray(u.termine) && u.termine.map((t) => t.titel).join("|") === "Schule|Zahnarzt");
+  pruefe("F-024 das Abendessen (Wochenplan-Eintrag) wird getrennt gefuehrt",
+    ok && Array.isArray(u.essen) && u.essen.length === 1 && /Nudeln/.test(u.essen[0].titel));
+  pruefe("F-024 Termine, die schon vorbei sind, werden markiert",
+    ok && u.termine[0].vorbei === true && u.termine[1].vorbei === false);
+  pruefe("F-024 der naechste Termin nach heute ist der fruehste kuenftige",
+    ok && u.naechster && u.naechster.id === "f");
+  pruefe("F-024 Einkaufsartikel werden uebernommen", ok && u.einkaufAnzahl === 4);
+  pruefe("F-024 defekte Eintraege (null, Zahl, Text, ohne Uhrzeit) stoeren nicht",
+    ok && u.termine.length === 2 && sicher(() => heuteUebersicht([null, 5, "x", {}], 0, jetzt)).termine.length === 0);
+  pruefe("F-024 keine Termine: leere Listen und kein naechster Termin",
+    sicher(() => { const l = heuteUebersicht([], 0, jetzt);
+      return l.termine.length === 0 && l.essen.length === 0 && l.naechster === null; }) === true);
+  // Zeitzonen: kurz nach lokaler Mitternacht gehoert noch zum NEUEN Tag.
+  (function () {
+    const vorher = process.env.TZ; let alleOk = true;
+    try {
+      for (const z of ["Europe/Berlin", "Pacific/Kiritimati", "America/New_York"]) {
+        process.env.TZ = z;
+        const r = sicher(() => heuteUebersicht([T("m", "2026-11-02", "08:00", "Tag")], 0,
+          new Date(2026, 10, 2, 0, 30, 0)));
+        if (!r || !r.termine || r.termine.length !== 1) alleOk = false;
+      }
+    } finally { if (vorher === undefined) delete process.env.TZ; else process.env.TZ = vorher; }
+    pruefe("F-024 kurz nach Mitternacht zaehlt in jeder Zeitzone der lokale Tag", alleOk);
+  })();
+  pruefe("F-024 Sprachbefehl 'gehe zu heute' fuehrt zur Heute-Seite",
+    sicher(() => { const k = erkenneKommando("gehe zu heute"); return k && k.typ === "nav" && k.ziel === "heute"; }) === true);
+  pruefe("F-024 Seite hat Reiter, Bereich und Knopf",
+    APPHTML.includes('id="nav-heute"') && APPHTML.includes('id="tab-heute"') &&
+    APPHTML.includes("goTab('heute')") && /\["heute",\s*"familie"/.test(APPHTML));
+  pruefe("F-024 goTab('heute') zeigt den Heute-Bereich und blendet Familie aus",
+    sicher(() => { goTab("heute");
+      const h = document.getElementById("tab-heute"), f = document.getElementById("tab-familie");
+      return h.classList.contains("hidden") === false && f.classList.contains("hidden") === true; }) === true);
+})();
+
+// F-021 (Nachtrag): Das Versionsfeld steht in der Fusszeile NACH dem Programm.
+// Beim Start existierte es noch nicht, die Version wurde nie angezeigt.
+(function () {
+  const sicher = (f) => { try { return f(); } catch (e) { return "FEHLER:" + e.message; } };
+  const orig = document.getElementById;
+  const feld = { textContent: "" };
+  let gefragt = 0;
+  document.getElementById = function (id) { if (id === "appVersion") { gefragt++; return feld; }
+    return orig.apply(document, arguments); };
+  try {
+    const r = sicher(() => versionAnzeigen());
+    pruefe("F-021 versionAnzeigen schreibt 'Version <Nummer>' ins Feld",
+      r === true && feld.textContent === "Version " + APP_VERSION && gefragt >= 1);
+  } finally { document.getElementById = orig; }
+  pruefe("F-021 die Version wird erst nach dem Laden der Seite eingetragen (DOMContentLoaded)",
+    APPHTML.includes('addEventListener("DOMContentLoaded", versionAnzeigen)'));
+})();

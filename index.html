@@ -359,6 +359,17 @@
 </header>
 
 <main>
+  <!-- ============ TAB 0: HEUTE (F-024) ============ -->
+  <section id="tab-heute" class="hidden">
+    <div class="card">
+      <h2>📍 Heute</h2>
+      <p id="heuteDatum" class="muted" style="margin:0 0 8px"></p>
+      <div id="heuteEssen"></div>
+      <div id="heuteTermine"></div>
+      <div id="heuteNaechster"></div>
+      <div id="heuteEinkauf"></div>
+    </div>
+  </section>
   <!-- ============ TAB 1: FAMILIE ============ -->
   <section id="tab-familie">
     <div class="card" style="padding:0;overflow:hidden">
@@ -937,6 +948,7 @@
 </main>
 
 <nav>
+  <button id="nav-heute" onclick="goTab('heute')">📍 Heute</button>
   <button id="nav-familie" class="active" onclick="goTab('familie')">👨‍👩‍👧 Familie</button>
   <button id="nav-rezepte" onclick="goTab('rezepte')">📖 Rezepte</button>
   <button id="nav-einkauf" onclick="goTab('einkauf')">🛒 Einkauf</button>
@@ -1936,7 +1948,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION45";
+const APP_VERSION = "FUSION46";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -2278,6 +2290,7 @@ const GV_TAB_WOERTER = {
   kochen: "kochen", küche: "kochen",
   favoriten: "favoriten", lieblingsgerichte: "favoriten",
   familie: "familie", profil: "familie",
+  heute: "heute", tagesuebersicht: "heute",
 };
 
 // "Weiter/Überspringen" als Universalbefehl - aber NUR, wenn das
@@ -3330,7 +3343,7 @@ function goTab(name) {
     vbVoiceCheckoffStop();
   if (name !== "einkauf" && typeof einkaufKetteStop === "function")
     einkaufKetteStop(true);
-  ["familie", "rezepte", "einkauf", "kochen", "favoriten", "termine"]
+  ["heute", "familie", "rezepte", "einkauf", "kochen", "favoriten", "termine"]
     .forEach(t => {
       document.getElementById("tab-" + t).classList.toggle("hidden", t !== name);
       document.getElementById("nav-" + t).classList.toggle("active", t === name);
@@ -3340,6 +3353,7 @@ function goTab(name) {
     renderStilChips();
     renderRecipes();
   }
+  if (name === "heute") renderHeute();
   if (name === "favoriten") renderFavoriten();
   if (name === "termine") renderTermineTab();
   if (name === "einkauf" && typeof renderVerbrauch === "function")
@@ -5946,6 +5960,76 @@ function termineLaden() {
   termine = ladeListe("ka_termine", istDatenObjekt);
   familienStile = tLoad("ka_stile", []); // weiche Stil-Vorlieben laden
 }
+// F-024: "Heute"-Seite. Reine Auswertung aus Terminen und Einkaufsliste.
+// Wochenplan-Abendessen sind Termine, deren Titel mit "🍽" beginnt.
+function heuteUebersicht(termineListe, einkaufAnzahl, jetzt) {
+  const tag = isoTag(jetzt);
+  const hh = String(jetzt.getHours()).padStart(2, "0") + ":" +
+    String(jetzt.getMinutes()).padStart(2, "0");
+  const gueltig = (Array.isArray(termineListe) ? termineListe : []).filter((t) =>
+    istDatenObjekt(t) && typeof t.datum === "string" && typeof t.zeit === "string");
+  const heute = gueltig.filter((t) => t.datum === tag)
+    .sort((a, b) => a.zeit.localeCompare(b.zeit));
+  const istEssen = (t) => String(t.titel || "").startsWith("🍽");
+  const kuenftig = gueltig.filter((t) => t.datum > tag)
+    .sort((a, b) => (a.datum + a.zeit).localeCompare(b.datum + b.zeit));
+  return {
+    tag,
+    essen: heute.filter(istEssen),
+    termine: heute.filter((t) => !istEssen(t))
+      .map((t) => Object.assign({}, t, { vorbei: t.zeit < hh })),
+    naechster: kuenftig.length ? kuenftig[0] : null,
+    einkaufAnzahl: Number.isFinite(Number(einkaufAnzahl)) ? Number(einkaufAnzahl) : 0,
+  };
+}
+function renderHeute() {
+  const jetzt = new Date();
+  const u = heuteUebersicht(termine,
+    (typeof vState !== "undefined" && vState && vState.liste) ? vState.liste.length : 0, jetzt);
+  const setze = (id, kinder) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = "";
+    kinder.forEach((k) => el.appendChild(k));
+  };
+  const zeile = (text, stil) => {
+    const p = document.createElement("p");
+    p.style.cssText = "margin:6px 0;" + (stil || "");
+    p.textContent = text;
+    return p;
+  };
+  const kopf = (text) => {
+    const h = document.createElement("h3");
+    h.style.cssText = "margin:12px 0 4px;font-size:.95rem";
+    h.textContent = text;
+    return h;
+  };
+  const datumEl = document.getElementById("heuteDatum");
+  if (datumEl) datumEl.textContent = jetzt.toLocaleDateString("de-DE",
+    { weekday: "long", day: "numeric", month: "long" });
+  setze("heuteEssen", [kopf("🍽 Heute essen"),
+    ...(u.essen.length
+      ? u.essen.map((t) => zeile(t.zeit + " – " + String(t.titel).replace(/^🍽\s*/, "")))
+      : [zeile("Noch nichts geplant. Der Wochenplan steht im Reiter „Termine“.", "color:var(--muted)")])]);
+  setze("heuteTermine", [kopf("📅 Termine heute"),
+    ...(u.termine.length
+      ? u.termine.map((t) => zeile(t.zeit + " – " + t.titel + " (" + (t.person || "?") + ")",
+          t.vorbei ? "opacity:.55" : ""))
+      : [zeile("Heute stehen keine Termine an.", "color:var(--muted)")])]);
+  setze("heuteNaechster", u.naechster ? [kopf("➡️ Als Nächstes"),
+    zeile(new Date(u.naechster.datum + "T12:00:00").toLocaleDateString("de-DE",
+      { weekday: "short", day: "2-digit", month: "2-digit" }) + " " + u.naechster.zeit +
+      " – " + u.naechster.titel)] : []);
+  const knopf = document.createElement("button");
+  knopf.className = "btn";
+  knopf.type = "button";
+  knopf.textContent = "🛒 Einkaufsliste öffnen";
+  knopf.onclick = () => goTab("einkauf");
+  setze("heuteEinkauf", [kopf("🛒 Einkauf"),
+    zeile(u.einkaufAnzahl ? u.einkaufAnzahl + " Artikel auf der Liste." : "Die Liste ist leer."),
+    knopf]);
+}
+
 // F-023: "Was verlässt mein Handy?" - EHRLICHE Uebersicht. Die Texte stehen
 // hier in einer Liste; ein Test stellt sicher, dass jede /api/-Adresse im
 // Code hier erklaert ist. Wer eine neue Server-Verbindung einbaut, MUSS hier
@@ -6161,6 +6245,15 @@ function sicherungWiederherstellen() {
   setTimeout(() => { try { location.reload(); } catch (e) {} }, 800);
 }
 
+// F-021 (Nachtrag): Das Versionsfeld liegt in der Fusszeile NACH dem Skript.
+// Beim sofortigen Aufruf existiert es noch nicht - darum zusaetzlich nach
+// dem Laden der Seite. (Vorher blieb die Anzeige immer leer.)
+function versionAnzeigen() {
+  const el = document.getElementById("appVersion");
+  if (el) el.textContent = "Version " + APP_VERSION;
+  return Boolean(el);
+}
+document.addEventListener("DOMContentLoaded", versionAnzeigen);
 // F-021: "Nach Update suchen". Fragt den Service Worker nach einer neuen
 // Version. Aendert und loescht KEINE lokalen Daten. Findet der Browser eine
 // neue sw.js, uebernimmt sie sich selbst (skipWaiting) und die Seite laedt
@@ -6221,8 +6314,7 @@ async function updatePruefen() {
       syncVerbinden();
     }
   } catch (e) {}
-  const vEl = document.getElementById("appVersion");
-  if (vEl) vEl.textContent = "Version " + APP_VERSION;
+  versionAnzeigen(); // Feld steht in der Fusszeile NACH diesem Skript: siehe DOMContentLoaded
 
   // Lokal geoeffnet (Doppelklick auf die Datei)? Dann klar sagen,
   // was hier nicht geht, statt kryptischer Einzel-Fehlermeldungen.
@@ -6690,8 +6782,9 @@ function vbVoiceCheckoffToggle() {
 <footer id="rechtsFooter">
   <a href="/impressum.html">Impressum</a> ·
   <a href="/datenschutz.html">Datenschutz</a> ·
-  <a href="/plus.html">💎 Familien-Plus</a> · <span id="appVersion"></span> ·
-  <button type="button" onclick="updatePruefen()" style="background:none;border:0;padding:0;color:inherit;text-decoration:underline;font:inherit;cursor:pointer">Nach Update suchen</button>
+  <a href="/plus.html">💎 Familien-Plus</a>
+  <div style="margin-top:4px"><span id="appVersion"></span> ·
+  <button type="button" onclick="updatePruefen()" style="background:none;border:0;padding:0;color:inherit;text-decoration:underline;font:inherit;cursor:pointer">Nach Update suchen</button></div>
   <div id="updateStatus" role="status" aria-live="polite" style="margin-top:4px"></div>
   <details style="margin-top:8px;text-align:left;max-width:420px;margin-left:auto;margin-right:auto" ontoggle="if(this.open)datenschutzRendern()">
     <summary style="cursor:pointer">🔒 Was verlässt mein Handy?</summary>

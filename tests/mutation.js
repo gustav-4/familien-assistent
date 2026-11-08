@@ -465,6 +465,48 @@ const MUTATIONEN = [
     ersetzen: "Der Server kann sie nicht lesen.",
     erwarteRot: ["F-023 Familien-Abgleich nennt ehrlich"],
   },
+  {
+    name: 'F-024: Heute rechnet den Tag wieder ueber UTC',
+    datei: 'index.html',
+    suchen: 'const tag = isoTag(jetzt);',
+    ersetzen: 'const tag = jetzt.toISOString().slice(0, 10);',
+    erwarteRot: ['F-024 kurz nach Mitternacht'],
+  },
+  {
+    name: 'F-024: heutige Termine werden nicht mehr nach Uhrzeit sortiert',
+    datei: 'index.html',
+    suchen: '  const heute = gueltig.filter((t) => t.datum === tag)\n    .sort((a, b) => a.zeit.localeCompare(b.zeit));',
+    ersetzen: '  const heute = gueltig.filter((t) => t.datum === tag);',
+    erwarteRot: ['F-024 heutige Termine stehen nach Uhrzeit sortiert'],
+  },
+  {
+    name: 'F-024: vergangene Termine werden nicht mehr markiert',
+    datei: 'index.html',
+    suchen: '{ vorbei: t.zeit < hh }',
+    ersetzen: '{ vorbei: false }',
+    erwarteRot: ['F-024 Termine, die schon vorbei sind'],
+  },
+  {
+    name: 'F-024: Abendessen wird nicht mehr von Terminen getrennt',
+    datei: 'index.html',
+    suchen: 'const istEssen = (t) => String(t.titel || "").startsWith("🍽");',
+    ersetzen: 'const istEssen = (t) => false;',
+    erwarteRot: ['F-024 das Abendessen'],
+  },
+  {
+    name: 'F-024: naechster Termin ist der letzte statt der fruehste',
+    datei: 'index.html',
+    suchen: 'return {\n    tag,',
+    ersetzen: 'kuenftig.reverse();\n  return {\n    tag,',
+    erwarteRot: ['F-024 der naechste Termin'],
+  },
+  {
+    name: "F-021: Version wird wieder nur beim Start eingetragen (Feld existiert noch nicht)",
+    datei: "index.html",
+    suchen: 'document.addEventListener("DOMContentLoaded", versionAnzeigen);',
+    ersetzen: '/* kein DOMContentLoaded */',
+    erwarteRot: ["F-021 die Version wird erst nach dem Laden der Seite eingetragen"],
+  },
 ];
 
 function laufen() {
