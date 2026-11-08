@@ -253,3 +253,15 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Belegt:** Rot vor Fix: 13 FEHL. Gruen nach Fix in UTC, Berlin, New_York: 238 bestanden. Hinweis: ein Test-Wettlauf mit F-021 (gemeinsamer Attrappenspeicher) wurde durch Startverzoegerung beseitigt.
 **Mutationen:** F-022: Sync-Code und Geraete-ID kommen in die Sicherung / F-022: Rueckgaengig bei Speicherfehler entfaellt / F-022: Passwort wird ignoriert, Datei bleibt Klartext
 **Nicht geprueft:** Download und Dateiauswahl auf echten Handys (iOS Safari, Android Chrome); nicht gesichert werden IndexedDB (Push-Geraet), Sync-Verbindung und KI-Modell-Cache; ohne Passwort ist die Datei Klartext (Warnung in der App); Passwort vergessen = Daten der Datei nicht zu retten.
+
+## F-023
+**Wortlaut:** (Betreiber, 08.11.) Vorschlag 5 freigegeben: Seite „Was verlässt mein Handy?"
+**Status:** behoben
+**Test:** F-023 Jede /api/-Adresse im Code ist auf der Datenschutz-Seite erklaert (+6 weitere)
+**Priorität:** 3
+**Umsetzung:** `datenschutzZeilen` (Liste) und `datenschutzRendern`; Bereich in der Fusszeile. Ein Test stellt sicher, dass jede `/api/…`-Adresse in index.html dort erklaert ist und umgekehrt (Seite kann nicht unbemerkt veralten). Version FUSION45.
+**Belegt:** Rot vor Fix: 6 FEHL. Gruen danach in UTC, Berlin, New_York.
+**Mutationen:** F-023: Server-Adresse termin-parse fehlt auf der Datenschutz-Seite / F-023: Familien-Abgleich behauptet wieder 'Server kann nicht lesen'
+**Befund beim Schreiben (nicht behoben, Entscheidung noetig):** Der Familien-Code geht im Klartext in jeder Sync-Anfrage zum Server (`/api/termine?code=…`, POST-Body); er ist zugleich der Schluessel der Verschluesselung (PBKDF2). Der Server speichert nur einen Hash, kann die Daten technisch aber entschluesseln, und der Code kann in Zugriffsprotokollen stehen. Das widerspricht dem Satz „Klartexte erreichen den Server nie" im Kommentar von termine.mjs. Abhilfe waere, Kanal-Kennung und Schluessel getrennt abzuleiten (Server + Migration), eigener Auftrag.
+**Befund 2:** Gesprochene Termine gehen IMMER an /api/termin-parse (KI); der lokale Regel-Parser wird nur fuer Scanner-Dokumente benutzt.
+**Nicht geprueft:** Aussagen zur Browser-Spracherkennung stammen aus allgemeinem Wissen (Chrome sendet Audio ueblicherweise an einen Server des Herstellers), nicht aus eigener Messung; Server-Code nur in Teilen gelesen.

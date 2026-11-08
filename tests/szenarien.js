@@ -1540,3 +1540,34 @@ warte(async () => {
   pruefe("F-016 Hauptregel auch bei langem Fuellwort-Satz (ueber 60 Zeichen)",
     typ("setz es noch bitte doch mal alles zutaten einkauf mir uns auf einkaufsliste") === "auf_liste");
 })();
+
+// F-023: Seite "Was verlaesst mein Handy?". Die Texte kommen aus einer Liste;
+// ein Test stellt sicher, dass JEDE Server-Adresse im Code dort erklaert ist
+// (die Seite kann nicht unbemerkt veralten).
+(function () {
+  const sicher = (f) => { try { return f(); } catch (e) { return "FEHLER:" + e.message; } };
+  const quellen = typeof APPHTML === "string" ? APPHTML : "";
+  const imCode = Array.from(new Set(
+    (quellen.match(/["'`]\/api\/([a-z][a-z-]*)/g) || []).map((s) => s.replace(/^["'`]\/api\//, ""))));
+  const zeilen = sicher(() => datenschutzZeilen());
+  const ok = Array.isArray(zeilen);
+  const server = ok ? zeilen.filter((z) => z.gruppe === "server") : [];
+  const lokal = ok ? zeilen.filter((z) => z.gruppe === "lokal") : [];
+  pruefe("F-023 Jede /api/-Adresse im Code ist auf der Datenschutz-Seite erklaert",
+    ok && imCode.length >= 6 && imCode.every((r) => server.some((z) => z.route === r)));
+  pruefe("F-023 Jeder erklaerte Server-Eintrag wird im Code wirklich benutzt",
+    ok && server.length > 0 && server.every((z) => imCode.includes(z.route)));
+  pruefe("F-023 Jeder Eintrag hat Titel und einen verstaendlichen Text",
+    ok && zeilen.length >= 8 && zeilen.every((z) => String(z.titel || "").length > 2 &&
+      String(z.text || "").length > 20));
+  pruefe("F-023 'Bleibt auf dem Handy' nennt Allergien, Termine und Scanner",
+    ok && ["Allergien", "Termine", "Scanner"].every((w) =>
+      lokal.some((z) => (z.titel + " " + z.text).includes(w))));
+  pruefe("F-023 Hinweis zur Spracherkennung des Browsers ist enthalten (ehrlich)",
+    ok && zeilen.some((z) => z.gruppe === "hinweis" && /Spracherkennung/.test(z.titel + z.text)));
+  pruefe("F-023 Familien-Abgleich nennt ehrlich, dass der Code zum Server geht",
+    ok && server.some((z) => z.route === "termine" && /Code wird aber mit jeder Anfrage/.test(z.text) &&
+      !/kann sie nicht lesen/.test(z.text)));
+  pruefe("F-023 Die Seite hat Bereich und Container",
+    APPHTML.includes('id="datenschutzSeite"') && APPHTML.includes("Was verlässt mein Handy"));
+})();

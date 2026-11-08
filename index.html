@@ -1936,7 +1936,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION44";
+const APP_VERSION = "FUSION45";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -5946,6 +5946,64 @@ function termineLaden() {
   termine = ladeListe("ka_termine", istDatenObjekt);
   familienStile = tLoad("ka_stile", []); // weiche Stil-Vorlieben laden
 }
+// F-023: "Was verlässt mein Handy?" - EHRLICHE Uebersicht. Die Texte stehen
+// hier in einer Liste; ein Test stellt sicher, dass jede /api/-Adresse im
+// Code hier erklaert ist. Wer eine neue Server-Verbindung einbaut, MUSS hier
+// einen Eintrag ergaenzen (sonst wird die Pipeline rot).
+function datenschutzZeilen() {
+  return [
+    { gruppe: "lokal", titel: "Familie, Allergien, Termine, Einkauf",
+      text: "Namen, Alter, Allergien und Ernährungsform deiner Familie, deine Termine, Routinen, Einkaufsliste, Favoriten und Einstellungen werden nur im Speicher dieses Handys abgelegt. Es gibt kein Konto und keine Anmeldung. Wann einzelne Angaben für eine Funktion trotzdem übertragen werden, steht unter „Das verlässt dein Handy“." },
+    { gruppe: "lokal", titel: "Scanner für Kassenbon und Schulzettel",
+      text: "Das Foto wird auf dem Handy per Texterkennung gelesen. Weder das Foto noch der Text werden an einen Server geschickt." },
+    { gruppe: "lokal", titel: "Stichwort „Termin“ rufen",
+      text: "Das stille Lauschen auf das Stichwort läuft auf dem Handy und sendet nichts. Erst wenn du einen Termin diktierst, wird dein Satz verarbeitet (siehe unten)." },
+    { gruppe: "lokal", titel: "Datensicherung",
+      text: "Die Sicherung entsteht auf dem Handy und wird von dir selbst als Datei abgelegt. Mit Passwort ist sie verschlüsselt. Sync-Code und Geräte-Kennung sind nicht enthalten." },
+    { gruppe: "server", route: "rezept", titel: "Rezeptsuche, Kochschritte, Wochenplan",
+      text: "Gesendet werden dein Essenswunsch, die Unverträglichkeiten und Ernährungsformen, der Zeitrahmen, bei Kochschritten Gerichtname und Zutaten, die Geräte-Kennung und – falls vorhanden – dein Familien-Code. Ein KI-Dienst erstellt daraus die Rezepte. Namen deiner Familienmitglieder werden dafür nicht gesendet." },
+    { gruppe: "server", route: "termin-parse", titel: "Termin per Sprache anlegen",
+      text: "Gesendet werden der gesprochene Satz, das heutige Datum, der Wochentag und die Vornamen der Familienmitglieder, damit ein KI-Dienst Datum, Uhrzeit und Person erkennt." },
+    { gruppe: "server", route: "wecker", titel: "Erinnerungen",
+      text: "Gesendet werden anonyme Nummern mit den Zeitpunkten und die Geräte-Kennung. Titel, Personen und Orte deiner Termine bleiben auf dem Handy; die Benachrichtigung wird erst auf dem Handy zusammengesetzt." },
+    { gruppe: "server", route: "push-anmelden", titel: "Benachrichtigungen einschalten",
+      text: "Gesendet wird die Adresse, unter der dein Browser Benachrichtigungen empfängt, zusammen mit der Geräte-Kennung." },
+    { gruppe: "server", route: "vapid", titel: "Öffentlicher Schlüssel für Benachrichtigungen",
+      text: "Die App holt einen öffentlichen Schlüssel ab. Es werden keine Angaben von dir gesendet." },
+    { gruppe: "server", route: "termine", titel: "Familien-Abgleich (Plus)",
+      text: "Eure Termine, Routinen und Familienangaben werden auf dem Handy mit dem Familien-Code verschlüsselt und nur verschlüsselt abgelegt. Der Code wird aber mit jeder Anfrage an den Server übertragen (gespeichert wird nur ein Fingerabdruck davon). Der Schutz beruht darauf, dass der Server die Daten nicht entschlüsselt; technisch ausgeschlossen ist es derzeit nicht. Gib den Code nur an Familienmitglieder weiter." },
+    { gruppe: "server", route: "feedback", titel: "Rückmeldung senden",
+      text: "Nur wenn du auf „Senden“ tippst: dein Text, der aktuelle Reiter und die Geräte-Kennung." },
+    { gruppe: "hinweis", titel: "Spracherkennung durch den Browser",
+      text: "Wenn du mit der App sprichst, erledigt die Spracherkennung dein Browser, nicht die App. Bei Chrome auf Android werden Sprachaufnahmen dafür üblicherweise an einen Server des Browser-Herstellers geschickt. Darauf hat die App keinen Einfluss. Wer das nicht möchte, tippt statt zu sprechen." },
+  ];
+}
+function datenschutzRendern() {
+  const box = document.getElementById("datenschutzSeite");
+  if (!box) return;
+  const gruppen = [
+    ["lokal", "Das bleibt auf deinem Handy"],
+    ["server", "Das verlässt dein Handy"],
+    ["hinweis", "Gut zu wissen"],
+  ];
+  box.textContent = "";
+  gruppen.forEach(([g, kopf]) => {
+    const h = document.createElement("h3");
+    h.textContent = kopf;
+    h.style.cssText = "margin:10px 0 4px;font-size:1rem";
+    box.appendChild(h);
+    datenschutzZeilen().filter((z) => z.gruppe === g).forEach((z) => {
+      const p = document.createElement("p");
+      p.style.cssText = "margin:4px 0";
+      const b = document.createElement("b");
+      b.textContent = z.titel + ": ";
+      p.appendChild(b);
+      p.appendChild(document.createTextNode(z.text));
+      box.appendChild(p);
+    });
+  });
+}
+
 // F-022: DATENSICHERUNG. Alle App-Daten (ka_*) als Datei sichern und
 // wiederherstellen, optional per Passwort verschluesselt (AES-GCM, Schluessel
 // per PBKDF2 mit zufaelligem Salz). Nie in der Datei: Sync-Code (gaebe Zugang
@@ -6635,6 +6693,10 @@ function vbVoiceCheckoffToggle() {
   <a href="/plus.html">💎 Familien-Plus</a> · <span id="appVersion"></span> ·
   <button type="button" onclick="updatePruefen()" style="background:none;border:0;padding:0;color:inherit;text-decoration:underline;font:inherit;cursor:pointer">Nach Update suchen</button>
   <div id="updateStatus" role="status" aria-live="polite" style="margin-top:4px"></div>
+  <details style="margin-top:8px;text-align:left;max-width:420px;margin-left:auto;margin-right:auto" ontoggle="if(this.open)datenschutzRendern()">
+    <summary style="cursor:pointer">🔒 Was verlässt mein Handy?</summary>
+    <div id="datenschutzSeite" style="margin-top:6px"></div>
+  </details>
   <details style="margin-top:8px;text-align:left;max-width:420px;margin-left:auto;margin-right:auto">
     <summary style="cursor:pointer">💾 Datensicherung</summary>
     <p style="margin:6px 0">Speichert Termine, Familie, Favoriten und Einstellungen als Datei auf deinem Gerät. Nichts wird ins Internet geschickt.</p>

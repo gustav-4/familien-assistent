@@ -450,6 +450,21 @@ const MUTATIONEN = [
     ersetzen: '/^(?:überspringen|ueberspringen|skip|',
     erwarteRot: ['F-017 \'weiter\' darf eine laufende Ansage unterbrechen'],
   },
+  {
+    name: "F-023: Server-Adresse termin-parse fehlt auf der Datenschutz-Seite",
+    datei: "index.html",
+    suchen: 'route: "termin-parse"',
+    ersetzen: 'route: "termin-parse-entfernt"',
+    erwarteRot: ["F-023 Jede /api/-Adresse im Code ist auf der Datenschutz-Seite erklaert",
+      "F-023 Jeder erklaerte Server-Eintrag wird im Code wirklich benutzt"],
+  },
+  {
+    name: "F-023: Familien-Abgleich behauptet wieder 'Server kann nicht lesen'",
+    datei: "index.html",
+    suchen: "Der Schutz beruht darauf, dass der Server die Daten nicht entschlüsselt; technisch ausgeschlossen ist es derzeit nicht.",
+    ersetzen: "Der Server kann sie nicht lesen.",
+    erwarteRot: ["F-023 Familien-Abgleich nennt ehrlich"],
+  },
 ];
 
 function laufen() {
