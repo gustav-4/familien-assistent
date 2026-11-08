@@ -58,9 +58,13 @@ mit der ID beginnt. `offen` und `nicht-reproduzierbar` nicht.
 
 ## F-008
 **Wortlaut:** FEHL L20 Wochenstart ist ein Montag - 168 bestanden, 1 fehlgeschlagen auf Windows
-**Status:** offen
-**Test:** —
+**Status:** behoben
+**Test:** F-008 isoTag liefert das lokale Datum (lokale Mitternacht) (+1 weiterer)
 **Vermerk:** Ursache belegt — Zeitzonenabhaengigkeit zwischen montagVon (rechnet lokal) und isoTag (wandelt nach UTC). Betrifft die App selbst, nicht nur den Test: oestlich von UTC liefert isoTag(montagVon(0)) den Sonntag statt des Montags. Pruefauftrag im FIX-Durchlauf: weitere zeitzonenabhaengige Tests und weitere Stellen mit lokal/UTC-Vermischung zuerst suchen, dann reparieren.
+**Umsetzung:** isoTag nutzt die lokalen Datumsteile (getFullYear/getMonth/getDate) statt toISOString(). Zweite Fundstelle gleicher Ursache: die Terminerkennung schickte `heute.toISOString()` an /api/termin-parse (zwischen 0 und 1 Uhr Winterzeit = Vortag), jetzt `isoTag(heute)`. Betroffen waren Wochenmatrix (alle Tage um einen Tag verschoben), Wochenplan-Termine (Datum um einen Tag zu frueh) und die Heute-Markierung.
+**Belegt:** Fehlerbild in Europe/Berlin reproduziert (isoTag(montagVon(0)) = Sonntag). Beschuss alter Stand: 19310 Fehler in Berlin, 0 in UTC; neuer Stand: 0 Fehler in 8 Zeitzonen (60390 Pruefungen je Zone).
+**Mutationen:** F-008: isoTag rechnet wieder ueber UTC
+**Nicht geprueft:** die Terminerkennung per Sprache (Z. mit isoTag(heute)) hat keinen Test; sie ist nur durch Lesen belegt.
 
 ## F-009
 **Wortlaut:** wenn ich app öffne und "rezepte" sage, springt anwendung nicht zu rezept

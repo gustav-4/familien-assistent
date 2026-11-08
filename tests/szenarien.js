@@ -234,6 +234,32 @@ pruefe("L19 Grenzwert 300 s ist Minutenansage, 299 s nicht",
 pruefe("L20 Wochenstart ist ein Montag",
   new Date(isoTag(montagVon(0)) + "T12:00:00Z").getUTCDay() === 1);
 
+// F-008: Die Datumsrechnung darf nicht von der Zeitzone abhaengen. Die Tests
+// schalten die Zeitzone SELBST um (auch CI laeuft in UTC und wuerde den
+// Fehler sonst nie sehen) und stellen sie danach wieder her.
+(function () {
+  const zonen = ["Europe/Berlin", "Pacific/Kiritimati", "Pacific/Pago_Pago",
+    "America/New_York"];
+  const vorher = process.env.TZ;
+  const ok = { mitternacht: true, montag: true };
+  try {
+    for (const z of zonen) {
+      process.env.TZ = z;
+      if (isoTag(new Date(2026, 10, 2, 0, 0, 0)) !== "2026-11-02") ok.mitternacht = false;
+      if (isoTag(new Date(2026, 10, 2, 23, 59, 0)) !== "2026-11-02") ok.mitternacht = false;
+      for (const off of [-1, 0, 1]) {
+        const mo = montagVon(off);
+        if (mo.getDay() !== 1) ok.montag = false;
+        if (new Date(isoTag(mo) + "T12:00:00Z").getUTCDay() !== 1) ok.montag = false;
+      }
+    }
+  } finally {
+    if (vorher === undefined) delete process.env.TZ; else process.env.TZ = vorher;
+  }
+  pruefe("F-008 isoTag liefert das lokale Datum (lokale Mitternacht)", ok.mitternacht);
+  pruefe("F-008 Wochenstart ist in jeder Zeitzone ein Montag", ok.montag);
+})();
+
 // Kochmodus der Attrappe EXPLIZIT setzen. Ohne das haengen Tests am
 // Rest-Zustand vorheriger Tests - beim F-011-Fix wurden dadurch fuenf
 // Tests rot, die in Wahrheit nur eine ungepruefte Annahme trugen.

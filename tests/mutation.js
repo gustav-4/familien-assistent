@@ -370,6 +370,14 @@ const MUTATIONEN = [
     erwarteRot: ["F-018 Skalierung weicht nie mehr als 10 Prozent ab",
       "F-018 Kleine Mengen werden nie hochgerundet"],
   },
+  {
+    name: "F-008: isoTag rechnet wieder ueber UTC",
+    datei: "index.html",
+    suchen: 'function isoTag(d) {\n  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") +\n    "-" + String(d.getDate()).padStart(2, "0");\n}',
+    ersetzen: "function isoTag(d) { return d.toISOString().slice(0, 10); }",
+    erwarteRot: ["F-008 isoTag liefert das lokale Datum",
+      "F-008 Wochenstart ist in jeder Zeitzone ein Montag"],
+  },
 ];
 
 function laufen() {
