@@ -1936,7 +1936,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION43";
+const APP_VERSION = "FUSION44";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -2401,10 +2401,11 @@ function erkenneKommando(text) {
   // (einkaufs)liste". Es scheiterten u.a. "auf die Einkaufs Liste"
   // (Android trennt zusammengesetzte Woerter oft), "... bitte",
   // "alles auf die Liste", "pack die Zutaten auf die Liste".
-  let m = t.match(/^(?:(?:setz|setze|pack|packe|tu|tue|schreib|schreibe|nimm|mach|mache)\s+)?(?:(?:es|das|die|den|alles|mir|uns|mal|bitte|doch|noch|zutaten|einkauf)\s+)*auf\s+die\s+(?:einkaufs\s*)?liste(?:\s+(?:setzen|schreiben|packen|drauf|bitte|danke))*$/);
+  let m = t.match(/^(?:(?:setz|setze|pack|packe|tu|tue|schreib|schreibe|nimm|mach|mache)\s+)?(?:(?:es|das|die|den|alles|mir|uns|mal|bitte|doch|noch|zutaten|einkauf)\s+)*auf\s+(?:die\s+(?:einkaufs\s*)?|einkaufs\s*)liste(?:\s+(?:setzen|schreiben|packen|drauf|bitte|danke))*$/);
+  // F-016: "auf einkaufsliste" (ohne "die") gilt ebenfalls; bloßes "auf liste" nicht.
   // Auffangregel: kurzer Satz, der "auf die ... liste" enthaelt.
   // Kurz ist Bedingung, damit ein diktierter Termin nichts ausloest.
-  if (!m && t.length <= 60 && /\bauf\s+die\s+(?:\w+\s+)?(?:einkaufs\s*)?liste\b/.test(t)
+  if (!m && t.length <= 60 && /\bauf\s+(?:die\s+(?:\w+\s+)?(?:einkaufs\s*)?|einkaufs\s*)liste\b/.test(t)
       && !/\b(vorlesen|leeren|löschen|loeschen)\b/.test(t)) {
     m = [t];
   }
@@ -3806,8 +3807,14 @@ function skaliereRezept(r, f) {
           const zahl = regexMaskiere(z).replace(/\\\./, "[.,]")
             .replace(/,/, "[.,]");
           const einheit = regexMaskiere(ing.unit);
-          const re = new RegExp(
-            "(^|[^\\d.,])" + zahl + "\\s*" + einheit + "\\b", "g");
+          // F-019: Ohne Einheit ("2 Eier") frass das Muster das Leerzeichen
+          // vor dem Namen mit ("2Eier"). Dann nur die ZAHL ersetzen und
+          // verlangen, dass der Zutatenname folgt.
+          const re = ing.unit === ""
+            ? new RegExp("(^|[^\\d.,])" + zahl + "(?=\\s+" +
+                regexMaskiere(ing.name) + ")", "g")
+            : new RegExp(
+              "(^|[^\\d.,])" + zahl + "\\s*" + einheit + "\\b", "g");
           s[feld] = s[feld].replace(re, "$1" + neu);
         });
       });

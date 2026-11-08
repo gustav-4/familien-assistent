@@ -1467,3 +1467,76 @@ warte(async () => {
     try { termineLaden(); } catch (e) {}
   }
 });
+
+// F-019: Bei Zutaten OHNE Einheit ("2 Eier") darf die Mengenersetzung im
+// Schritttext das Leerzeichen zum Namen nicht verschlucken ("2Eier").
+(function () {
+  const sicher = (f) => { try { return f(); } catch (e) { return "FEHLER:" + e.message; } };
+  const rez = (text, ing) => ({ ingredients: [ing], steps: [{ text, announce: text }] });
+  const t1 = sicher(() => skaliereRezept(rez("Ruehre 2 Eier unter die Masse.",
+    { name: "Eier", qty: 2, unit: "" }), 1).steps[0].text);
+  pruefe("F-019 '2 Eier' bleibt bei Faktor 1 unveraendert", t1 === "Ruehre 2 Eier unter die Masse.");
+  const t2 = sicher(() => skaliereRezept(rez("Ruehre 2 Eier unter die Masse.",
+    { name: "Eier", qty: 2, unit: "" }), 2).steps[0].text);
+  pruefe("F-019 '2 Eier' wird bei Faktor 2 zu '4 Eier' (Leerzeichen bleibt)",
+    t2 === "Ruehre 4 Eier unter die Masse.");
+  const t3 = sicher(() => skaliereRezept(rez("Gib 200 g Mehl dazu.",
+    { name: "Mehl", qty: 200, unit: "g" }), 2).steps[0].text);
+  pruefe("F-019 Zutaten mit Einheit werden weiter ersetzt (200 g -> 400 g)",
+    typeof t3 === "string" && /^Gib 400 ?g Mehl dazu\.$/.test(t3));
+  const t4 = sicher(() => skaliereRezept(rez("Ruehre 2 Eier unter, dann 2 Minuten ruehren.",
+    { name: "Eier", qty: 2, unit: "" }), 1).steps[0].text);
+  pruefe("F-019 fremde Zahl '2 Minuten' bleibt unberuehrt",
+    t4 === "Ruehre 2 Eier unter, dann 2 Minuten ruehren.");
+})();
+
+// F-016: "auf einkaufsliste" (ohne "die") ist ein Befehl.
+(function () {
+  const typ = (s) => { try { const k = erkenneKommando(s); return k ? k.typ : null; }
+    catch (e) { return "FEHLER:" + e.message; } };
+  pruefe("F-016 'auf einkaufsliste' ist ein Befehl", typ("auf einkaufsliste") === "auf_liste");
+  pruefe("F-016 'auf einkaufs liste' (getrennt) ist ein Befehl",
+    typ("auf einkaufs liste") === "auf_liste");
+  pruefe("F-016 'zutaten auf einkaufsliste' ist ein Befehl",
+    typ("zutaten auf einkaufsliste") === "auf_liste");
+  pruefe("F-016 'setz es bitte auf einkaufsliste' ist ein Befehl",
+    typ("setz es bitte auf einkaufsliste") === "auf_liste");
+  pruefe("F-016 'auf die einkaufsliste' funktioniert weiter",
+    typ("auf die einkaufsliste") === "auf_liste");
+  pruefe("F-016 bloßes 'auf liste' ist KEIN Befehl", typ("auf liste") !== "auf_liste");
+  pruefe("F-016 langer Satz mit Termin bleibt kein Befehl",
+    typ("termin morgen um zehn uhr arzt dann gehen wir noch auf einkaufsliste und danach schwimmen und essen") !== "auf_liste");
+})();
+
+// F-017 (Schutztests, Fehler am Geraet NICHT reproduziert): "weiter" muss ein
+// laufendes Vorlesen (Zutatenliste, Rezeptvorstellung) beenden. Diese Tests
+// halten fest, was in der Logik heute gilt; sie belegen nicht, dass der
+// gemeldete Fehler am Geraet behoben ist.
+(function () {
+  const sicher = (f) => { try { return f(); } catch (e) { return "FEHLER:" + e.message; } };
+  pruefe("F-017 'weiter' darf eine laufende Ansage unterbrechen",
+    sicher(() => gvDarfUnterbrechen("weiter")) === true);
+  pruefe("F-017 'weiter' wird nicht als eigenes Echo der Zutatenliste verworfen",
+    sicher(() => istEigenesEcho("weiter",
+      "Ihr braucht: 200 g Mehl, 3 Eier. Danach alles weiter verruehren.", "")) === false);
+  const sp = (typeof window !== "undefined" && window.speechSynthesis) || null;
+  let zaehler = 0;
+  const orig = sp && sp.cancel;
+  if (sp) sp.cancel = function () { zaehler++; return orig && orig.apply(this, arguments); };
+  try {
+    const vorher = zaehler;
+    sicher(() => gvRoute("weiter"));
+    pruefe("F-017 'weiter' (ohne Dialog, nicht im Kochmodus) beendet die Sprachausgabe",
+      sp !== null && zaehler - vorher >= 1);
+  } finally { if (sp) sp.cancel = orig; }
+})();
+
+// F-016 (Ergaenzung): Beide Erkennungsregeln muessen jede fuer sich tragen.
+(function () {
+  const typ = (s) => { try { const k = erkenneKommando(s); return k ? k.typ : null; }
+    catch (e) { return "FEHLER:" + e.message; } };
+  pruefe("F-016 Auffangregel: 'kannst du das bitte mal auf einkaufsliste setzen'",
+    typ("kannst du das bitte mal auf einkaufsliste setzen") === "auf_liste");
+  pruefe("F-016 Hauptregel auch bei langem Fuellwort-Satz (ueber 60 Zeichen)",
+    typ("setz es noch bitte doch mal alles zutaten einkauf mir uns auf einkaufsliste") === "auf_liste");
+})();

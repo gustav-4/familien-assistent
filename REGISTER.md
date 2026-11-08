@@ -182,16 +182,23 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 
 ## F-016
 **Wortlaut:** automatisches auf die einkaufsliste setzen von zutaten des gewählten rezeptes mit befehl "auf einkaufsliste"
-**Status:** offen
-**Test:** —
+**Status:** behoben
+**Test:** F-016 'auf einkaufsliste' ist ein Befehl (+8 weitere)
 **Priorität:** 2
-**Vorbefund:** "auf einkaufsliste" (ohne "die") ist heute KEIN Befehl. Ebenso wenig "auf einkaufs liste" oder "zutaten auf einkaufsliste". Nur "auf die einkaufsliste" wird erkannt. Die Zutatenuebernahme selbst ist vorhanden.
+**Vorbefund:** "auf einkaufsliste" (ohne "die") war KEIN Befehl. Ebenso wenig "auf einkaufs liste" oder "zutaten auf einkaufsliste". Nur "auf die einkaufsliste" wurde erkannt. Die Zutatenuebernahme selbst ist vorhanden.
+**Umsetzung:** Hauptregel und Auffangregel in `erkenneKommando` akzeptieren jetzt "auf einkaufsliste" und "auf einkaufs liste" (ohne "die"). Bloßes "auf liste" ist bewusst kein Befehl. Version FUSION44.
+**Belegt:** Rot vor Fix: 4 FEHL. Gruen danach. Beide Regeln tragen einzeln (je ein Test, der nur sie anspricht).
+**Mutationen:** F-016: Hauptregel verlangt wieder 'die' vor einkaufsliste / F-016: Auffangregel verlangt wieder 'die' vor einkaufsliste
+**Nicht geprueft:** echte Spracherkennung auf dem Geraet (was Android als Text liefert).
 
 ## F-017
 **Wortlaut:** bei vorlesen der zutatenliste nach entscheidung für rezept und "auf die einkaufsliste" durch "weiter" überspringen lassen
 **Status:** offen
-**Test:** —
+**Test:** F-017 'weiter' darf eine laufende Ansage unterbrechen (+2 weitere, nur Schutztests)
 **Priorität:** 3
+**Vermerk:** NICHT reproduziert. In der Logik beendet "weiter" ein laufendes Vorlesen bereits (gvDarfUnterbrechen, gvRoute, Echo-Schutz lassen es durch). Es gibt keinen roten Test; darum kein "behoben". Die 3 Schutztests halten den heutigen Stand fest. Offene Frage an den Betreiber: Was genau passiert am Geraet (Ansage laeuft weiter? Mikro hoert nicht? gemeint ist ein Ueberspringen NACH "auf die Einkaufsliste")?
+**Mutationen:** F-017: 'weiter' ist kein Ueberspringen-Befehl mehr
+**Nicht geprueft:** echte Spracherkennung und Sprachausgabe am Geraet.
 
 ## F-018
 **Wortlaut:** Wenn eine Zutat einen Namen mit einer Zahl hat (wie '2 Eier'), überschreibt das System versehentlich andere Zutaten-Mengen, die ähnliche Zahlen enthalten (wie '105g' wird zu '2105g'). Was das bedeutet: Familien geben versehentlich viel zu viel von einer Zutat ein, weil die Menge falsch angezeigt wird – das Rezept wird unbrauchbar.
@@ -207,10 +214,13 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 
 ## F-019
 **Wortlaut:** (Nebenbefund aus der Untersuchung zu F-018) Leerzeichen geht verloren, wenn der Zutatenname mit einer Zahl beginnt: "2 Eier" wird im Schritttext zu "2Eier"
-**Status:** offen
-**Test:** —
+**Status:** behoben
+**Test:** F-019 '2 Eier' bleibt bei Faktor 1 unveraendert (+3 weitere)
 **Priorität:** 3
-
+**Ursache:** Belegt fuer Zutaten OHNE Einheit (`unit: ""`): das Muster `zahl\s*einheit\b` frass das Leerzeichen vor dem Namen. Mit Einheit "Stück" trat es nicht auf. Ob eure Rezepte Zutaten mit leerer Einheit enthalten, ist nicht geprueft (mitgelieferte Rezepte: 0).
+**Umsetzung:** Fuer `unit === ""` ersetzt skaliereRezept nur die Zahl und verlangt, dass der Zutatenname folgt. Version FUSION44.
+**Belegt:** Rot vor Fix: 3 FEHL. Gruen danach.
+**Mutationen:** F-019: Zutat ohne Einheit verschluckt wieder das Leerzeichen
 
 ## F-020
 **Wortlaut:** funktioniert nicht, ich kome nicht in den terminplaner, weder durch sprache noch durch antippen

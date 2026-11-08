@@ -86,8 +86,8 @@ const MUTATIONEN = [
   {
     name: "Einkaufsbefehl wieder eng gefasst",
     datei: "index.html",
-    suchen: "  if (!m && t.length <= 60 && /\\bauf\\s+die\\s+(?:\\w+\\s+)?(?:einkaufs\\s*)?liste\\b/.test(t)",
-    ersetzen: "  if (false && t.length <= 60 && /\\bauf\\s+die\\s+(?:\\w+\\s+)?(?:einkaufs\\s*)?liste\\b/.test(t)",
+    suchen: "  if (!m && t.length <= 60 && /\\bauf\\s+(?:die\\s+(?:\\w+\\s+)?(?:einkaufs\\s*)?|einkaufs\\s*)liste\\b/.test(t)",
+    ersetzen: "  if (false && t.length <= 60 && /\\bauf\\s+(?:die\\s+(?:\\w+\\s+)?(?:einkaufs\\s*)?|einkaufs\\s*)liste\\b/.test(t)",
     erwarteRot: ["M22a", "M22b"],
   },
   {
@@ -421,6 +421,34 @@ const MUTATIONEN = [
     suchen: "if (!passwort) {\n    return JSON.stringify(Object.assign(kopf, { verschluesselt: false, daten }), null, 1);",
     ersetzen: "if (true) {\n    return JSON.stringify(Object.assign(kopf, { verschluesselt: false, daten }), null, 1);",
     erwarteRot: ["F-022 Sicherung mit Passwort: Klartext steht nicht in der Datei"],
+  },
+  {
+    name: 'F-016: Hauptregel verlangt wieder \'die\' vor einkaufsliste',
+    datei: 'index.html',
+    suchen: 'auf\\s+(?:die\\s+(?:einkaufs\\s*)?|einkaufs\\s*)liste(?:\\s+(?:setzen|schreiben|packen|drauf|bitte|danke))*$/);',
+    ersetzen: 'auf\\s+die\\s+(?:einkaufs\\s*)?liste(?:\\s+(?:setzen|schreiben|packen|drauf|bitte|danke))*$/);',
+    erwarteRot: ['F-016 Hauptregel auch bei langem Fuellwort-Satz'],
+  },
+  {
+    name: 'F-016: Auffangregel verlangt wieder \'die\' vor einkaufsliste',
+    datei: 'index.html',
+    suchen: '/\\bauf\\s+(?:die\\s+(?:\\w+\\s+)?(?:einkaufs\\s*)?|einkaufs\\s*)liste\\b/.test(t)',
+    ersetzen: '/\\bauf\\s+die\\s+(?:\\w+\\s+)?(?:einkaufs\\s*)?liste\\b/.test(t)',
+    erwarteRot: ['F-016 Auffangregel'],
+  },
+  {
+    name: 'F-019: Zutat ohne Einheit verschluckt wieder das Leerzeichen',
+    datei: 'index.html',
+    suchen: 'const re = ing.unit === ""',
+    ersetzen: 'const re = false',
+    erwarteRot: ['F-019 \'2 Eier\' bleibt bei Faktor 1 unveraendert', 'F-019 \'2 Eier\' wird bei Faktor 2'],
+  },
+  {
+    name: 'F-017: \'weiter\' ist kein Ueberspringen-Befehl mehr',
+    datei: 'index.html',
+    suchen: '/^(?:überspringen|ueberspringen|weiter|skip|',
+    ersetzen: '/^(?:überspringen|ueberspringen|skip|',
+    erwarteRot: ['F-017 \'weiter\' darf eine laufende Ansage unterbrechen'],
   },
 ];
 
