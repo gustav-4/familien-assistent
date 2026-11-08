@@ -1936,7 +1936,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION42";
+const APP_VERSION = "FUSION43";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -5939,6 +5939,163 @@ function termineLaden() {
   termine = ladeListe("ka_termine", istDatenObjekt);
   familienStile = tLoad("ka_stile", []); // weiche Stil-Vorlieben laden
 }
+// F-022: DATENSICHERUNG. Alle App-Daten (ka_*) als Datei sichern und
+// wiederherstellen, optional per Passwort verschluesselt (AES-GCM, Schluessel
+// per PBKDF2 mit zufaelligem Salz). Nie in der Datei: Sync-Code (gaebe Zugang
+// zur Familie), Sync-Staende und Geraete-ID (gehoert zu diesem Geraet).
+// Es verlaesst nichts das Geraet - die Datei speichert der Nutzer selbst.
+const SICHERUNG_AUSGENOMMEN = ["ka_sync_code", "ka_sync_stand", "ka_sync_tombs",
+  "ka_device"];
+const SICHERUNG_MAX_ZEICHEN = 5000000;
+function sicherungSchluesselOk(k) { return /^ka_[a-z0-9_]{1,60}$/.test(String(k)); }
+function sicherungSammeln() {
+  const out = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k || !sicherungSchluesselOk(k) || SICHERUNG_AUSGENOMMEN.includes(k)) continue;
+    const v = localStorage.getItem(k);
+    if (typeof v === "string") out[k] = v;
+  }
+  return out;
+}
+function sicherungB64(buf) {
+  const b = new Uint8Array(buf);
+  let s = "";
+  for (let i = 0; i < b.length; i += 8192) {
+    s += String.fromCharCode.apply(null, b.subarray(i, i + 8192));
+  }
+  return btoa(s);
+}
+function sicherungB64zurueck(s) {
+  return Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+}
+async function sicherungSchluessel(passwort, salz) {
+  const basis = await crypto.subtle.importKey("raw",
+    new TextEncoder().encode(String(passwort)), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt: salz, iterations: 250000, hash: "SHA-256" },
+    basis, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+}
+async function sicherungErstellen(passwort) {
+  const daten = sicherungSammeln();
+  const kopf = { app: "familien-assistent", format: 1, version: APP_VERSION,
+    erstellt: new Date().toISOString() };
+  if (!passwort) {
+    return JSON.stringify(Object.assign(kopf, { verschluesselt: false, daten }), null, 1);
+  }
+  const salz = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await sicherungSchluessel(passwort, salz);
+  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key,
+    new TextEncoder().encode(JSON.stringify(daten)));
+  return JSON.stringify(Object.assign(kopf, { verschluesselt: true,
+    salz: sicherungB64(salz), iv: sicherungB64(iv), inhalt: sicherungB64(ct) }), null, 1);
+}
+// Rueckgabe: { ok:true, daten, erstellt, version, anzahl } oder
+// { ok:false, grund: "keinBackup" | "passwort" | "defekt" }
+async function sicherungPruefen(text, passwort) {
+  const fehl = (grund) => ({ ok: false, grund });
+  if (typeof text !== "string" || text.length > SICHERUNG_MAX_ZEICHEN) return fehl("defekt");
+  let f;
+  try { f = JSON.parse(text); } catch (e) { return fehl("keinBackup"); }
+  if (!istDatenObjekt(f) || f.app !== "familien-assistent" || f.format !== 1) {
+    return fehl("keinBackup");
+  }
+  let daten;
+  if (f.verschluesselt === true) {
+    if (!passwort) return fehl("passwort");
+    try {
+      const key = await sicherungSchluessel(passwort, sicherungB64zurueck(f.salz));
+      const klar = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: sicherungB64zurueck(f.iv) }, key,
+        sicherungB64zurueck(f.inhalt));
+      daten = JSON.parse(new TextDecoder().decode(klar));
+    } catch (e) { return fehl("passwort"); }
+  } else {
+    daten = f.daten;
+  }
+  if (!istDatenObjekt(daten)) return fehl("defekt");
+  const sauber = {};
+  for (const k of Object.keys(daten)) {
+    if (!sicherungSchluesselOk(k) || typeof daten[k] !== "string") return fehl("defekt");
+    if (SICHERUNG_AUSGENOMMEN.includes(k)) continue;
+    sauber[k] = daten[k];
+  }
+  return { ok: true, daten: sauber, erstellt: f.erstellt, version: f.version,
+    anzahl: Object.keys(sauber).length };
+}
+// Ersetzt die App-Daten durch die der Sicherung. Schlaegt das Schreiben fehl
+// (Speicher voll), wird der alte Stand zurueckgeschrieben: false.
+function sicherungEinspielen(daten) {
+  const alt = sicherungSammeln();
+  try {
+    Object.keys(daten).forEach((k) => localStorage.setItem(k, daten[k]));
+  } catch (e) {
+    try {
+      Object.keys(daten).forEach((k) => { if (!(k in alt)) localStorage.removeItem(k); });
+      Object.keys(alt).forEach((k) => localStorage.setItem(k, alt[k]));
+    } catch (e2) { /* nichts weiter moeglich */ }
+    return false;
+  }
+  Object.keys(alt).forEach((k) => { if (!(k in daten)) localStorage.removeItem(k); });
+  return true;
+}
+let sicherungBereit = null;
+function sicherungMelde(t) {
+  const el = document.getElementById("sicherungStatus");
+  if (el) el.textContent = t;
+}
+async function sicherungSpeichern() {
+  const pwEl = document.getElementById("sicherungPw");
+  const pw = pwEl ? pwEl.value : "";
+  sicherungMelde("Sicherung wird erstellt …");
+  try {
+    const text = await sicherungErstellen(pw);
+    const name = "familien-assistent-sicherung-" + isoTag(new Date()) + ".json";
+    const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    sicherungMelde("Gespeichert als " + name + ". " + (pw
+      ? "Die Datei ist mit deinem Passwort verschlüsselt. Merke dir das Passwort gut, ohne es lässt sich die Datei nicht öffnen."
+      : "Achtung: Ohne Passwort ist die Datei NICHT verschlüsselt. Bewahre sie sicher auf."));
+  } catch (e) {
+    sicherungMelde("Das Sichern hat nicht geklappt. Bitte noch einmal versuchen.");
+  }
+}
+async function sicherungDateiGewaehlt(input) {
+  sicherungBereit = null;
+  const go = document.getElementById("sicherungGoBtn");
+  if (go) go.classList.add("hidden");
+  const datei = input && input.files && input.files[0];
+  if (!datei) return;
+  const pwEl = document.getElementById("sicherungPw");
+  let text = "";
+  try { text = await datei.text(); } catch (e) { sicherungMelde("Die Datei konnte nicht gelesen werden."); return; }
+  const r = await sicherungPruefen(text, pwEl ? pwEl.value : "");
+  if (!r.ok) {
+    sicherungMelde({
+      passwort: "Das Passwort fehlt oder ist falsch. Bitte oben das Passwort eintragen und die Datei noch einmal wählen.",
+      keinBackup: "Das ist keine Sicherung des Familien-Assistenten.",
+      defekt: "Die Sicherung ist beschädigt und kann nicht verwendet werden.",
+    }[r.grund] || "Die Sicherung kann nicht verwendet werden.");
+    return;
+  }
+  sicherungBereit = r;
+  sicherungMelde("Sicherung gefunden (" + r.anzahl + " Datenbereiche, erstellt " +
+    String(r.erstellt || "").slice(0, 10) + "). Mit „Jetzt wiederherstellen“ ersetzt du die Daten auf diesem Gerät durch diese Sicherung.");
+  if (go) go.classList.remove("hidden");
+}
+function sicherungWiederherstellen() {
+  if (!sicherungBereit) return;
+  const ok = sicherungEinspielen(sicherungBereit.daten);
+  if (!ok) { sicherungMelde("Wiederherstellen ging nicht (Speicher voll?). Deine bisherigen Daten sind unverändert."); return; }
+  sicherungBereit = null;
+  sicherungMelde("Wiederhergestellt. Die App lädt neu …");
+  setTimeout(() => { try { location.reload(); } catch (e) {} }, 800);
+}
+
 // F-021: "Nach Update suchen". Fragt den Service Worker nach einer neuen
 // Version. Aendert und loescht KEINE lokalen Daten. Findet der Browser eine
 // neue sw.js, uebernimmt sie sich selbst (skipWaiting) und die Seite laedt
@@ -6471,6 +6628,17 @@ function vbVoiceCheckoffToggle() {
   <a href="/plus.html">💎 Familien-Plus</a> · <span id="appVersion"></span> ·
   <button type="button" onclick="updatePruefen()" style="background:none;border:0;padding:0;color:inherit;text-decoration:underline;font:inherit;cursor:pointer">Nach Update suchen</button>
   <div id="updateStatus" role="status" aria-live="polite" style="margin-top:4px"></div>
+  <details style="margin-top:8px;text-align:left;max-width:420px;margin-left:auto;margin-right:auto">
+    <summary style="cursor:pointer">💾 Datensicherung</summary>
+    <p style="margin:6px 0">Speichert Termine, Familie, Favoriten und Einstellungen als Datei auf deinem Gerät. Nichts wird ins Internet geschickt.</p>
+    <label for="sicherungPw">Passwort (empfohlen):</label>
+    <input id="sicherungPw" type="password" autocomplete="new-password" style="width:100%;box-sizing:border-box;margin:4px 0">
+    <button type="button" onclick="sicherungSpeichern()">Sicherung speichern</button>
+    <p style="margin:10px 0 4px">Sicherung zurückholen: erst das Passwort eintragen, dann die Datei wählen.</p>
+    <input id="sicherungDatei" type="file" accept=".json,application/json" onchange="sicherungDateiGewaehlt(this)">
+    <button type="button" id="sicherungGoBtn" class="hidden" onclick="sicherungWiederherstellen()">Jetzt wiederherstellen</button>
+    <div id="sicherungStatus" role="status" aria-live="polite" style="margin-top:6px"></div>
+  </details>
 </footer>
 </body>
 </html>

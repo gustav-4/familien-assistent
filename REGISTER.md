@@ -233,3 +233,13 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Belegt:** Rot vor Fix: 9 FEHL (ein Scheintest „deutscher Text" war vorher faelschlich gruen und wurde korrigiert). Gruen nach Fix in UTC, Berlin, New_York: 225 bestanden.
 **Mutationen:** F-021: neue Version wird nicht mehr erkannt / F-021: Update-Knopf loescht lokale Daten
 **Nicht geprueft:** Verhalten auf echten Geraeten (iOS-Standalone, Android-App-Modus); dass `update()` hinter Netlify-Caches sofort die neue sw.js sieht.
+
+## F-022
+**Wortlaut:** (Betreiber, 08.11.) Vorschlag 2 freigegeben: Datensicherung als Datei (Export und Import)
+**Status:** behoben
+**Test:** F-022 Sammeln nimmt App-Daten, aber nie Sync-Code, Geraete-ID oder Fremdes (+12 weitere)
+**Priorität:** 2
+**Umsetzung:** `sicherungSammeln/-Erstellen/-Pruefen/-Einspielen` plus Oberflaeche (Fusszeile, Bereich „Datensicherung"). Alle `ka_*`-Schluessel ausser Sync-Code, Sync-Staende, Geraete-ID. Optional Passwort: AES-GCM, PBKDF2 250000 Runden, zufaelliges Salz. Die Pruefung lehnt fremde Dateien, falsche Passwoerter, veraenderte Dateien, fremde Schluessel und Nicht-Text-Werte ab. Einspielen mit Rueckgaengig bei Speicherfehler. Version FUSION43.
+**Belegt:** Rot vor Fix: 13 FEHL. Gruen nach Fix in UTC, Berlin, New_York: 238 bestanden. Hinweis: ein Test-Wettlauf mit F-021 (gemeinsamer Attrappenspeicher) wurde durch Startverzoegerung beseitigt.
+**Mutationen:** F-022: Sync-Code und Geraete-ID kommen in die Sicherung / F-022: Rueckgaengig bei Speicherfehler entfaellt / F-022: Passwort wird ignoriert, Datei bleibt Klartext
+**Nicht geprueft:** Download und Dateiauswahl auf echten Handys (iOS Safari, Android Chrome); nicht gesichert werden IndexedDB (Push-Geraet), Sync-Verbindung und KI-Modell-Cache; ohne Passwort ist die Datei Klartext (Warnung in der App); Passwort vergessen = Daten der Datei nicht zu retten.

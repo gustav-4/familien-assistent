@@ -400,6 +400,28 @@ const MUTATIONEN = [
     ersetzen: 'localStorage.clear(); if (el) el.textContent = "Suche nach Updates …";',
     erwarteRot: ["F-021 updatePruefen loescht und aendert keine lokalen Daten"],
   },
+  {
+    name: "F-022: Sync-Code und Geraete-ID kommen in die Sicherung",
+    datei: "index.html",
+    suchen: 'const SICHERUNG_AUSGENOMMEN = ["ka_sync_code", "ka_sync_stand", "ka_sync_tombs",\n  "ka_device"];',
+    ersetzen: "const SICHERUNG_AUSGENOMMEN = [];",
+    erwarteRot: ["F-022 Sammeln nimmt App-Daten",
+      "F-022 Sync-Code in einer Sicherungsdatei wird ignoriert"],
+  },
+  {
+    name: "F-022: Rueckgaengig bei Speicherfehler entfaellt",
+    datei: "index.html",
+    suchen: "Object.keys(alt).forEach((k) => localStorage.setItem(k, alt[k]));",
+    ersetzen: "/* kein Rollback */",
+    erwarteRot: ["F-022 Einspielen scheitert sauber"],
+  },
+  {
+    name: "F-022: Passwort wird ignoriert, Datei bleibt Klartext",
+    datei: "index.html",
+    suchen: "if (!passwort) {\n    return JSON.stringify(Object.assign(kopf, { verschluesselt: false, daten }), null, 1);",
+    ersetzen: "if (true) {\n    return JSON.stringify(Object.assign(kopf, { verschluesselt: false, daten }), null, 1);",
+    erwarteRot: ["F-022 Sicherung mit Passwort: Klartext steht nicht in der Datei"],
+  },
 ];
 
 function laufen() {

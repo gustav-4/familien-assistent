@@ -1364,3 +1364,106 @@ pruefe("F-018 Stueck-Mengen bleiben ganzzahlig", (function () {
     }
   });
 })();
+
+// F-022: Datensicherung. Export/Import aller App-Daten als Datei, optional
+// per Passwort verschluesselt. Sync-Code und Geraete-ID gehoeren NICHT hinein.
+warte(async () => {
+  // Erst nach allen anderen rein-microtask-basierten Tests starten: dieser
+  // Block veraendert den (geteilten) Attrappen-Speicher.
+  await new Promise((r) => setImmediate(r));
+  const p = async (name, fn) => {
+    let ok = false;
+    try { ok = (await fn()) === true; } catch (e) { ok = false; }
+    pruefe(name, ok);
+  };
+  const vorher = Object.assign({}, localStorage._d);
+  const setze = (o) => { localStorage._d = Object.assign({}, o); };
+  const basis = {
+    ka_mitglieder: JSON.stringify([{ name: "Zebrafinkenlena", alter: 7, geschlecht: "w" }]),
+    ka_termine: JSON.stringify([{ id: "t9", titel: "Kieferorthopaede" }]),
+    ka_favoriten: "[]", ka_sync_code: "FAM-AAAAA-BBBBB", ka_sync_stand: "5",
+    ka_device: "geraet-123", fremd: "nicht-ka",
+  };
+  try {
+    setze(basis);
+    await p("F-022 Sammeln nimmt App-Daten, aber nie Sync-Code, Geraete-ID oder Fremdes",
+      () => { const s = sicherungSammeln(); return !!s.ka_mitglieder && !!s.ka_termine &&
+        !("ka_sync_code" in s) && !("ka_sync_stand" in s) && !("ka_device" in s) &&
+        !("fremd" in s); });
+    await p("F-022 Sicherung ohne Passwort: Rundlauf liefert dieselben Daten",
+      async () => { const t = await sicherungErstellen("");
+        const r = await sicherungPruefen(t, "");
+        return r.ok === true && r.daten.ka_mitglieder === basis.ka_mitglieder &&
+          r.anzahl === 3; });
+    await p("F-022 Sicherung mit Passwort: Klartext steht nicht in der Datei",
+      async () => { const t = await sicherungErstellen("geheim123");
+        return !t.includes("Zebrafinkenlena") && !t.includes("Kieferorthopaede") &&
+          JSON.parse(t).verschluesselt === true; });
+    await p("F-022 Rundlauf mit Passwort liefert dieselben Daten",
+      async () => { const t = await sicherungErstellen("geheim123");
+        const r = await sicherungPruefen(t, "geheim123");
+        return r.ok === true && r.daten.ka_termine === basis.ka_termine; });
+    await p("F-022 falsches oder fehlendes Passwort wird abgelehnt (grund passwort)",
+      async () => { const t = await sicherungErstellen("geheim123");
+        const a = await sicherungPruefen(t, "falsch");
+        const b = await sicherungPruefen(t, "");
+        return a.ok === false && a.grund === "passwort" &&
+          b.ok === false && b.grund === "passwort"; });
+    await p("F-022 veraenderte verschluesselte Datei wird abgelehnt",
+      async () => { const f = JSON.parse(await sicherungErstellen("geheim123"));
+        const z = f.inhalt; f.inhalt = (z[5] === "A" ? "B" : "A").padStart(1) + z.slice(1, 5) +
+          (z[5] === "A" ? "B" : "A") + z.slice(6);
+        const r = await sicherungPruefen(JSON.stringify(f), "geheim123");
+        return r.ok === false; });
+    await p("F-022 fremde oder kaputte Datei ist keine Sicherung (grund keinBackup)",
+      async () => { const a = await sicherungPruefen("kein json{", "");
+        const b = await sicherungPruefen('{"app":"andere","format":1}', "");
+        const c = await sicherungPruefen("[1,2]", "");
+        return [a, b, c].every((r) => r.ok === false && r.grund === "keinBackup"); });
+    await p("F-022 Datei mit fremden Schluesseln oder Nicht-Text-Werten wird abgelehnt",
+      async () => { const mk = (daten) => JSON.stringify({ app: "familien-assistent",
+        format: 1, verschluesselt: false, daten });
+        const a = await sicherungPruefen(mk({ x_boese: "1" }), "");
+        const b = await sicherungPruefen(mk({ ka_termine: 5 }), "");
+        const c = await sicherungPruefen(
+          '{"app":"familien-assistent","format":1,"verschluesselt":false,"daten":{"__proto__":"x"}}', "");
+        return [a, b, c].every((r) => r.ok === false && r.grund === "defekt"); });
+    await p("F-022 Sync-Code in einer Sicherungsdatei wird ignoriert, nie uebernommen",
+      async () => { const t = JSON.stringify({ app: "familien-assistent", format: 1,
+        verschluesselt: false, daten: { ka_termine: "[]", ka_sync_code: "FAM-EVIL1-EVIL2" } });
+        const r = await sicherungPruefen(t, "");
+        return r.ok === true && !("ka_sync_code" in r.daten); });
+    await p("F-022 Einspielen ersetzt App-Daten, laesst Sync-Code und Geraete-ID unberuehrt",
+      async () => { setze(Object.assign({}, basis, { ka_stile: "[1]" }));
+        const ok = sicherungEinspielen({ ka_termine: JSON.stringify([{ id: "neu1" }]) });
+        const d = localStorage._d;
+        return ok === true && d.ka_termine.includes("neu1") && !("ka_mitglieder" in d) &&
+          !("ka_stile" in d) && d.ka_sync_code === "FAM-AAAAA-BBBBB" &&
+          d.ka_device === "geraet-123" && d.fremd === "nicht-ka"; });
+    await p("F-022 Einspielen scheitert sauber: alter Stand bleibt bei Speicherfehler",
+      async () => { setze(basis);
+        const orig = localStorage.setItem; let n = 0;
+        localStorage.setItem = function (k, v) { if (++n === 2) throw new Error("voll");
+          return orig.call(this, k, v); };
+        let ok;
+        try { ok = sicherungEinspielen({ ka_termine: "[]", ka_favoriten: "[2]", ka_stile: "[3]" }); }
+        finally { localStorage.setItem = orig; }
+        const d = localStorage._d;
+        return ok === false && d.ka_mitglieder === basis.ka_mitglieder &&
+          d.ka_termine === basis.ka_termine && !("ka_stile" in d); });
+    await p("F-022 Nach dem Einspielen liest die App die wiederhergestellten Termine",
+      async () => { setze(basis);
+        const t = await sicherungErstellen("pw");
+        const r = await sicherungPruefen(t, "pw");
+        setze({ ka_termine: "[]" });
+        sicherungEinspielen(r.daten); termineLaden();
+        return termine.length === 1 && termine[0].id === "t9" &&
+          mitglieder.length === 1 && mitglieder[0].name === "Zebrafinkenlena"; });
+    await p("F-022 Seite hat die Bedienelemente fuer Sichern und Wiederherstellen",
+      () => ["sicherungSpeichern()", "sicherungDateiGewaehlt(", "sicherungWiederherstellen()",
+        'id="sicherungPw"', 'id="sicherungStatus"'].every((s) => APPHTML.includes(s)));
+  } finally {
+    localStorage._d = vorher;
+    try { termineLaden(); } catch (e) {}
+  }
+});
