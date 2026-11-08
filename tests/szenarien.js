@@ -1641,3 +1641,72 @@ warte(async () => {
   pruefe("F-021 die Version wird erst nach dem Laden der Seite eingetragen (DOMContentLoaded)",
     APPHTML.includes('addEventListener("DOMContentLoaded", versionAnzeigen)'));
 })();
+
+// F-025b: Termine per Sprache werden LOKAL verstanden (termin-regel.js), ohne
+// KI-Dienst. Dazu die beim Pruefen gefundenen Fehler des lokalen Lesers:
+// Umlaute und \b ("uebermorgen" ging, "übermorgen" nicht), leerer Titel bei
+// "Papa bringt Lena ... zur Schule".
+(function () {
+  const sicher = (f) => { try { return f(); } catch (e) { return "FEHLER:" + e.message; } };
+  let TR = null;
+  try { TR = process.mainModule.require(process.cwd() + "/termin-regel.js"); } catch (e) {}
+  const P = (text, namen) => sicher(() => TR.parse(text, "2026-11-08", namen || ["Lena", "Max", "Anna", "Papa"]));
+  const feld = (r, f) => (r && typeof r === "object") ? r[f] : "—";
+  pruefe("F-025b Leser ist ladbar", TR !== null && typeof TR.parse === "function");
+  pruefe("F-025b 'übermorgen' (mit Umlaut) ist der Tag nach morgen",
+    feld(P("Anna Kinderarzt übermorgen um 15 Uhr"), "datum") === "2026-11-10" &&
+    feld(P("Anna Kinderarzt übermorgen halb vier"), "datum") === "2026-11-10");
+  pruefe("F-025b 'uebermorgen' (ohne Umlaut) bleibt gleich",
+    feld(P("Anna Kinderarzt uebermorgen um 15 Uhr"), "datum") === "2026-11-10");
+  pruefe("F-025b 'morgen' ist der naechste Tag", feld(P("Lena Zahnarzt morgen um 15 Uhr"), "datum") === "2026-11-09");
+  pruefe("F-025b Schutz: Farbe 'grün' (mit Umlaut) wird erkannt",
+    feld(P("Lena Zahnarzt morgen um 15 Uhr grün"), "kategorie") === "gruen" &&
+    feld(P("Lena Zahnarzt morgen um 15 Uhr gruen"), "kategorie") === "gruen");
+  (function () {
+    const r = P("Papa bringt Lena am Freitag um 8 Uhr zur Schule");
+    pruefe("F-025b 'Papa bringt Lena am Freitag um 8 Uhr zur Schule' wird verstanden",
+      feld(r, "titel") === "Schule" && feld(r, "verantwortlich") === "Papa" &&
+      feld(r, "person") === "Lena" && feld(r, "datum") === "2026-11-13" && feld(r, "zeit") === "08:00");
+    const k = P("Papa bringt Max am Freitag um 8 Uhr zum Kindergarten");
+    pruefe("F-025b 'zum Kindergarten' wird als Titel erkannt", feld(k, "titel") === "Kindergarten");
+  })();
+  // Schutz: diese Saetze werden heute richtig verstanden und muessen es bleiben.
+  const faelle = [
+    ["Lena Zahnarzt morgen um 15 Uhr", "Zahnarzt", "Lena", "2026-11-09", "15:00"],
+    ["Termin Max Fußballtraining am Dienstag um 17 Uhr 30", "Fußballtraining", "Max", "2026-11-10", "17:30"],
+    ["Elternabend am 12. November um 19 Uhr", "Elternabend", "Familie", "2026-11-12", "19:00"],
+    ["Anna Kinderarzt übermorgen halb vier", "Kinderarzt", "Anna", "2026-11-10", "15:30"],
+    ["Zahnarzt Max heute um 18 Uhr", "Zahnarzt", "Max", "2026-11-08", "18:00"],
+    ["Max Schwimmen am Mittwoch um viertel nach vier sehr wichtig", "Schwimmen", "Max", "2026-11-11", "16:15"],
+    ["am Donnerstag um zehn Uhr Anna Friseur Wegzeit zwanzig Minuten", "Friseur", "Anna", "2026-11-12", "10:00"],
+    ["Lena Klassenarbeit Mathe am 20.11. um 8 Uhr", "Klassenarbeit", "Lena", "2026-11-20", "08:00"],
+  ];
+  const G = (text) => sicher(() => { const r = TR.pruefen(TR.parse(text, "2026-11-08",
+    ["Lena", "Max", "Anna", "Papa"])); return r.success ? r.termin : null; });
+  faelle.forEach(([satz, titel, person, datum, zeit]) => {
+    const r = G(satz);
+    pruefe("F-025b Schutz: " + satz,
+      feld(r, "titel") === titel && feld(r, "person") === person &&
+      feld(r, "datum") === datum && feld(r, "zeit") === zeit);
+  });
+  pruefe("F-025b Wegzeit und Farbe aus dem Satz",
+    feld(P("am Donnerstag um zehn Uhr Anna Friseur Wegzeit zwanzig Minuten"), "wegzeit_min") === 20 &&
+    feld(P("Max Schwimmen am Mittwoch um viertel nach vier sehr wichtig"), "kategorie") === "rot");
+  // Anbindung in der App
+  const v = sicher(() => terminLokalVerstehen("Lena Zahnarzt morgen um 15 Uhr", "2026-11-08",
+    ["Lena", "Max"], TR));
+  pruefe("F-025b terminLokalVerstehen liefert einen geprueften Termin",
+    v && v.success === true && v.termin.titel === "Zahnarzt" && v.termin.datum === "2026-11-09" &&
+    v.termin.dauer_min === 60 && v.termin.kategorie === "orange");
+  const u = sicher(() => terminLokalVerstehen("morgen Arzt", "2026-11-08", ["Lena"], TR));
+  pruefe("F-025b ohne Uhrzeit: freundliche Rueckfrage statt Fehler",
+    u && u.success === false && /Uhrzeit/.test(u.error));
+  const w = sicher(() => terminLokalVerstehen("blabla", "2026-11-08", [], TR));
+  pruefe("F-025b Unverstaendliches: success false mit Text",
+    w && w.success === false && typeof w.error === "string" && w.error.length > 5);
+  const x = sicher(() => terminLokalVerstehen("Lena Zahnarzt morgen um 15 Uhr", "2026-11-08", [], null));
+  pruefe("F-025b Leser fehlt: success false mit Hinweis, kein Absturz",
+    x && x.success === false && /neu/.test(x.error));
+  pruefe("F-025b die App ruft den KI-Dienst fuer Termine nicht mehr auf",
+    !APPHTML.includes('"/api/termin-parse"') && APPHTML.includes("parseLokal("));
+})();

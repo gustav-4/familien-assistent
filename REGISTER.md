@@ -275,3 +275,13 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Belegt:** Rot vor Fix: 11 FEHL (ein Scheintest „goTab laeuft durch" wurde vorher durch einen echten ersetzt). Gruen danach in UTC, Berlin, New_York.
 **Mutationen:** F-024: Heute rechnet den Tag wieder ueber UTC / ... nicht mehr nach Uhrzeit sortiert / ... vergangene Termine nicht mehr markiert / ... Abendessen nicht mehr getrennt / ... naechster Termin ist der letzte
 **Nicht geprueft:** Aussehen auf echten Handys (7 Reiter in der unteren Leiste), Routinen erscheinen nicht auf der Heute-Seite, kein Start auf „Heute".
+
+## F-025b
+**Wortlaut:** (Betreiber, 08.11.) Alle KI-Funktionen sollen lokal auf dem Handy laufen - hier: gesprochene Termine
+**Status:** behoben (Teil b von F-025; a, c, d offen)
+**Test:** F-025b die App ruft den KI-Dienst fuer Termine nicht mehr auf (+8 weitere)
+**Priorität:** 1
+**Umsetzung:** `terminLokalVerstehen`/`parseLokal` in index.html nutzen `termin-regel.js` statt `/api/termin-parse`. Dabei zwei Fehler im Regel-Leser behoben: „übermorgen" wurde wegen `\b` vor „ü" nie erkannt; „Papa bringt Lena ... zur Schule" ergab keinen Titel. Datenschutz-Seite: Route termin-parse entfernt. Version FUSION47.
+**Belegt:** Rot vor Fix: 9 FEHL. Gruen danach in UTC, Berlin, New_York (295 bestanden).
+**Mutationen:** F-025b: uebermorgen ... / Ziel wird nicht mehr Titel / Sprachtermin geht wieder an den KI-Dienst
+**Nicht geprueft:** Der Regel-Leser ist schwaecher als die KI (komplexe Saetze, mehrere Termine in einem Satz); echte Spracheingabe auf dem Handy; Browser-Spracherkennung selbst kann weiterhin beim Browser-Hersteller landen.

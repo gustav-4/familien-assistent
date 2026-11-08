@@ -139,7 +139,8 @@ function parse(text, heuteIso, mitglieder) {
     const d = datumVon(parseInt(m[1], 10), MONATE[m[2]], m[3], heute);
     if (d) { datum = d; datumExplizit = true; verbraucht.push(m[0]); }
   }
-  if (!datum && nimm(t.match(/\b(?:übermorgen|uebermorgen)\b/))) {
+  // F-025b: \b versagt vor "ü" (kein Wortzeichen) - "übermorgen" wurde nie erkannt.
+  if (!datum && nimm(t.match(/(?<![a-zäöüß])(?:übermorgen|uebermorgen)(?![a-zäöüß])/))) {
     datum = new Date(heute); datum.setDate(datum.getDate() + 2); datumExplizit = true;
   } else if (!datum && nimm(t.match(/\bmorgen\b(?!s)/))) {
     datum = new Date(heute); datum.setDate(datum.getDate() + 1); datumExplizit = true;
@@ -287,6 +288,12 @@ function parse(text, heuteIso, mitglieder) {
       !(person && w === person.toLowerCase()));
     titel = woerter.slice(0, 5).join(" ");
   }
+  // F-025b: Gesprochen "Papa bringt Lena ... zur Schule": Schule, Kita und
+  // Kindergarten sind sonst Fuellwoerter (wegen Elternbriefen). Mit einem
+  // Verantwortlichen im Satz dient das Ziel als Titel.
+  if (!titel && verantwortlich &&
+      (m = t.match(/(?:^|\s)(?:zur|zum|zu|ins|in die|in den)\s+([a-zäöüß-]{3,30})(?![a-zäöüß])/)))
+    titel = m[1];
   titel = titel ? titel.charAt(0).toUpperCase() + titel.slice(1) : "";
 
   return {
@@ -322,7 +329,7 @@ function pruefen(t) {
 }
 
 const DATUM_HINWEIS = new RegExp("\\b\\d{1,2}\\.\\s?\\d{1,2}\\.|\\b\\d{1,2}\\.?\\s*(?:" +
-  MONATS_RE + ")\\b|\\b(?:" + WOCHENTAGE.join("|") + ")s?\\b|\\b(?:heute|morgen|übermorgen|uebermorgen)\\b", "i");
+  MONATS_RE + ")\\b|\\b(?:" + WOCHENTAGE.join("|") + ")s?\\b|(?<![a-zäöüß])(?:heute|morgen|übermorgen|uebermorgen)(?![a-zäöüß])", "i");
 // Nur echte Uhrzeiten: "19:00" oder "... Uhr" ("17.11." ist ein Datum!)
 const ZEIT_HINWEIS = /\b\d{1,2}:\d{2}\b|\buhr\b/i;
 

@@ -1948,7 +1948,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION46";
+const APP_VERSION = "FUSION47";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -5236,39 +5236,42 @@ function fuelleTerminFormular(t) {
   pruefeKollisionLive();
 }
 
+// F-025b: Einen gesprochenen Termin mit dem lokalen Regel-Leser verstehen.
+// Antwortet im Schema der frueheren Server-Schnittstelle ({success, termin}
+// bzw. {success:false, error}). `regel` ist zum Testen austauschbar.
+function terminLokalVerstehen(text, heuteIso, namen, regel) {
+  const leser = regel === undefined
+    ? (typeof window !== "undefined" ? window.TerminRegel : null) : regel;
+  if (!leser || typeof leser.parse !== "function" || typeof leser.pruefen !== "function") {
+    return { success: false, error: "Der Termin-Leser ist nicht geladen. " +
+      "Bitte die App schließen und neu öffnen." };
+  }
+  try {
+    return leser.pruefen(leser.parse(text, heuteIso, namen));
+  } catch (e) {
+    return { success: false, error: "Termin nicht verstanden - bitte nochmal sagen" };
+  }
+}
 function startTerminDialog(diktat) {
   const status = document.getElementById("terminVoiceStatus");
   const melde = (text) => { if (status) status.textContent = text; };
   let st = { phase: "warte_diktat", wdh: 0, abfahrt: false, termin: null };
 
-  async function parseServer(text) {
+  // F-025b: LOKAL verstehen (termin-regel.js), ohne Server und ohne KI-Dienst.
+  function parseLokal(text) {
     melde("Verstanden: „" + text + "“ – übersetze …");
-    try {
-      const heute = new Date();
-      const r = await fetch("/api/termin-parse", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: text,
-          heute: isoTag(heute),
-          wochentag: heute.toLocaleDateString("de-DE", { weekday: "long" }),
-          mitglieder: mitgliederNamen(),
-        }),
-      });
-      const data = await r.json();
-      if (!data.success) schritt({ typ: "parsefehler", msg: data.error });
-      else schritt({ typ: "geparst", termin: data.termin,
-        mitglieder: mitgliederNamen() });
-    } catch (e) {
-      schritt({ typ: "parsefehler",
-        msg: "Die Übersetzung ist gerade nicht erreichbar." });
-    }
+    const namen = mitgliederNamen();
+    const data = terminLokalVerstehen(text, isoTag(new Date()), namen);
+    if (!data.success) schritt({ typ: "parsefehler", msg: data.error });
+    else schritt({ typ: "geparst", termin: data.termin, mitglieder: namen });
   }
 
   function schritt(ev) {
     const r = terminDialogNext(st, ev);
     st = r.state;
-    if (r.aktion === "parse") parseServer(r.text);
+    // Absichtlich verzoegert: schritt() darf nicht ineinander verschachtelt
+    // laufen, sonst wuerde die erste Sprachausgabe von der zweiten abgebrochen.
+    if (r.aktion === "parse") setTimeout(() => parseLokal(r.text), 0);
     if (r.aktion === "formular" && st.termin) fuelleTerminFormular(st.termin);
     if (r.aktion === "speichern" && st.termin) {
       fuelleTerminFormular(st.termin);
@@ -6040,14 +6043,12 @@ function datenschutzZeilen() {
       text: "Namen, Alter, Allergien und Ernährungsform deiner Familie, deine Termine, Routinen, Einkaufsliste, Favoriten und Einstellungen werden nur im Speicher dieses Handys abgelegt. Es gibt kein Konto und keine Anmeldung. Wann einzelne Angaben für eine Funktion trotzdem übertragen werden, steht unter „Das verlässt dein Handy“." },
     { gruppe: "lokal", titel: "Scanner für Kassenbon und Schulzettel",
       text: "Das Foto wird auf dem Handy per Texterkennung gelesen. Weder das Foto noch der Text werden an einen Server geschickt." },
-    { gruppe: "lokal", titel: "Stichwort „Termin“ rufen",
-      text: "Das stille Lauschen auf das Stichwort läuft auf dem Handy und sendet nichts. Erst wenn du einen Termin diktierst, wird dein Satz verarbeitet (siehe unten)." },
+    { gruppe: "lokal", titel: "Termine per Sprache",
+      text: "Das stille Lauschen auf das Stichwort „Termin“ und das Verstehen deines gesprochenen Termins (Datum, Uhrzeit, Person) laufen auf dem Handy nach festen Regeln. Dein Satz wird dafür nicht an einen KI-Dienst geschickt." },
     { gruppe: "lokal", titel: "Datensicherung",
       text: "Die Sicherung entsteht auf dem Handy und wird von dir selbst als Datei abgelegt. Mit Passwort ist sie verschlüsselt. Sync-Code und Geräte-Kennung sind nicht enthalten." },
     { gruppe: "server", route: "rezept", titel: "Rezeptsuche, Kochschritte, Wochenplan",
       text: "Gesendet werden dein Essenswunsch, die Unverträglichkeiten und Ernährungsformen, der Zeitrahmen, bei Kochschritten Gerichtname und Zutaten, die Geräte-Kennung und – falls vorhanden – dein Familien-Code. Ein KI-Dienst erstellt daraus die Rezepte. Namen deiner Familienmitglieder werden dafür nicht gesendet." },
-    { gruppe: "server", route: "termin-parse", titel: "Termin per Sprache anlegen",
-      text: "Gesendet werden der gesprochene Satz, das heutige Datum, der Wochentag und die Vornamen der Familienmitglieder, damit ein KI-Dienst Datum, Uhrzeit und Person erkennt." },
     { gruppe: "server", route: "wecker", titel: "Erinnerungen",
       text: "Gesendet werden anonyme Nummern mit den Zeitpunkten und die Geräte-Kennung. Titel, Personen und Orte deiner Termine bleiben auf dem Handy; die Benachrichtigung wird erst auf dem Handy zusammengesetzt." },
     { gruppe: "server", route: "push-anmelden", titel: "Benachrichtigungen einschalten",
