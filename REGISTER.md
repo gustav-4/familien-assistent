@@ -395,3 +395,13 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Belegt:** Fehler nachgestellt (echter Browser, FUSION49 -> neu: bleibt auf 49, kein Neuladen). Mit dem Fix: FUSION52 -> FUSION53 ohne vorheriges Neuladen laedt neu auf 53. Rot vor Fix, gruen danach (349 in drei Zeitzonen).
 **Mutationen:** F-036: kein Neuladen mehr / alte Seite nicht erkannt / Neuladen ohne Sperre
 **Nicht geprueft:** Echtes Handy (Chrome Android, installierte App). Die alte Seite (FUSION49-51) hat die Reparatur nicht und kann sich nicht selbst heilen.
+
+## F-037
+**Wortlaut:** (Betreiber, 09.11.) sollten Updates nicht automatisch (still) beim Oeffnen der App geschehen?
+**Status:** behoben
+**Test:** F-037 neue Version beim Oeffnen: laedt still neu (+5)
+**Priorität:** 1
+**Umsetzung:** `updateStillPruefen`: 2,5 s nach dem Start und bei jeder Rueckkehr in die App wird ohne Knopfdruck nach einer neuen Version gefragt (hoechstens alle 10 Minuten). Gefunden: einmal still neu laden. Mitten im Kochen (`kochAktiv`) nicht; das Update wird nach dem Kochen eingespielt (`kochSitzungEnde`), auch das automatische Neuladen nach einem Worker-Wechsel respektiert das. Version FUSION53.
+**Belegt:** Rot vor Fix, gruen danach (355 Tests, drei Zeitzonen).
+**Mutationen:** F-037: Neuladen mitten im Kochen / ohne 10-Minuten-Sperre / ohne Start-Pruefung
+**Nicht geprueft:** Echtes Handy; ob Android im Hintergrund haengende Apps die Rueckkehr-Pruefung ausloesen; Verhalten bei langsamem Netz.

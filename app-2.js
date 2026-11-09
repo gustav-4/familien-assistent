@@ -524,6 +524,11 @@ function kochSitzungStart() {
 function kochSitzungEnde() {
   kochAktiv = false;
   wakeLockAus("koch");
+  // F-037: ein waehrend des Kochens gefundenes Update jetzt einspielen
+  if (typeof updateWartetAufKochende !== "undefined" && updateWartetAufKochende) {
+    updateWartetAufKochende = false;
+    setTimeout(() => { try { location.reload(); } catch (e) {} }, 1500);
+  }
 }
 // Nach Tab-Wechsel/Displaysperre gibt das System die Sperre frei -
 // beim Zurueckkehren erneut anfordern, solange ein Grund besteht.
@@ -988,7 +993,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION52";
+const APP_VERSION = "FUSION53";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom

@@ -1940,7 +1940,8 @@ warte(async () => {
 // Start schon von einem Service Worker gesteuert wurde. Jetzt laedt die Seite selbst
 // neu, sobald die neue Version aktiv ist, und erkennt auch den Fall "neue Version ist
 // schon aktiv, die Seite aber noch alt" (Versionsabfrage beim Service Worker).
-warte(async () => {
+// Die Update-Szenarien teilen sich Schalter (Service Worker, Neuladen) und laufen darum nacheinander.
+globalThis.__f036Fertig = (async () => {
   pruefe("F-036 Versionen werden verglichen (app-fusion51 = FUSION51)",
     updateVersionGleich("app-fusion51", "FUSION51") === true &&
     updateVersionGleich("app-fusion50", "FUSION51") === false &&
@@ -2006,7 +2007,8 @@ warte(async () => {
     location.reload = locAlt;
     updateNeuLadenVerzoegerung = 600;
   }
-});
+})();
+warte(() => globalThis.__f036Fertig);
 {
   // sw.js antwortet auf die Versionsfrage
   const code = process.mainModule.require("fs").readFileSync(process.cwd() + "/sw.js", "utf8");
@@ -2017,3 +2019,55 @@ warte(async () => {
   if (hoerer.message) hoerer.message({ data: "version", ports: [{ postMessage: (v) => { antwort = v; } }] });
   pruefe("F-036 sw.js nennt auf Nachfrage seine Version", /^app-fusion\d+$/.test(String(antwort)));
 }
+
+// F-037: Updates sollen STILL beim Oeffnen der App geschehen (und beim Zurueckkehren
+// in die App), ohne Knopfdruck - aber nie mitten im Kochen.
+warte(async () => {
+  await globalThis.__f036Fertig;
+  const navAlt = Object.getOwnPropertyDescriptor(navigator, "serviceWorker");
+  const locAlt = location.reload;
+  const kochVorher = kochAktiv;
+  let neuGeladen = 0, updates = 0;
+  location.reload = () => { neuGeladen++; };
+  updateNeuLadenVerzoegerung = 0;
+  const reg = (v) => ({ installing: null, waiting: null, update: async () => { updates++; },
+    active: { postMessage(m, ports) { if (m === "version") ports[0].postMessage(v); } } });
+  const setzeReg = (r) => Object.defineProperty(navigator, "serviceWorker", { configurable: true,
+    value: { getRegistration: async () => r } });
+  const warten = () => new Promise((r) => setTimeout(r, 25));
+  try {
+    setzeReg(null);
+    updateStillZuruecksetzen();
+    pruefe("F-037 ohne Registrierung: nichts zu tun", (await updateStillPruefen(1000)) === "kein");
+
+    setzeReg(reg("app-fusion00")); updateStillZuruecksetzen(); updateNeuGeladenZuruecksetzen();
+    kochAktiv = false; neuGeladen = 0;
+    const z = await updateStillPruefen(1000); await warten();
+    pruefe("F-037 neue Version beim Oeffnen: laedt still neu", z === "neu" && neuGeladen === 1);
+
+    updateStillZuruecksetzen(); updateNeuGeladenZuruecksetzen(); neuGeladen = 0; updates = 0;
+    const z2 = await updateStillPruefen(5000);
+    const z3 = await updateStillPruefen(5000 + 5 * 60000); await warten();
+    pruefe("F-037 hoechstens alle 10 Minuten pruefen (kein Dauerfragen)",
+      z2 === "neu" && z3 === "uebersprungen" && updates === 1);
+
+    updateStillZuruecksetzen(); updateNeuGeladenZuruecksetzen(); neuGeladen = 0;
+    kochAktiv = true;
+    const z4 = await updateStillPruefen(1000); await warten();
+    pruefe("F-037 mitten im Kochen: NICHT neu laden", z4 === "spaeter" && neuGeladen === 0);
+
+    kochAktiv = false; updateStillZuruecksetzen(); updateNeuGeladenZuruecksetzen(); neuGeladen = 0;
+    setzeReg(reg("app-" + APP_VERSION.toLowerCase()));
+    const z5 = await updateStillPruefen(1000); await warten();
+    pruefe("F-037 gleiche Version: nichts passiert", z5 === "aktuell" && neuGeladen === 0);
+
+    pruefe("F-037 Start und Rueckkehr in die App stossen die stille Pruefung an",
+      /setTimeout\(\(\) => \{ updateStillPruefen\(\); \}, 2500\)/.test(APPQUELLE) &&
+      /visibilitychange", \(\) => \{\s*if \(document\.visibilityState === "visible"\) updateStillPruefen\(\);/.test(APPQUELLE));
+  } catch (e) {
+    pruefe("F-037 stille Update-Szenarien laufen ohne Fehler (" + e.message + ")", false);
+  } finally {
+    if (navAlt) Object.defineProperty(navigator, "serviceWorker", navAlt);
+    location.reload = locAlt; kochAktiv = kochVorher; updateNeuLadenVerzoegerung = 600;
+  }
+});

@@ -626,15 +626,15 @@ const MUTATIONEN = [
   {
     name: 'F-036: Nach "neue Version gefunden" wird nicht mehr neu geladen',
     datei: 'index.html',
-    suchen: '    updateNachAktivierungNeuLaden(w, () => { try { location.reload(); } catch (e) {} });',
-    ersetzen: '    void w;',
+    suchen: '  if (z === "neu") {\n    const w = reg.installing || reg.waiting || { state: "activated" };\n    updateNachAktivierungNeuLaden(w, () => { try { location.reload(); } catch (e) {} });',
+    ersetzen: '  if (z === "neu") {\n    const w = reg.installing || reg.waiting || { state: "activated" };\n    void w;',
     erwarteRot: ['F-036 updatePruefen: neue Version gefunden, danach wirklich neu geladen'],
   },
   {
     name: 'F-036: Schon aktive neue Version bei alter Seite wird nicht mehr erkannt',
     datei: 'index.html',
-    suchen: '    if (sv && !updateVersionGleich(sv, APP_VERSION)) z = "neu";',
-    ersetzen: '    void sv;',
+    suchen: '    const sv = await updateSwVersionFragen(reg);\n    if (sv && !updateVersionGleich(sv, APP_VERSION)) z = "neu";\n  }\n  if (el)',
+    ersetzen: '    const sv = await updateSwVersionFragen(reg);\n    void sv;\n  }\n  if (el)',
     erwarteRot: ['F-036 neue Version schon aktiv, Seite noch alt'],
   },
   {
@@ -643,6 +643,27 @@ const MUTATIONEN = [
     suchen: '    if (updateNeuGeladen) return;           // nur einmal, kein Dauer-Neuladen',
     ersetzen: '',
     erwarteRot: ['F-036 Nur einmal neu laden'],
+  },
+  {
+    name: 'F-037: Stilles Update laedt auch mitten im Kochen neu',
+    datei: 'index.html',
+    suchen: '      if (typeof kochAktiv !== "undefined" && kochAktiv) {\n        updateWartetAufKochende = true;\n        return "spaeter";',
+    ersetzen: '      if (false) {\n        updateWartetAufKochende = true;\n        return "spaeter";',
+    erwarteRot: ['F-037 mitten im Kochen'],
+  },
+  {
+    name: 'F-037: Stille Pruefung ohne 10-Minuten-Sperre',
+    datei: 'index.html',
+    suchen: '  if (updateLetzterStillCheck && t - updateLetzterStillCheck < 10 * 60000) return "uebersprungen";',
+    ersetzen: '',
+    erwarteRot: ['F-037 hoechstens alle 10 Minuten'],
+  },
+  {
+    name: 'F-037: Stille Pruefung beim Oeffnen der App entfernt',
+    datei: 'index.html',
+    suchen: '    setTimeout(() => { updateStillPruefen(); }, 2500); // F-037: still beim Oeffnen',
+    ersetzen: '',
+    erwarteRot: ['F-037 Start und Rueckkehr'],
   },
   {
     name: 'F-024: Heute rechnet den Tag wieder ueber UTC',

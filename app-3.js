@@ -1911,6 +1911,41 @@ async function updatePruefen() {
   }
   return z;
 }
+// F-037: STILLE Updates. Beim Oeffnen der App und beim Zurueckkehren in die App
+// wird ohne Knopfdruck geprueft; ist eine neue Version da, laedt die App einmal
+// neu - aber nie mitten im Kochen (dann erst nach dem Kochen). Hoechstens alle
+// 10 Minuten, damit nicht dauernd beim Server nachgefragt wird.
+let updateLetzterStillCheck = 0;
+let updateWartetAufKochende = false;
+function updateStillZuruecksetzen() { updateLetzterStillCheck = 0; updateWartetAufKochende = false; }
+async function updateStillPruefen(jetzt) {
+  const t = jetzt === undefined ? Date.now() : jetzt;
+  if (updateLetzterStillCheck && t - updateLetzterStillCheck < 10 * 60000) return "uebersprungen";
+  if (!("serviceWorker" in navigator) || navigator.onLine === false) return "kein";
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) return "kein";
+    updateLetzterStillCheck = t;
+    await reg.update();
+    let z = updateZustand(reg, true);
+    if (z === "aktuell") {
+      const sv = await updateSwVersionFragen(reg);
+      if (sv && !updateVersionGleich(sv, APP_VERSION)) z = "neu";
+    }
+    if (z === "neu") {
+      if (typeof kochAktiv !== "undefined" && kochAktiv) {
+        updateWartetAufKochende = true;
+        return "spaeter";
+      }
+      const w = reg.installing || reg.waiting || { state: "activated" };
+      updateNachAktivierungNeuLaden(w, () => { try { location.reload(); } catch (e) {} });
+    }
+    return z;
+  } catch (e) { return "fehler"; }
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") updateStillPruefen();
+});
 (function initTermine() {
   termineLaden();
   renderMembers();
@@ -1968,10 +2003,13 @@ async function updatePruefen() {
     const swHatteController = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.addEventListener("controllerchange", () => {
       if (swRefreshing || !swHatteController) return;
+      // F-037: mitten im Kochen nicht neu laden, erst danach
+      if (typeof kochAktiv !== "undefined" && kochAktiv) { updateWartetAufKochende = true; return; }
       swRefreshing = true;
       window.location.reload();
     });
     navigator.serviceWorker.register("/sw.js").catch(() => {});
+    setTimeout(() => { updateStillPruefen(); }, 2500); // F-037: still beim Oeffnen
     if (navigator.storage && navigator.storage.persist) {
       navigator.storage.persist().catch(() => {});
     }
