@@ -658,18 +658,12 @@ const handler = async (event) => {
 
   if (body && body.modus === "wochenplan") {
     if (!plusOk) {
-      // Kostprobe fuer Free: 1 Plan pro Monat und Geraet
-      const monat = new Date().toISOString().slice(0, 7);
-      const frei = await redisEinzel(["SET",
-        "wpfrei:" + device + ":" + monat, "1", "NX", "EX", "2764800"]);
-      if (frei !== "OK") {
-        return { statusCode: 402, headers, body: JSON.stringify({
-          success: false, limit: "monat",
-          error: "Euer kostenloser Wochenplan diesen Monat ist " +
-            "aufgebraucht. Mit Familien-Plus (29 €/Jahr, " +
-            "Founder-Angebot) plant ihr unbegrenzt – kurze E-Mail an " +
-            "info@gustav-4.de genügt." }) };
-      }
+      // F-038: Der Wochenplan ist reine Plus-Funktion. Die fruehere
+      // kostenlose Monats-Probe (je Geraete-Kennung) ist gestrichen.
+      return { statusCode: 402, headers, body: JSON.stringify({
+        success: false, limit: "plus",
+        error: "Der Wochenplan ist Teil von Familien-Plus (29 €/Jahr, " +
+          "Founder-Angebot) – kurze E-Mail an info@gustav-4.de genügt." }) };
     }
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) return { statusCode: 500, headers, body: JSON.stringify({

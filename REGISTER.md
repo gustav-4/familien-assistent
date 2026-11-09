@@ -405,3 +405,13 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Belegt:** Rot vor Fix, gruen danach (355 Tests, drei Zeitzonen).
 **Mutationen:** F-037: Neuladen mitten im Kochen / ohne 10-Minuten-Sperre / ohne Start-Pruefung
 **Nicht geprueft:** Echtes Handy; ob Android im Hintergrund haengende Apps die Rueckkehr-Pruefung ausloesen; Verhalten bei langsamem Netz.
+
+## F-038
+**Wortlaut:** (Betreiber, 09.11.) die kostenlose Probe wird aus dem Code gestrichen
+**Status:** behoben
+**Test:** Server `rezept-plan.test.mjs` (+4): Wochenplan ohne Plus = 402, keine Probe-Marke in Redis, kein KI-Aufruf
+**Priorität:** 2
+**Umsetzung:** `modus=wochenplan` ohne Plus liefert sofort 402 (Familien-Plus). Der Redis-Schluessel `wpfrei:<Geraet>:<Monat>` wird nicht mehr geschrieben; damit haengt der Wochenplan nicht mehr an der Geraete-Kennung. App-Meldung und plus.html (versprach "1 Wochenplan monatlich") angepasst, ARCHITEKTUR.md nachgezogen.
+**Belegt:** Rot vor Fix (4 FEHL), gruen danach.
+**Mutationen:** F-038: Wochenplan ohne Plus laeuft wieder durch
+**Nicht geprueft:** Aussehen der Plus-Meldung auf dem Handy; bereits vergebene `wpfrei`-Schluessel in Redis laufen nach 32 Tagen von selbst ab.

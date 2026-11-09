@@ -993,7 +993,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION53";
+const APP_VERSION = "FUSION54";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -1766,8 +1766,8 @@ async function wpPlanen() {
     if (r.status === 402) {
       let d = null;
       try { d = await r.json(); } catch (e) {}
-      const m = (d && d.error) || "Der kostenlose Monats-Wochenplan " +
-        "ist aufgebraucht.";
+      const m = (d && d.error) || "Der Wochenplan ist Teil von " +
+        "Familien-Plus.";
       if (info) info.innerHTML = "💎 " + entschaerfeHtml(m.replace(/kurze E-Mail.*$/,
         "")) + ' <a href="/plus.html">Alles über Familien-Plus</a>.';
       speak(m, true);

@@ -645,6 +645,14 @@ const MUTATIONEN = [
     erwarteRot: ['F-036 Nur einmal neu laden'],
   },
   {
+    name: "F-038: Wochenplan ohne Plus laeuft wieder durch (Probe)",
+    datei: "netlify/functions/rezept.mjs",
+    suchen: "    if (!plusOk) {\n      // F-038: Der Wochenplan ist reine Plus-Funktion.",
+    ersetzen: "    if (false) {\n      // F-038: Der Wochenplan ist reine Plus-Funktion.",
+    erwarteRot: [],
+    servertest: "tests/server/rezept-plan.test.mjs",
+  },
+  {
     name: 'F-037: Stilles Update laedt auch mitten im Kochen neu',
     datei: 'index.html',
     suchen: '      if (typeof kochAktiv !== "undefined" && kochAktiv) {\n        updateWartetAufKochende = true;\n        return "spaeter";',
