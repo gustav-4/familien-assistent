@@ -114,6 +114,32 @@
   einer Datenschutz-Aufsichtsbehörde. Kontakt:
   <a href="mailto:info@gustav-4.de">info@gustav-4.de</a>.</p>
 
+  <h2>8a. Sicherheit – zum Nachprüfen</h2>
+  <p>Wir behaupten nicht, „absolut sicher“ zu sein – das kann niemand.
+  Was wir belegen können:</p>
+  <ul>
+    <li><b>Strenge Browser-Regeln (CSP):</b> Die App darf technisch nur
+    mit ihrem eigenen Server sprechen. Skripte, Schriften oder
+    Analyse-Bausteine von Dritten werden vom Browser blockiert.</li>
+    <li><b>Unabhängiger Kopfzeilen-Test:</b> Note A+ bei
+    <a href="https://securityheaders.com/?q=familienassistent.net"
+    target="_blank" rel="noopener">securityheaders.com</a> – dort
+    jederzeit selbst erneut prüfbar.</li>
+    <li><b>Sicherheits-Scan mit OWASP ZAP</b> (Stand: 09.11.2026): 0
+    Fehler, 62 Prüfungen bestanden, 6 Hinweise ohne Dringlichkeit
+    (u. a. zwischengespeicherte Seiten und die Gestaltungsregel
+    „unsafe-inline“).</li>
+    <li><b>Automatische Tests:</b> über 350 Tests und über 90
+    „Sabotage-Proben“, bei denen absichtlich Reparaturen zerstört werden,
+    um zu prüfen, ob ein Test das bemerkt. Sie laufen bei jeder
+    Änderung.</li>
+    <li><b>Familien-Sync:</b> Ende-zu-Ende verschlüsselt (AES-GCM). Der
+    Familien-Code verlässt das Gerät nicht, der Server sieht nur
+    unlesbare Daten.</li>
+  </ul>
+  <p>Sicherheitslücken melden: siehe
+  <a href="/.well-known/security.txt">security.txt</a>.</p>
+
   <h2>9. Änderungen</h2>
   <p>Wir passen diese Erklärung an, wenn sich die App technisch oder
   rechtlich ändert. Es gilt die jeweils hier veröffentlichte

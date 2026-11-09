@@ -125,6 +125,9 @@
     box-shadow:0 8px 30px rgba(120,100,70,.25); overflow:hidden; }
   .ob-inhalt { padding:20px 22px; overflow-y:auto; }
   .ob-hero { font-size:3rem; text-align:center; }
+  .ob-versprechen { text-align:center; padding:18px 4px 6px; }
+  .ob-versprechen h1 { font-size:2rem; line-height:1.15; color:#a85a38; margin:0 0 16px; }
+  .ob-step .gross { font-size:1.1rem; line-height:1.45; }
   .ob-box h2 { color:#a85a38; margin:8px 0 10px; }
   .ob-funk { background:#f7f1e6; border-radius:10px; padding:9px 12px;
     margin:7px 0; font-size:.92rem; }
@@ -205,6 +208,52 @@
   <div class="ob-inhalt">
 
    <div class="ob-step" data-ob="0">
+    <div class="ob-versprechen">
+     <h1>Deine Familie ist keine Ware</h1>
+     <p class="gross">Alle Informationen über deine Termine, Allergien, Kinder und
+     Einkäufe gehören ausschließlich dir – nicht uns, nicht Werbefirmen,
+     nicht Datenhändlern.</p>
+     <p class="gross"><b>Darum bleibt alles, was deine Familie ausmacht, auf deinem Handy.</b></p>
+    </div>
+   </div>
+
+   <div class="ob-step hidden" data-ob="1">
+    <h2>Das bleibt bei dir</h2>
+    <div class="ob-funk">👨‍👩‍👧 <b>Namen, Alter und Allergien</b> deiner Familie</div>
+    <div class="ob-funk">📅 <b>Termine und Routinen</b></div>
+    <div class="ob-funk">🛒 <b>Einkaufsliste, Vorräte und Favoriten</b></div>
+    <div class="ob-funk">📷 <b>Fotos von Kassenbons und Elternbriefen:</b>
+     Die Texterkennung läuft direkt auf dem Gerät.</div>
+    <p><b>Kein Konto. Keine Anmeldung. Kein Tracking. Keine Werbung.</b></p>
+   </div>
+
+   <div class="ob-step hidden" data-ob="2">
+    <h2>Technisch erzwungen, nicht nur versprochen</h2>
+    <p>Die App darf technisch nur mit ihrem eigenen Server sprechen, und das
+    setzt dein Browser durch. Selbst eingeschleuster Schadcode könnte keine
+    Daten an Dritte schicken.</p>
+    <div class="ob-funk">🏅 <b>Note A+</b> beim unabhängigen Test securityheaders.com</div>
+    <div class="ob-funk">🧪 <b>Über 350 automatische Tests</b> und über 90
+     „Sabotage-Proben“, bei denen wir jede Reparatur absichtlich kaputt machen,
+     um zu sehen, ob ein Test es bemerkt</div>
+    <div class="ob-funk">🔍 <b>Sicherheits-Scan mit OWASP ZAP:</b> 0 Fehler
+     (Stand 09.11.2026)</div>
+    <div class="ob-funk">🔒 <b>Familien-Sync Ende-zu-Ende verschlüsselt:</b>
+     Der Familien-Code verlässt dein Handy nicht.</div>
+    <div class="ob-funk">🚫 <b>Keine Werbe-, Analyse- oder Fremd-Bausteine</b></div>
+   </div>
+
+   <div class="ob-step hidden" data-ob="3">
+    <h2>Los geht's</h2>
+    <p class="gross"><b>Deine persönlichen Familiendaten bleiben auf deinem Handy,
+    und du kannst sie jederzeit sichern, mitnehmen oder mit einem Knopf
+    löschen.</b></p>
+    <p class="muted"><i>Was für App-Funktionen technisch zwingend vom Handy
+    gesendet wird, steht unter „Was verlässt mein Handy?“.</i></p>
+    <p>Tippe auf „Weiter“, um die App jetzt einzurichten.</p>
+   </div>
+
+   <div class="ob-step" data-ob="4">
     <div class="ob-hero">👨‍👩‍👧‍👦</div>
     <h2>Willkommen beim Familien-Assistenten!</h2>
     <p><b>Für wen?</b> Für Familien, bei denen der Kopf immer voll ist:
@@ -234,7 +283,7 @@
     niemals Namen oder Familiendaten. <a href="/datenschutz.html" target="_blank">Zur vollständigen Datenschutzerklärung</a>.</details></div>
    </div>
 
-   <div class="ob-step hidden" data-ob="1">
+   <div class="ob-step hidden" data-ob="5">
     <h2>🧰 Das kann eure App</h2>
     <div class="ob-funk">🍳 <b>Freihändig kochen:</b> Jeder Schritt wird
      vorgelesen – mit Mengen. Sag „fertig“, Timer laufen von allein.
@@ -258,7 +307,7 @@
      alle Befehle, „Weiter“ überspringt, „Stopp“ macht still.</div>
    </div>
 
-   <div class="ob-step hidden" data-ob="2">
+   <div class="ob-step hidden" data-ob="6">
     <div class="ob-hero">⏱️</div>
     <h2>Einmalig einrichten – max. 10 Minuten</h2>
     <p>Damit die App <b>eure</b> App wird (richtige Mengen, sichere
@@ -269,7 +318,7 @@
     tippen.</p>
    </div>
 
-   <div class="ob-step hidden" data-ob="3">
+   <div class="ob-step hidden" data-ob="7">
     <h2>👤 Schritt 1: Eure Familie</h2>
     <p>Wer gehört dazu? Daraus berechne ich automatisch alle
     Portionsmengen.</p>
@@ -288,7 +337,7 @@
     wichtig für sichere Rezeptvorschläge!</p>
    </div>
 
-   <div class="ob-step hidden" data-ob="4">
+   <div class="ob-step hidden" data-ob="8">
     <h2>🎤 Schritt 2: Mikrofon</h2>
     <p>Das Herz der App: einfach sprechen. Erlaubt einmalig das
     Mikrofon – danach hört die App beim Öffnen automatisch zu.</p>
@@ -296,7 +345,7 @@
     <p id="obMikroStatus" class="muted"></p>
    </div>
 
-   <div class="ob-step hidden" data-ob="5">
+   <div class="ob-step hidden" data-ob="9">
     <h2>🔔 Schritt 3: Erinnerungen</h2>
     <p>Damit Termin-Erinnerungen auch bei <b>geschlossener App</b>
     ankommen (datensparsam – der Server kennt keine Inhalte).</p>
@@ -306,7 +355,7 @@
     installieren, dann von dort öffnen und aktivieren.</p>
    </div>
 
-   <div class="ob-step hidden" data-ob="6">
+   <div class="ob-step hidden" data-ob="10">
     <h2>📲 Schritt 4: Als App installieren</h2>
     <p>Ein Fingertipp vom Startbildschirm – wie eine echte App, und
     eure Daten bleiben dauerhaft erhalten.</p>
@@ -314,7 +363,7 @@
     <p id="obInstallStatus" class="muted"></p>
    </div>
 
-   <div class="ob-step hidden" data-ob="7">
+   <div class="ob-step hidden" data-ob="11">
     <div class="ob-hero">🌱</div>
     <h2>Ein ehrliches Wort zum Schluss</h2>
     <p><b>Diese App kann euch nur helfen, wenn ihr sie auch

@@ -415,3 +415,13 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Belegt:** Rot vor Fix (4 FEHL), gruen danach.
 **Mutationen:** F-038: Wochenplan ohne Plus laeuft wieder durch
 **Nicht geprueft:** Aussehen der Plus-Meldung auf dem Handy; bereits vergebene `wpfrei`-Schluessel in Redis laufen nach 32 Tagen von selbst ab.
+
+## F-039
+**Wortlaut:** (Betreiber, 09.11.) neues Onboarding: zuerst und dominierend "Deine Familie ist keine Ware", danach Sicherheitsstandards; spaeter weiter per Knopf abrufbar. Freigegeben: 4 Bildschirme (Versprechen, Das bleibt bei dir, Technisch erzwungen, Los geht's), kein Vergleich mit anderen Apps, kein "nie".
+**Status:** behoben (auf dem Handy noch nicht angesehen)
+**Test:** F-039 Onboarding (+13) in szenarien.js
+**Priorität:** 2
+**Umsetzung:** Vier neue Bildschirme vor der bisherigen Einfuehrung (alte Schritte 0-7 sind jetzt 4-11, `OB_SCHRITTE = 12`, Sprechtexte ergaenzt). Bildschirm 4 endet mit "Jetzt einrichten", dann folgen unveraendert Willkommen, Funktionen, Familie, Mikrofon, Erinnerungen, Installation, Abschluss. Der Knopf "Einfuehrung & Einrichtung erneut ansehen" oeffnet wieder bei Bildschirm 1. Datenschutzseite: neuer Abschnitt 8a "Sicherheit - zum Nachpruefen" (securityheaders-Link, ZAP-Stand 09.11.2026, Teststand, Sync-Verschluesselung). Version FUSION55.
+**Belegt:** Rot vor Umsetzung (10 FEHL), gruen danach.
+**Mutationen:** F-039: kein Versprechen am Anfang / "nie"-Versprechen / Hinweis auf noetige Uebermittlung entfernt / Sicherheits-Link entfernt / Knopf "Jetzt einrichten" fehlt
+**Nicht geprueft:** Aussehen auf dem Handy (Schriftgroesse, Umbrueche, Vorlesen der langen Bildschirme); Zahlen "ueber 350 Tests / ueber 90 Proben" und "ZAP Stand 09.11.2026" muessen bei Aenderungen nachgezogen werden; kein Rechtsgutachten zu den Werbeaussagen.

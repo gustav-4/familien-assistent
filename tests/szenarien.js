@@ -2071,3 +2071,69 @@ warte(async () => {
     location.reload = locAlt; kochAktiv = kochVorher; updateNeuLadenVerzoegerung = 600;
   }
 });
+
+// F-039: Neues Onboarding "Deine Familie ist keine Ware" (4 Bildschirme vor der
+// Einrichtung). Nur belegbare Aussagen: kein "100 %", kein "nie", kein
+// Vergleich mit anderen Apps, Hinweis auf technisch noetige Uebermittlung.
+{
+  const fs = process.mainModule.require("fs");
+  const dir = process.cwd();
+  const index = fs.readFileSync(dir + "/index.html", "utf8");
+  const schritte = [...index.matchAll(/<div class="ob-step[^"]*" data-ob="(\d+)">([\s\S]*?)(?=<div class="ob-step|<\/div>\s*<div class="ob-fuss")/g)]
+    .map((m) => ({ nr: Number(m[1]), text: m[2].replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim() }));
+  const neu = schritte.filter((s) => s.nr < 4);
+  const alle = neu.map((s) => s.text).join(" | ");
+  const datenschutz = fs.readFileSync(dir + "/datenschutz.html", "utf8");
+
+  pruefe("F-039 Bildschirm 1 beginnt mit \"Deine Familie ist keine Ware\"",
+    neu[0] && /^Deine Familie ist keine Ware/.test(neu[0].text));
+  pruefe("F-039 Bildschirm 1: gehoert ausschliesslich dir, nicht Werbefirmen/Datenhaendlern",
+    neu[0] && /ausschließlich dir/.test(neu[0].text) && /Werbefirmen/.test(neu[0].text) &&
+    /Datenhändlern/.test(neu[0].text) && /bleibt alles, was deine Familie ausmacht, auf deinem Handy/.test(neu[0].text));
+  pruefe("F-039 vier neue Bildschirme stehen VOR der Einrichtung",
+    neu.length === 4 && schritte.length > 4 && /Willkommen/.test(schritte[4].text));
+  pruefe("F-039 Schrittnummern sind lueckenlos und passen zu OB_SCHRITTE",
+    schritte.every((s, i) => s.nr === i) && schritte.length === OB_SCHRITTE);
+  pruefe("F-039 Bildschirm 2 nennt das Stichwort \"Termin\" nicht mehr",
+    neu[1] && !/Stichwort/i.test(neu[1].text) && /Namen, Alter und Allergien/.test(neu[1].text));
+  pruefe("F-039 Bildschirm 2: Kein Konto, kein Tracking, keine Werbung",
+    neu[1] && /Kein Konto/.test(neu[1].text) && /Kein Tracking/.test(neu[1].text) && /Keine Werbung/.test(neu[1].text));
+  pruefe("F-039 keine unbelegbaren Superlative und kein \"nie\"-Versprechen",
+    !/100 ?%|absolut sicher|beispiellos|nicht hackbar|\bnie\b|niemals|keinerlei/i.test(alle));
+  pruefe("F-039 kein Vergleich mit anderen Apps im neuen Onboarding",
+    !/Üblich bei|andere Apps|kostenlosen Apps/i.test(alle));
+  pruefe("F-039 Bildschirm 3 nennt die belegten Sicherheitsnachweise",
+    neu[2] && /A\+/.test(neu[2].text) && /securityheaders/.test(neu[2].text) && /OWASP ZAP/.test(neu[2].text) &&
+    /Ende-zu-Ende/.test(neu[2].text));
+  pruefe("F-039 Bildschirm 4: ehrlicher Hinweis auf technisch noetige Uebermittlung",
+    neu[3] && /Was für App-Funktionen technisch zwingend vom Handy gesendet wird/.test(neu[3].text) &&
+    /Was verlässt mein Handy/.test(neu[3].text));
+  pruefe("F-039 Der Knopf zum erneuten Ansehen bleibt erhalten",
+    /data-on-click="onboardingOeffnen\(\)"/.test(index) && /Einführung &amp; Einrichtung erneut ansehen/.test(index));
+  pruefe("F-039 Website-Abschnitt Sicherheit mit pruefbarem Link und ZAP-Stand",
+    /<h2>[^<]*Sicherheit[^<]*<\/h2>/.test(datenschutz) &&
+    /securityheaders\.com\/\?q=familienassistent\.net/.test(datenschutz) &&
+    /OWASP ZAP/.test(datenschutz) && /Stand:? ?\d{2}\.\d{2}\.\d{4}/.test(datenschutz));
+
+  // Verhalten: Beim Oeffnen beginnt es bei Bildschirm 1, vier Mal Weiter -> Einrichtung
+  warte(async () => {
+    const flagVorher = localStorage.getItem(OB_FLAG);
+    try {
+      onboardingOeffnen();
+      const start = obIndex;
+      obWeiter(); obWeiter(); obWeiter();
+      const nachDrei = obIndex;
+      obWeiter();
+      pruefe("F-039 Wiederaufruf startet bei Bildschirm 1; nach 4 Schritten beginnt die Einrichtung",
+        start === 0 && nachDrei === 3 && obIndex === 4);
+      pruefe("F-039 Auf Bildschirm 4 heisst der Knopf \"Jetzt einrichten\"",
+        (obIndex = 3, obZeige(), document.getElementById("obWeiterBtn").textContent.indexOf("Jetzt einrichten") >= 0));
+      obFertig(true);
+    } catch (e) {
+      pruefe("F-039 Ablauf laeuft ohne Fehler (" + e.message + ")", false);
+    } finally {
+      if (flagVorher === null) localStorage.removeItem(OB_FLAG);
+      else localStorage.setItem(OB_FLAG, flagVorher);
+    }
+  });
+}

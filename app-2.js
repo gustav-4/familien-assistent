@@ -993,7 +993,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION54";
+const APP_VERSION = "FUSION55";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -2151,7 +2151,7 @@ function appBeenden() {
 // vollstaendig im Simulator testbar.
 // =====================================================
 const OB_FLAG = "ka_onboarding_fertig";
-const OB_SCHRITTE = 8;
+const OB_SCHRITTE = 12;
 let obOffen = false;
 let obIndex = 0;
 
@@ -2159,6 +2159,14 @@ let obIndex = 0;
 // ausgabe erst nach der ersten Beruehrung - Seite 1 erscheint daher
 // ggf. nur als Sprechblase; ab dem ersten Tipp spricht die App.
 const OB_SAG = [
+  "Deine Familie ist keine Ware. Alle Informationen über Termine, " +
+    "Allergien, Kinder und Einkäufe gehören ausschließlich dir. " +
+    "Darum bleibt alles, was deine Familie ausmacht, auf deinem Handy.",
+  "Das bleibt bei dir: Namen, Alter und Allergien, Termine, " +
+    "Einkaufsliste und Fotos von Kassenbons. Kein Konto, kein Tracking, " +
+    "keine Werbung.",
+  "Technisch erzwungen: Die App darf nur mit ihrem eigenen Server sprechen.",
+  "Los geht's. Tippe auf Weiter, um die App einzurichten.",
   "Herzlich willkommen! Diese App nimmt eurem Familienalltag die " +
     "Denkarbeit ab: Ihr sprecht – sie plant, erinnert und denkt " +
     "Allergien mit. Wichtig: Alle Familiendaten bleiben nur auf " +
@@ -2204,7 +2212,8 @@ function obZeige() {
   if (zurueck) zurueck.style.visibility = obIndex === 0 ? "hidden" : "visible";
   const weiter = document.getElementById("obWeiterBtn");
   if (weiter) weiter.textContent =
-    obIndex === OB_SCHRITTE - 1 ? "🚀 Los geht's!" : "Weiter ›";
+    obIndex === OB_SCHRITTE - 1 ? "🚀 Los geht's!" :
+    obIndex === 3 ? "Jetzt einrichten ›" : "Weiter ›";
   if (obOffen) {
     // Kompletten sichtbaren Seitentext vorlesen (Wunsch: nicht nur
     // Zusammenfassung). Knoepfe/Navigation bleiben stumm.
