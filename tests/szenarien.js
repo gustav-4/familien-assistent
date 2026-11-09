@@ -1866,3 +1866,33 @@ warte(async () => {
   pruefe("F-034 'Bis bald'-Knopf und Aufklapp-Feld nutzen benannte Funktionen",
     typeof byeSchliessen === "function" && typeof datenschutzToggle === "function");
 }
+
+// F-034 Stufe 3: Keine eingebetteten Skripte und keine Inline-Handler mehr in
+// IRGENDEINER Seite; die Sicherheitsregel erlaubt dafuer kein 'unsafe-inline'
+// bei Skripten.
+{
+  const fs = process.mainModule.require("fs");
+  const dir = process.cwd();
+  const seiten = fs.readdirSync(dir).filter((f) => /\.html$/.test(f));
+  const eingebettet = [];
+  const handler = [];
+  seiten.forEach((f) => {
+    const t = fs.readFileSync(dir + "/" + f, "utf8");
+    for (const m of t.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)) {
+      const kopf = m[1];
+      if (/\bsrc\s*=/.test(kopf) || /type\s*=\s*["'][^"']*json/i.test(kopf)) continue;
+      if (m[2].trim().length) eingebettet.push(f);
+    }
+    if (/\son(?:click|change|input|toggle|submit|keydown|keyup|focus|blur|load|error)\s*=/.test(t)) handler.push(f);
+  });
+  pruefe("F-034 Keine Seite hat eingebettete Skripte (" + eingebettet.join(",") + ")", eingebettet.length === 0);
+  pruefe("F-034 Keine Seite hat Inline-Handler (" + handler.join(",") + ")", handler.length === 0);
+  const toml = fs.readFileSync(dir + "/netlify.toml", "utf8");
+  const sd = (toml.match(/script-src\s+([^;"]*)/) || [])[1] || "";
+  pruefe("F-034 script-src erlaubt kein 'unsafe-inline'", sd.length > 0 && !/unsafe-inline/.test(sd));
+  pruefe("F-034 script-src erlaubt weiterhin 'self' und WebAssembly", /'self'/.test(sd) && /wasm-unsafe-eval/.test(sd));
+  const index = fs.readFileSync(dir + "/index.html", "utf8");
+  const reihenfolge = [...index.matchAll(/<script[^>]*\bsrc="\/(app-\d+\.js)"/g)].map((m) => m[1]);
+  pruefe("F-034 App-Skripte laden in der urspruenglichen Reihenfolge ohne 'defer'",
+    reihenfolge.join(",") === "app-1.js,app-2.js,app-3.js" && !/<script[^>]*\bsrc="\/app-\d+\.js"[^>]*\b(?:defer|async)\b/.test(index));
+}

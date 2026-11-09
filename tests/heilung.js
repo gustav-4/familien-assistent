@@ -52,7 +52,7 @@ function karteHeilen() {
   const karte = path.join(WURZEL, "ARBEITSGRUNDLAGE.md");
   if (!fs.existsSync(karte)) return;
   let doc = fs.readFileSync(karte, "utf8");
-  const zeilen = fs.readFileSync(path.join(WURZEL, "index.html"), "utf8").split("\n");
+  const zeilen = require("./lib/quellen.js").appGesamtText(WURZEL).split("\n");
   const serverDateien = {};
   const fnOrdner = path.join(WURZEL, "netlify", "functions");
   if (fs.existsSync(fnOrdner)) {
@@ -77,7 +77,7 @@ function karteHeilen() {
     return "`" + name + "`" + neu;
   });
   // Versionsstempel der Karte nachziehen
-  const html = fs.readFileSync(path.join(WURZEL, "index.html"), "utf8");
+  const html = require("./lib/quellen.js").appGesamtText(WURZEL);
   const version = (html.match(/APP_VERSION = "([^"]+)"/) || [])[1];
   if (version) {
     doc = doc.replace(/# ARBEITSGRUNDLAGE – Familien-Assistent \S+/,

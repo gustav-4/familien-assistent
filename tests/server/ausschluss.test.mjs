@@ -43,7 +43,8 @@ function bloeckeAus(quelle, namen) {
 
 const serverQuelle = fs.readFileSync(
   path.join(WURZEL, "netlify/functions/rezept.mjs"), "utf8");
-const appQuelle = fs.readFileSync(path.join(WURZEL, "index.html"), "utf8");
+const appQuelle = (await import("node:module")).createRequire(import.meta.url)(
+  "../lib/quellen.js").appGesamtText(WURZEL);
 
 const teile = bloeckeAus(serverQuelle,
   ["AUSSCHLUSS_GRUPPEN", "normalize", "ausschlussErweitern", "verletztAusschluss"]);

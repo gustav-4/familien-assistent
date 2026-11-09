@@ -368,10 +368,10 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 
 ## F-034
 **Wortlaut:** (Betreiber, 09.11.) Umbau zu A+ (strenge Sicherheitsregel)
-**Status:** teilweise (Stufe 1 und 2 von 3 fertig)
+**Status:** behoben
 **Test:** F-034 Keine Programmzeilen mehr in Knoepfen (onclick= & Co.) (+10)
 **Priorität:** 1
-**Umsetzung:** Stufe 1: Test-Werkzeuge lesen App-Code auch aus ausgelagerten Dateien (`tests/lib/quellen.js`). Stufe 2: 71 Knopf-Aktionen (`onclick=` u. a.) wurden zu `data-on-click=` u. a.; ein Aktions-Verteiler (`fuehreAktionAus`) fuehrt nur 56 Funktionen aus einer festen Liste mit einfachen Werten aus, nichts wird ausgewertet. Stufe 3 (offen): Skriptbloecke in app-1.js/app-2.js auslagern, Admin-Seiten umbauen, `'unsafe-inline'` aus script-src streichen.
+**Umsetzung:** Stufe 1: Test-Werkzeuge lesen App-Code auch aus ausgelagerten Dateien (`tests/lib/quellen.js`). Stufe 2: 71 Knopf-Aktionen (`onclick=` u. a.) wurden zu `data-on-click=` u. a.; ein Aktions-Verteiler (`fuehreAktionAus`) fuehrt nur 56 Funktionen aus einer festen Liste mit einfachen Werten aus, nichts wird ausgewertet. Stufe 3: Die 3 Skriptbloecke der App liegen in `app-1.js` bis `app-3.js` (gleiche Reihenfolge, ohne defer); die beiden Admin-Seiten nutzen `feedback-admin.js`/`qa-admin.js` mit `data-aktion`; `'unsafe-inline'` ist aus `script-src` entfernt (`style-src` behaelt es). Version FUSION50. Test-Werkzeuge (`melde`, `redteam`, `heilung`, Servertests) lesen den Code ueber `tests/lib/quellen.js`.
 **Belegt:** Rot vor Fix (6 FEHL), gruen danach in UTC, Berlin, New_York (329). Echter Browser: alle 71 Aktionen loesen die richtige Funktion aus, keine Seitenfehler.
 **Mutationen:** F-034: Verteiler fuehrt auch nicht erlaubte Funktionen aus / this.value / Aktion fehlt in der Liste
-**Nicht geprueft:** Echtes Antippen auf dem Handy; Aufklappfeld „Was verlaesst mein Handy?" (toggle) nur per ausgeloestem Ereignis.
+**Nicht geprueft:** Echtes Antippen auf dem Handy; lokale KI (WebLLM) und Spracherkennung unter der strengen Regel; Antwort des echten Servers nach dem Deploy (Note A+ auf securityheaders.com); Aufklappfeld „Was verlaesst mein Handy?" (toggle) nur per ausgeloestem Ereignis.

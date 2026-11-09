@@ -9,6 +9,7 @@
 // Braucht: QA_TOKEN (GitHub-Secret) und die oeffentliche App-Adresse.
 // =====================================================================
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { verstaendlichMachen } from "./klartext.mjs";
@@ -36,7 +37,8 @@ const reparatur = lies("reparatur.json");
  *  Testbericht sie enthaelt. Robuster als jede Zwischenstation. */
 function versionAusApp() {
   try {
-    const html = fs.readFileSync(path.join(HIER, "..", "index.html"), "utf8");
+    const html = createRequire(import.meta.url)("./lib/quellen.js")
+      .appGesamtText(path.join(HIER, ".."));
     return (html.match(/APP_VERSION = "([^"]+)"/) || [])[1] || "";
   } catch (e) { return ""; }
 }

@@ -596,6 +596,13 @@ const MUTATIONEN = [
     erwarteRot: ['F-034 Jede benutzte Aktion steht in der Erlaubt-Liste'],
   },
   {
+    name: "F-034: Sicherheitsregel erlaubt wieder eingebettete Skripte",
+    datei: "netlify.toml",
+    suchen: "script-src 'self' 'wasm-unsafe-eval';",
+    ersetzen: "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval';",
+    erwarteRot: ["F-034 script-src erlaubt kein 'unsafe-inline'"],
+  },
+  {
     name: 'F-024: Heute rechnet den Tag wieder ueber UTC',
     datei: 'index.html',
     suchen: 'const tag = isoTag(jetzt);',

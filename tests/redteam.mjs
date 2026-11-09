@@ -17,6 +17,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
+import { createRequire } from "node:module";
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 const WURZEL = path.resolve(HIER, "..");
@@ -66,9 +67,8 @@ function funktionAusQuelle(quelle, name) {
 }
 
 function appQuelltext() {
-  const html = fs.readFileSync(path.join(WURZEL, "index.html"), "utf8");
-  const bloecke = html.match(/<script>([\s\S]*?)<\/script>/g) || [];
-  return bloecke.map((b) => b.slice(8, -9)).join("\n;\n");
+  return createRequire(import.meta.url)("./lib/quellen.js")
+    .appCodeBloecke(WURZEL).map((b) => b.code).join("\n;\n");
 }
 
 async function frageRedTeam(auszug, bekannteNamen, rundenNr, modell) {
