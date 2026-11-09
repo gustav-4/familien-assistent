@@ -1710,3 +1710,43 @@ warte(async () => {
   pruefe("F-025b die App ruft den KI-Dienst fuer Termine nicht mehr auf",
     !APPHTML.includes('"/api/termin-parse"') && APPHTML.includes("parseLokal("));
 })();
+
+// F-026: Familien-Abgleich darf bei grossen Datenmengen nicht stillschweigend
+// abbrechen (btoa(String.fromCharCode(...grosses Feld)) wirft ab ca. 150 KB).
+(function () {
+  let fehler = null, rueck = null;
+  const gross = new Uint8Array(200000);
+  for (let i = 0; i < gross.length; i++) gross[i] = (i * 31 + 7) & 255;
+  try { rueck = syncB64zurueck(syncB64(gross)); } catch (e) { fehler = e; }
+  pruefe("F-026 200 KB werden ohne Absturz kodiert", fehler === null);
+  pruefe("F-026 200 KB kommen unveraendert zurueck",
+    rueck !== null && rueck.length === gross.length &&
+    rueck[0] === gross[0] && rueck[199999] === gross[199999] &&
+    rueck[123456] === gross[123456]);
+  pruefe("F-026 kleines Feld bleibt gleich kodiert",
+    syncB64(new Uint8Array([104, 105])) === "aGk=");
+})();
+
+// F-027: Texte vom Server (Fehlermeldungen) duerfen nie als HTML eingebaut werden.
+(function () {
+  pruefe("F-027 Monatsgrenze-Meldung wird entschaerft",
+    /info\.innerHTML = "💎 " \+ entschaerfeHtml\(/.test(APPHTML));
+  pruefe("F-027 Tageskontingent-Meldung wird entschaerft",
+    /status\.innerHTML = "⏳ " \+ entschaerfeHtml\(meldung\)/.test(APPHTML));
+})();
+
+// F-028: Favoriten mit falschem Format (Objekt statt Liste) duerfen nichts blockieren.
+(function () {
+  const vorher = Object.assign({}, localStorage._d);
+  try {
+    localStorage._d = { ka_favoriten: '{"a":1}' };
+    let f = null, r = null;
+    try { r = loadFavs(); } catch (e) { f = e; }
+    pruefe("F-028 Favoriten im falschen Format ergeben eine leere Liste",
+      f === null && Array.isArray(r) && r.length === 0);
+    localStorage._d = { ka_favoriten: '[null,{"name":"A"},7]' };
+    r = loadFavs();
+    pruefe("F-028 kaputte Eintraege werden uebersprungen, intakte bleiben",
+      Array.isArray(r) && r.length === 1 && r[0].name === "A");
+  } finally { localStorage._d = vorher; }
+})();

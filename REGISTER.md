@@ -285,3 +285,33 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Belegt:** Rot vor Fix: 9 FEHL. Gruen danach in UTC, Berlin, New_York (295 bestanden).
 **Mutationen:** F-025b: uebermorgen ... / Ziel wird nicht mehr Titel / Sprachtermin geht wieder an den KI-Dienst
 **Nicht geprueft:** Der Regel-Leser ist schwaecher als die KI (komplexe Saetze, mehrere Termine in einem Satz); echte Spracheingabe auf dem Handy; Browser-Spracherkennung selbst kann weiterhin beim Browser-Hersteller landen.
+
+## F-026
+**Wortlaut:** (Betreiber, 09.11.) optimiere ALLES selbststaendig, finde Fehler und Bugs auf haertestem Niveau
+**Status:** behoben
+**Test:** F-026 200 KB werden ohne Absturz kodiert (+2)
+**Priorität:** 2
+**Umsetzung:** `syncB64` kodierte mit `String.fromCharCode(...feld)`; das wirft ab ca. 150 KB "Maximum call stack". Der Familien-Abgleich brach dann still ab (Fehler wurde verschluckt). Jetzt in 8-KB-Stuecken. Version FUSION48.
+**Belegt:** Absturz mit Node nachgestellt (200000 Bytes). Rot vor Fix, gruen danach in UTC, Berlin, New_York.
+**Mutationen:** F-026: Abgleich-Kodierung stuerzt bei grossen Daten wieder ab
+**Nicht geprueft:** Echter Abgleich zweier Handys mit grosser Datenmenge; Server-Grenze 250000 Zeichen bleibt.
+
+## F-027
+**Wortlaut:** wie F-026
+**Status:** behoben
+**Test:** F-027 Monatsgrenze-Meldung wird entschaerft (+1)
+**Priorität:** 3
+**Umsetzung:** Zwei Fehlertexte vom Server wurden per innerHTML eingebaut; jetzt mit `entschaerfeHtml`. Kein bekannter Angriff, aber ein manipulierter Server oder Proxy haette Code einschleusen koennen.
+**Belegt:** Rot vor Fix, gruen danach.
+**Mutationen:** F-027: Server-Meldung (Tageskontingent) wird wieder ungeprueft eingebaut
+**Nicht geprueft:** Der Test prueft die Schreibweise im Quelltext, nicht einen echten Angriff.
+
+## F-028
+**Wortlaut:** wie F-026
+**Status:** behoben
+**Test:** F-028 Favoriten im falschen Format ergeben eine leere Liste (+1)
+**Priorität:** 3
+**Umsetzung:** `loadFavs` gab jedes gueltige JSON zurueck (Objekt, Zahl, null-Eintraege) und haette die Rezeptseite blockieren koennen; jetzt nur Objekte einer Liste.
+**Belegt:** Rot vor Fix, gruen danach.
+**Mutationen:** F-028: Favoriten-Liste wird wieder ungeprueft uebernommen
+**Nicht geprueft:** Ob ein solcher Speicherstand auf echten Handys je vorkam.

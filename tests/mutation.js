@@ -487,6 +487,27 @@ const MUTATIONEN = [
     erwarteRot: ['F-025b die App ruft den KI-Dienst fuer Termine nicht mehr auf'],
   },
   {
+    name: 'F-026: Abgleich-Kodierung stuerzt bei grossen Daten wieder ab',
+    datei: 'index.html',
+    suchen: '  const b = new Uint8Array(buf);\n  let s = "";\n  for (let i = 0; i < b.length; i += 8192) {\n    s += String.fromCharCode.apply(null, b.subarray(i, i + 8192));\n  }\n  return btoa(s);\n}\nfunction syncB64zurueck',
+    ersetzen: '  return btoa(String.fromCharCode(...new Uint8Array(buf)));\n}\nfunction syncB64zurueck',
+    erwarteRot: ['F-026 200 KB werden ohne Absturz kodiert'],
+  },
+  {
+    name: 'F-027: Server-Meldung (Tageskontingent) wird wieder ungeprueft eingebaut',
+    datei: 'index.html',
+    suchen: 'status.innerHTML = "⏳ " + entschaerfeHtml(meldung) +',
+    ersetzen: 'status.innerHTML = "⏳ " + meldung +',
+    erwarteRot: ['F-027 Tageskontingent-Meldung wird entschaerft'],
+  },
+  {
+    name: 'F-028: Favoriten-Liste wird wieder ungeprueft uebernommen',
+    datei: 'index.html',
+    suchen: '    return Array.isArray(l)\n      ? l.filter((e) => e && typeof e === "object" && !Array.isArray(e)) : [];',
+    ersetzen: '    return l;',
+    erwarteRot: ['F-028 Favoriten im falschen Format'],
+  },
+  {
     name: 'F-024: Heute rechnet den Tag wieder ueber UTC',
     datei: 'index.html',
     suchen: 'const tag = isoTag(jetzt);',

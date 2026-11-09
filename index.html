@@ -1948,7 +1948,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION47";
+const APP_VERSION = "FUSION48";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -2722,8 +2722,8 @@ async function wpPlanen() {
       try { d = await r.json(); } catch (e) {}
       const m = (d && d.error) || "Der kostenlose Monats-Wochenplan " +
         "ist aufgebraucht.";
-      if (info) info.innerHTML = "💎 " + m.replace(/kurze E-Mail.*$/,
-        "") + ' <a href="/plus.html">Alles über Familien-Plus</a>.';
+      if (info) info.innerHTML = "💎 " + entschaerfeHtml(m.replace(/kurze E-Mail.*$/,
+        "")) + ' <a href="/plus.html">Alles über Familien-Plus</a>.';
       speak(m, true);
       return;
     }
@@ -2828,7 +2828,13 @@ async function syncSchluessel(code) {
     ["encrypt", "decrypt"]);
 }
 function syncB64(buf) {
-  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+  // F-026: in Stuecken, sonst Absturz ("Maximum call stack") ab ca. 150 KB.
+  const b = new Uint8Array(buf);
+  let s = "";
+  for (let i = 0; i < b.length; i += 8192) {
+    s += String.fromCharCode.apply(null, b.subarray(i, i + 8192));
+  }
+  return btoa(s);
 }
 function syncB64zurueck(s) {
   return Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
@@ -3418,7 +3424,10 @@ function toggleStil(id) {
 // =====================================================
 function loadFavs() {
   try {
-    return JSON.parse(localStorage.getItem("ka_favoriten") || "[]");
+    // F-028: nur echte Eintraege einer Liste behalten
+    const l = JSON.parse(localStorage.getItem("ka_favoriten") || "[]");
+    return Array.isArray(l)
+      ? l.filter((e) => e && typeof e === "object" && !Array.isArray(e)) : [];
   } catch (e) { return []; }
 }
 
@@ -4311,7 +4320,7 @@ async function rechercheRezept(istWiederholung) {
       const meldung = (d && d.error) ||
         "Das Tageskontingent an KI-Recherchen ist erreicht – morgen " +
         "gibt es frische Ideen!";
-      status.innerHTML = "⏳ " + meldung +
+      status.innerHTML = "⏳ " + entschaerfeHtml(meldung) +
         ' <a href="/plus.html">(Mit Familien-Plus: unbegrenzt)</a>';
       speak(meldung, true);
       btn.disabled = false;
