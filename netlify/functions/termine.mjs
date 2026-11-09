@@ -49,6 +49,16 @@ function kanalVonCode(code) {
     .digest("hex").slice(0, 32);
 }
 
+/** F-029: Die App schickt nur noch die Kennung (Hash), nie den Code selbst.
+ * Alte App-Staende senden weiter den Code - dann wird hier gehasht. */
+function kanalAus(code, kanal) {
+  if (kanal !== undefined && kanal !== null && kanal !== "") {
+    const k = String(kanal).toLowerCase();
+    return /^[a-f0-9]{32}$/.test(k) ? k : null;
+  }
+  return kanalVonCode(code);
+}
+
 export const handler = async (event) => {
   try {
     // ============ FAMILIEN-SYNC (Plus, E2E-verschluesselt) ============
@@ -56,8 +66,8 @@ export const handler = async (event) => {
     // POST { code, blob, stand }    -> speichern (nur freigeschaltet)
     // POST { admin_token, plus_freischalten: true } -> neuen Code erzeugen
     const q = event.queryStringParameters || {};
-    if (event.httpMethod === "GET" && q.code) {
-      const kanal = kanalVonCode(q.code);
+    if (event.httpMethod === "GET" && (q.code || q.kanal)) {
+      const kanal = kanalAus(q.code, q.kanal);
       if (!kanal) return antwort(400, { success: false,
         error: "Code-Format ungültig" });
       const [plus, raw] = await Promise.all([
@@ -80,7 +90,10 @@ export const handler = async (event) => {
       // Betreiber: neuen Plus-Code erzeugen (nach Zahlungseingang)
       if (körper.plus_freischalten === true) {
         const soll = process.env.ADMIN_TOKEN;
-        if (!soll || körper.admin_token !== soll)
+        const gleich = soll && typeof körper.admin_token === "string" &&
+          körper.admin_token.length === soll.length &&
+          crypto.timingSafeEqual(Buffer.from(körper.admin_token), Buffer.from(soll));
+        if (!gleich)
           return antwort(401, { success: false, error: "Kein Zugriff" });
         const Z = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // ohne I,O,0,1
         const teil = (n) => Array.from(crypto.randomBytes(n))
@@ -91,8 +104,8 @@ export const handler = async (event) => {
       }
 
       // Familie: verschluesselten Stand speichern
-      if (körper.code) {
-        const kanal = kanalVonCode(körper.code);
+      if (körper.code || körper.kanal) {
+        const kanal = kanalAus(körper.code, körper.kanal);
         if (!kanal) return antwort(400, { success: false,
           error: "Code-Format ungültig" });
         const plus = await redis(["GET", "plus:" + kanal]);

@@ -315,3 +315,13 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Belegt:** Rot vor Fix, gruen danach.
 **Mutationen:** F-028: Favoriten-Liste wird wieder ungeprueft uebernommen
 **Nicht geprueft:** Ob ein solcher Speicherstand auf echten Handys je vorkam.
+
+## F-029
+**Wortlaut:** (Betreiber, 08./09.11.) beispiellose Datensicherheit; Schluessel-Fehler des Familien-Abgleichs
+**Status:** behoben
+**Test:** F-029 Kennung stimmt mit der Server-Berechnung ueberein (+2 App, 5 Server in tests/server/termine.test.mjs)
+**Priorität:** 1
+**Umsetzung:** Der Familien-Code ist zugleich der Schluessel, wurde aber bei jeder Anfrage im Klartext (sogar in der Adresse, die in Server-Protokollen landet) an den Server geschickt. Jetzt sendet die App nur die Kennung (SHA-256, Rechenweg wie bisher auf dem Server: "ka1|"+CODE). Server (`termine.mjs`, `rezept.mjs`) nehmen Kennung oder, fuer alte App-Staende, noch den Code. Dazu: Admin-Token wird zeitkonstant verglichen. Datenschutz-Seite ehrlich angepasst. Version FUSION49.
+**Belegt:** Rot vor Fix (App 3, Server 4), gruen danach. Rechenweg App = Server per Test gleich.
+**Mutationen:** F-029: Abgleich schickt den Code wieder im Klartext / Kennung mit falschem Vorsatz
+**Nicht geprueft:** Echter Abgleich zweier Handys nach dem Update; `rezept.mjs`-Zweig nur im Quelltext geaendert, nicht per Servertest. Restrisiko: Der Code hat nur ca. 50 Bit; wer die Kennung hat und sehr viel rechnet, koennte ihn erraten (Abhilfe: langsame Ableitung, braucht Umzug bestehender Plus-Codes - nur mit Rueckfrage).

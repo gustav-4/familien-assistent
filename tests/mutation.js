@@ -461,9 +461,9 @@ const MUTATIONEN = [
   {
     name: "F-023: Familien-Abgleich behauptet wieder 'Server kann nicht lesen'",
     datei: "index.html",
-    suchen: "Der Schutz beruht darauf, dass der Server die Daten nicht entschlüsselt; technisch ausgeschlossen ist es derzeit nicht.",
+    suchen: "Ehrlich dazu: Wer sehr viel Rechenaufwand betreibt, könnte aus der Kennung den Code erraten.",
     ersetzen: "Der Server kann sie nicht lesen.",
-    erwarteRot: ["F-023 Familien-Abgleich nennt ehrlich"],
+    erwarteRot: ["F-023 Familien-Abgleich: Code bleibt auf dem Handy"],
   },
   {
     name: 'F-025b: uebermorgen (mit Umlaut) wird wieder nicht erkannt',
@@ -506,6 +506,20 @@ const MUTATIONEN = [
     suchen: '    return Array.isArray(l)\n      ? l.filter((e) => e && typeof e === "object" && !Array.isArray(e)) : [];',
     ersetzen: '    return l;',
     erwarteRot: ['F-028 Favoriten im falschen Format'],
+  },
+  {
+    name: 'F-029: Abgleich schickt den Code wieder im Klartext',
+    datei: 'index.html',
+    suchen: 'const r = await fetch("/api/termine?kanal=" + await syncKanalHole(code));',
+    ersetzen: 'const r = await fetch("/api/termine?code=" + encodeURIComponent(code));',
+    erwarteRot: ['F-029 kein Aufruf schickt den Code mehr im Klartext'],
+  },
+  {
+    name: 'F-029: Kennung wird mit falschem Vorsatz berechnet',
+    datei: 'index.html',
+    suchen: 'new TextEncoder().encode("ka1|" + c));',
+    ersetzen: 'new TextEncoder().encode("ka2|" + c));',
+    erwarteRot: ['F-029 Kennung stimmt mit der Server-Berechnung ueberein'],
   },
   {
     name: 'F-024: Heute rechnet den Tag wieder ueber UTC',

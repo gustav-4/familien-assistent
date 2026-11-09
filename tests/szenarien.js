@@ -1565,9 +1565,9 @@ warte(async () => {
       lokal.some((z) => (z.titel + " " + z.text).includes(w))));
   pruefe("F-023 Hinweis zur Spracherkennung des Browsers ist enthalten (ehrlich)",
     ok && zeilen.some((z) => z.gruppe === "hinweis" && /Spracherkennung/.test(z.titel + z.text)));
-  pruefe("F-023 Familien-Abgleich nennt ehrlich, dass der Code zum Server geht",
-    ok && server.some((z) => z.route === "termine" && /Code wird aber mit jeder Anfrage/.test(z.text) &&
-      !/kann sie nicht lesen/.test(z.text)));
+  pruefe("F-023 Familien-Abgleich: Code bleibt auf dem Handy, Restrisiko ehrlich genannt",
+    ok && server.some((z) => z.route === "termine" && /Code selbst wird nicht an den Server gesendet/.test(z.text) &&
+      /Rechenaufwand/.test(z.text) && !/kann sie nicht lesen/.test(z.text)));
   pruefe("F-023 Die Seite hat Bereich und Container",
     APPHTML.includes('id="datenschutzSeite"') && APPHTML.includes("Was verlässt mein Handy"));
 })();
@@ -1750,3 +1750,20 @@ warte(async () => {
       Array.isArray(r) && r.length === 1 && r[0].name === "A");
   } finally { localStorage._d = vorher; }
 })();
+
+// F-029: Der Familien-Code ist zugleich der Schluessel. Er darf den Server nie
+// erreichen; gesendet wird nur die Kennung (SHA-256-Hash, wie auf dem Server).
+warte(async () => {
+  let kennung = null, fehler = null;
+  try { kennung = await syncKanalHole("FAM-ABCDE-23456"); } catch (e) { fehler = e; }
+  const soll = process.mainModule.require("crypto").createHash("sha256")
+    .update("ka1|FAM-ABCDE-23456").digest("hex").slice(0, 32);
+  pruefe("F-029 Kennung stimmt mit der Server-Berechnung ueberein",
+    fehler === null && kennung === soll);
+  let zweite = null;
+  try { zweite = await syncKanalHole("  fam-abcde-23456 "); } catch (e) {}
+  pruefe("F-029 Kleinschreibung/Leerzeichen aendern die Kennung nicht", zweite === soll);
+  pruefe("F-029 kein Aufruf schickt den Code mehr im Klartext",
+    !/\bcode: (?:\(typeof syncCode|syncCode)/.test(APPHTML) &&
+    !/"\/api\/termine\?code="/.test(APPHTML));
+});

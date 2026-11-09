@@ -1948,7 +1948,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION48";
+const APP_VERSION = "FUSION49";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -2708,7 +2708,8 @@ async function wpPlanen() {
       body: JSON.stringify({
         modus: "wochenplan",
         device: deviceId(),
-        code: (typeof syncCode !== "undefined" && syncCode) || "",
+        kanal: (typeof syncCode !== "undefined" && syncCode)
+          ? await syncKanalHole(syncCode) : "",
         unvertraeglichkeiten: selectedIntolerances(),
         ernaehrungsformen: ernaehrungsformen,
         stile: familienStile,
@@ -2827,6 +2828,16 @@ async function syncSchluessel(code) {
     basis, { name: "AES-GCM", length: 256 }, false,
     ["encrypt", "decrypt"]);
 }
+// F-029: Der Familien-Code ist zugleich der Schluessel und verlaesst das Handy
+// nie. Zum Server geht nur die Kennung (SHA-256-Hash; Rechenweg wie auf dem
+// Server: "ka1|" + CODE, erste 32 Zeichen).
+async function syncKanalHole(code) {
+  const c = String(code == null ? syncCode : code).trim().toUpperCase();
+  const h = await crypto.subtle.digest("SHA-256",
+    new TextEncoder().encode("ka1|" + c));
+  return Array.from(new Uint8Array(h))
+    .map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 32);
+}
 function syncB64(buf) {
   // F-026: in Stuecken, sonst Absturz ("Maximum call stack") ab ca. 150 KB.
   const b = new Uint8Array(buf);
@@ -2910,8 +2921,8 @@ async function syncSenden() {
     // (Poll-Takt) auf die Dauer dieses einen Abrufs - und selbst ein
     // Zusammenstoss kostet dank ID-Vereinigung keinen Eintrag mehr.
     try {
-      const vorab = await fetch("/api/termine?code=" +
-        encodeURIComponent(syncCode));
+      const vorab = await fetch("/api/termine?kanal=" +
+        await syncKanalHole(syncCode));
       if (vorab.ok) {
         const dv = await vorab.json();
         if (dv.blob && Number(dv.stand) > syncStand) {
@@ -2928,7 +2939,7 @@ async function syncSenden() {
     const r = await fetch("/api/termine", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: syncCode, blob, stand,
+      body: JSON.stringify({ kanal: await syncKanalHole(syncCode), blob, stand,
         device: deviceId() }),
     });
     if (r.status === 402) { syncTrennen(true); return; }
@@ -2943,8 +2954,8 @@ async function syncSenden() {
 async function syncAbholen() {
   if (!syncCode) return;
   try {
-    const r = await fetch("/api/termine?code=" +
-      encodeURIComponent(syncCode));
+    const r = await fetch("/api/termine?kanal=" +
+      await syncKanalHole(syncCode));
     if (r.status === 402) { syncTrennen(true); return; }
     if (!r.ok) return;
     const d = await r.json();
@@ -2989,7 +3000,7 @@ async function syncVerbinden() {
   }
   if (info) info.textContent = "Prüfe Code …";
   try {
-    const r = await fetch("/api/termine?code=" + encodeURIComponent(code));
+    const r = await fetch("/api/termine?kanal=" + await syncKanalHole(code));
     if (r.status === 402) {
       if (info) info.innerHTML = "Dieser Code ist noch nicht " +
         "freigeschaltet. Familien-Plus (unbegrenzte KI-Recherche + " +
@@ -4002,7 +4013,8 @@ async function schritteNachladen(rezept) {
       body: JSON.stringify({
         modus: "schritte",
         device: deviceId(),
-        code: (typeof syncCode !== "undefined" && syncCode) || "",
+        kanal: (typeof syncCode !== "undefined" && syncCode)
+          ? await syncKanalHole(syncCode) : "",
         gericht: rezept.name,
         minuten: rezept.timeMin,
         zutaten: (rezept.ingredients || []).map((i) => ({
@@ -4302,7 +4314,8 @@ async function rechercheRezept(istWiederholung) {
       body: JSON.stringify({
         modus: "kurz",           // Stufe 1: ohne Kochschritte (siehe startCooking)
         device: deviceId(),
-        code: (typeof syncCode !== "undefined" && syncCode) || "",
+        kanal: (typeof syncCode !== "undefined" && syncCode)
+          ? await syncKanalHole(syncCode) : "",
         wunsch: wunsch,
         unvertraeglichkeiten: selectedIntolerances(),
         ernaehrungsformen: ernaehrungsformen,
@@ -6057,7 +6070,7 @@ function datenschutzZeilen() {
     { gruppe: "lokal", titel: "Datensicherung",
       text: "Die Sicherung entsteht auf dem Handy und wird von dir selbst als Datei abgelegt. Mit Passwort ist sie verschlüsselt. Sync-Code und Geräte-Kennung sind nicht enthalten." },
     { gruppe: "server", route: "rezept", titel: "Rezeptsuche, Kochschritte, Wochenplan",
-      text: "Gesendet werden dein Essenswunsch, die Unverträglichkeiten und Ernährungsformen, der Zeitrahmen, bei Kochschritten Gerichtname und Zutaten, die Geräte-Kennung und – falls vorhanden – dein Familien-Code. Ein KI-Dienst erstellt daraus die Rezepte. Namen deiner Familienmitglieder werden dafür nicht gesendet." },
+      text: "Gesendet werden dein Essenswunsch, die Unverträglichkeiten und Ernährungsformen, der Zeitrahmen, bei Kochschritten Gerichtname und Zutaten, die Geräte-Kennung und – falls vorhanden – eine aus deinem Familien-Code berechnete Kennung (nicht der Code selbst). Ein KI-Dienst erstellt daraus die Rezepte. Namen deiner Familienmitglieder werden dafür nicht gesendet." },
     { gruppe: "server", route: "wecker", titel: "Erinnerungen",
       text: "Gesendet werden anonyme Nummern mit den Zeitpunkten und die Geräte-Kennung. Titel, Personen und Orte deiner Termine bleiben auf dem Handy; die Benachrichtigung wird erst auf dem Handy zusammengesetzt." },
     { gruppe: "server", route: "push-anmelden", titel: "Benachrichtigungen einschalten",
@@ -6065,7 +6078,7 @@ function datenschutzZeilen() {
     { gruppe: "server", route: "vapid", titel: "Öffentlicher Schlüssel für Benachrichtigungen",
       text: "Die App holt einen öffentlichen Schlüssel ab. Es werden keine Angaben von dir gesendet." },
     { gruppe: "server", route: "termine", titel: "Familien-Abgleich (Plus)",
-      text: "Eure Termine, Routinen und Familienangaben werden auf dem Handy mit dem Familien-Code verschlüsselt und nur verschlüsselt abgelegt. Der Code wird aber mit jeder Anfrage an den Server übertragen (gespeichert wird nur ein Fingerabdruck davon). Der Schutz beruht darauf, dass der Server die Daten nicht entschlüsselt; technisch ausgeschlossen ist es derzeit nicht. Gib den Code nur an Familienmitglieder weiter." },
+      text: "Eure Termine, Routinen und Familienangaben werden auf dem Handy mit dem Familien-Code verschlüsselt und nur verschlüsselt abgelegt. Der Code selbst wird nicht an den Server gesendet, nur eine daraus berechnete Kennung. Ehrlich dazu: Wer sehr viel Rechenaufwand betreibt, könnte aus der Kennung den Code erraten. Gib den Code nur an Familienmitglieder weiter." },
     { gruppe: "server", route: "feedback", titel: "Rückmeldung senden",
       text: "Nur wenn du auf „Senden“ tippst: dein Text, der aktuelle Reiter und die Geräte-Kennung." },
     { gruppe: "hinweis", titel: "Spracherkennung durch den Browser",

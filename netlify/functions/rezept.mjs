@@ -586,7 +586,9 @@ const handler = async (event) => {
 
   // Plus-Status (Familien-Code) VOR allen Kontingenten aufloesen
   const device = String((body && body.device) || "").slice(0, 64);
-  const kanal = kanalVonCode(body && body.code);
+  // F-029: bevorzugt die Kennung (Hash) - der Code selbst bleibt auf dem Handy.
+  const kanal = (body && /^[a-f0-9]{32}$/.test(String(body.kanal || "")))
+    ? String(body.kanal) : kanalVonCode(body && body.code);
   const plusOk = kanal
     ? Boolean(await redisEinzel(["GET", "plus:" + kanal])) : false;
 
