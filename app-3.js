@@ -1855,6 +1855,7 @@ function updateText(zustand) {
 // Vorher haengte das Neuladen daran, dass die Seite beim Start schon von einem
 // Service Worker gesteuert wurde - sonst blieb die alte Version stehen.
 let updateNeuGeladen = false;
+let updateNeuLadenVerzoegerung = 600; // ms; Tests setzen 0
 function updateNeuGeladenZuruecksetzen() { updateNeuGeladen = false; }
 function updateVersionGleich(swVersion, appVersion) {
   const sv = String(swVersion || "").replace(/^app-/i, "").toUpperCase();
@@ -1865,7 +1866,7 @@ function updateNachAktivierungNeuLaden(worker, neuLaden, verzoegerungMs) {
   const los = () => {
     if (updateNeuGeladen) return;           // nur einmal, kein Dauer-Neuladen
     updateNeuGeladen = true;
-    setTimeout(neuLaden, verzoegerungMs === undefined ? 600 : verzoegerungMs);
+    setTimeout(neuLaden, verzoegerungMs === undefined ? updateNeuLadenVerzoegerung : verzoegerungMs);
   };
   if (worker.state === "activated") { los(); return true; }
   worker.addEventListener("statechange", () => {

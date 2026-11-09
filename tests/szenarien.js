@@ -1965,6 +1965,7 @@ warte(async () => {
   await new Promise((r) => setTimeout(r, 5));
   pruefe("F-036 Nur einmal neu laden (kein Dauer-Neuladen)", n2 === 1);
   updateNeuGeladenZuruecksetzen();
+  updateNeuLadenVerzoegerung = 0;
   const navAlt = Object.getOwnPropertyDescriptor(navigator, "serviceWorker");
   const locAlt = location.reload;
   let neuGeladen = 0;
@@ -1975,8 +1976,8 @@ warte(async () => {
     Object.defineProperty(navigator, "serviceWorker", { configurable: true,
       value: { getRegistration: async () => ({ installing: aktiv, waiting: null, update: async () => {} }) } });
     const z = await updatePruefen();
-    aktiv.state = "activated"; aktiv._f();
-    await new Promise((r) => setTimeout(r, 900));
+    aktiv.state = "activated"; if (aktiv._f) aktiv._f();
+    await new Promise((r) => setTimeout(r, 25));
     pruefe("F-036 updatePruefen: neue Version gefunden, danach wirklich neu geladen", z === "neu" && neuGeladen === 1);
 
     // neue Version schon aktiv, Seite noch alt
@@ -1986,7 +1987,7 @@ warte(async () => {
     Object.defineProperty(navigator, "serviceWorker", { configurable: true,
       value: { getRegistration: async () => regAlt } });
     const z2 = await updatePruefen();
-    await new Promise((r) => setTimeout(r, 900));
+    await new Promise((r) => setTimeout(r, 25));
     pruefe("F-036 neue Version schon aktiv, Seite noch alt: wird als 'neu' erkannt und neu geladen",
       z2 === "neu" && neuGeladen === 1);
 
@@ -1996,13 +1997,14 @@ warte(async () => {
     Object.defineProperty(navigator, "serviceWorker", { configurable: true,
       value: { getRegistration: async () => regGleich } });
     const z3 = await updatePruefen();
-    await new Promise((r) => setTimeout(r, 900));
+    await new Promise((r) => setTimeout(r, 25));
     pruefe("F-036 gleiche Version: 'aktuell' und KEIN Neuladen", z3 === "aktuell" && neuGeladen === 0);
   } catch (e) {
     pruefe("F-036 updatePruefen-Szenarien laufen ohne Fehler (" + e.message + ")", false);
   } finally {
     if (navAlt) Object.defineProperty(navigator, "serviceWorker", navAlt);
     location.reload = locAlt;
+    updateNeuLadenVerzoegerung = 600;
   }
 });
 {
