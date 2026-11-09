@@ -1,0 +1,62 @@
+name: Sicherheitsscan (OWASP ZAP)
+
+# WAS PASSIERT HIER?
+#  Der Scanner OWASP ZAP ruft die oeffentliche Seite wie ein Angreifer auf
+#  und sucht nach typischen Schwachstellen (fehlende Schutz-Kopfzeilen,
+#  unsichere Cookies, verraeterische Fehlermeldungen, offene Pfade ...).
+#
+#  BEWUSST NUR "BASELINE" (passiv): Es werden nur Seiten geladen und
+#  Antworten geprueft. Es werden KEINE Angriffs-Eingaben gesendet. So
+#  entstehen keine Kosten (KI-Rezepte), keine Daten in Redis, kein Risiko
+#  fuer die laufende Seite.
+#
+#  Start NUR von Hand: Reiter "Actions" -> "Sicherheitsscan (OWASP ZAP)"
+#  -> "Run workflow". Der Bericht liegt danach als Download am Lauf.
+on:
+  workflow_dispatch:
+    inputs:
+      ziel:
+        description: "Adresse, die geprueft wird"
+        type: string
+        default: "https://familienassistent.net/"
+
+permissions:
+  contents: read
+
+jobs:
+  zap-baseline:
+    name: ZAP Baseline-Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Arbeitsordner fuer den Bericht anlegen
+        run: |
+          mkdir -p zap-bericht
+          chmod 777 zap-bericht
+
+      # -j  = zusaetzlich der AJAX-Spider (die App baut vieles per JavaScript)
+      # -m  = maximal 5 Minuten Spider-Zeit
+      # -I  = Warnungen lassen den Lauf NICHT rot werden (Bericht zaehlt)
+      - name: ZAP ausfuehren
+        env:
+          ZIEL: ${{ inputs.ziel }}
+        run: |
+          docker run --rm -v "$PWD/zap-bericht:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t "$ZIEL" -j -m 5 -I \
+            -r zap-bericht.html -J zap-bericht.json -w zap-bericht.md
+
+      - name: Kurzfassung anzeigen
+        if: always()
+        run: |
+          if [ -f zap-bericht/zap-bericht.md ]; then
+            cat zap-bericht/zap-bericht.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Bericht sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-bericht
+          path: zap-bericht/
+          if-no-files-found: warn
