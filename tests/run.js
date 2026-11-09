@@ -33,7 +33,7 @@ global.warte = function (fn) { offeneAsyncPruefungen.push(fn()); };
 
 const quelltext = appQuelltext(WURZEL);
 global.APPQUELLE = quelltext;
-global.APPHTML = fs.readFileSync(path.join(WURZEL, "index.html"), "utf8");
+global.APPHTML = require("./lib/quellen.js").appGesamtText(WURZEL);
 
 const szenarien = fs.readFileSync(path.join(__dirname, "szenarien.js"), "utf8");
 const extra = extraDatei && fs.existsSync(extraDatei)

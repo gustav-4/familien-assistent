@@ -646,9 +646,18 @@ if (start.fehlgeschlagen !== 0) {
 console.log("Ausgangslage: " + start.bestanden + " Tests gruen.\n");
 
 for (const m of MUTATIONEN) {
-  const pfad = path.join(WURZEL, m.datei);
-  const original = fs.readFileSync(pfad, "utf8");
-  const treffer = original.split(m.suchen).length - 1;
+  // F-034: Code, der frueher in index.html stand, liegt jetzt in app-N.js
+  let pfad = path.join(WURZEL, m.datei);
+  let original = fs.readFileSync(pfad, "utf8");
+  let treffer = original.split(m.suchen).length - 1;
+  if (treffer === 0 && m.datei === "index.html") {
+    for (const d of require("./lib/quellen.js").appDateien(WURZEL)) {
+      const p2 = path.join(WURZEL, d);
+      const o2 = fs.readFileSync(p2, "utf8");
+      const t2 = o2.split(m.suchen).length - 1;
+      if (t2 > 0) { pfad = p2; original = o2; treffer = t2; break; }
+    }
+  }
 
   if (treffer !== 1) {
     console.log("LUECKE  " + m.name +

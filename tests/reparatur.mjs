@@ -27,7 +27,7 @@ const BERICHTE = path.join(HIER, "berichte");
 if (!fs.existsSync(BERICHTE)) fs.mkdirSync(BERICHTE, { recursive: true });
 
 const ERLAUBTE_DATEIEN = [
-  "index.html", "sw.js", "install.js",
+  "index.html", "app-1.js", "app-2.js", "sw.js", "install.js",
   "netlify/functions/rezept.mjs", "netlify/functions/termine.mjs",
   "netlify/functions/wecker.mjs", "netlify/functions/wecker-cron.mjs",
   "netlify/functions/feedback.mjs", "netlify/functions/qa.mjs",

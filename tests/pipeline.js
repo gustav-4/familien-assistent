@@ -176,16 +176,11 @@ function stufe1() {
 
   // 1b. index.html: eingebettete JavaScript-Bloecke pruefen.
   // Nur echte Skripte - JSON-LD und externe Verweise gehoeren nicht dazu.
-  const html = fs.readFileSync(path.join(WURZEL, "index.html"), "utf8");
-  html.split("<script").slice(1).forEach((roh, i) => {
-    const kopfEnde = roh.indexOf(">");
-    const kopf = roh.slice(0, kopfEnde);
-    if (/\bsrc\s*=/.test(kopf)) return;                 // externe Datei
-    if (/type\s*=\s*["'][^"']*json/i.test(kopf)) return; // JSON-LD
-    const code = roh.slice(kopfEnde + 1, roh.indexOf("</script>"));
-    if (!code || code.trim().length < 50) return;
-    const meldung = pruefeSkriptSyntax(code);
-    if (meldung) fehler.push("Syntaxfehler in index.html, Skriptblock " +
+  const html = require("./lib/quellen.js").appGesamtText(WURZEL);
+  require("./lib/quellen.js").appCodeBloecke(WURZEL).forEach((blk, i) => {
+    if (!blk.code || blk.code.trim().length < 50) return;
+    const meldung = pruefeSkriptSyntax(blk.code);
+    if (meldung) fehler.push("Syntaxfehler in " + blk.name + ", Skriptblock " +
       (i + 1) + ": " + meldung);
   });
 
@@ -288,19 +283,21 @@ const STUFEN = [
     quellen: () => ["tests/fehlerregister.json", "tests/szenarien.js",
       "tests/mutation.js"].concat(dateienUnter("tests/server", ".test.mjs")) },
   { nr: 1, name: "Statische Evidenz", fn: stufe1,
-    quellen: () => ["index.html", "sw.js", "install.js"]
+    quellen: () => ["index.html", "sw.js", "install.js"].concat(require("./lib/quellen.js").appDateien(WURZEL))
       .concat(dateienUnter("netlify/functions", ".mjs"))
       .concat(dateienUnter("tests", ".js")) },
   { nr: 2, name: "Deterministische Isolation (App)", fn: stufe2,
     quellen: () => ["index.html", "tests/szenarien.js", "tests/run.js",
-      "tests/lib/browser.js"] },
+      "tests/lib/browser.js", "tests/lib/quellen.js"]
+      .concat(require("./lib/quellen.js").appDateien(WURZEL)) },
   { nr: 2, name: "Deterministische Isolation (Server)", fn: stufe2b,
     quellen: () => dateienUnter("netlify/functions", ".mjs")
       .concat(dateienUnter("tests/server", ".test.mjs"))
-      .concat(["index.html"]) },
+      .concat(["index.html"]).concat(require("./lib/quellen.js").appDateien(WURZEL)) },
   { nr: 3, name: "Dynamische Haerte (Mutationsprobe)", fn: stufe3,
     quellen: () => ["index.html", "tests/mutation.js", "tests/szenarien.js",
-      "tests/lib/browser.js"]
+      "tests/lib/browser.js", "tests/lib/quellen.js"]
+      .concat(require("./lib/quellen.js").appDateien(WURZEL))
       .concat(dateienUnter("netlify/functions", ".mjs"))
       .concat(dateienUnter("tests/server", ".test.mjs")) },
 ];

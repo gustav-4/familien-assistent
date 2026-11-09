@@ -293,11 +293,9 @@ function umgebungAufbauen() {
 
 // --- App-Quelltext aus index.html holen ------------------------------
 function appQuelltext(wurzel) {
-  const html = fs.readFileSync(path.join(wurzel, "index.html"), "utf8");
-  const bloecke = html.match(/<script>([\s\S]*?)<\/script>/g) || [];
-  return bloecke
-    .map((b) => b.replace(/^<script>/, "").replace(/<\/script>$/, ""))
-    .join("\n;\n");
+  // F-034: eingebettete Bloecke UND ausgelagerte app-N.js, in Ladereihenfolge
+  return require("./quellen.js").appCodeBloecke(wurzel)
+    .map((b) => b.code).join("\n;\n");
 }
 
 module.exports = { umgebungAufbauen, appQuelltext, element, elemente,
