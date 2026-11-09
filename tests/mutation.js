@@ -538,6 +538,14 @@ const MUTATIONEN = [
     servertest: 'tests/server/termin-parse.test.mjs',
   },
   {
+    name: 'F-031: Wecker nimmt leere Eintraege wieder ungeprueft an',
+    datei: 'netlify/functions/wecker.mjs',
+    suchen: '          .filter((e) => e && typeof e === "object").map((e) => ({',
+    ersetzen: '          .map((e) => ({',
+    erwarteRot: [],
+    servertest: 'tests/server/wecker.test.mjs',
+  },
+  {
     name: 'F-024: Heute rechnet den Tag wieder ueber UTC',
     datei: 'index.html',
     suchen: 'const tag = isoTag(jetzt);',

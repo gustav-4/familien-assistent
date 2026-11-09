@@ -93,7 +93,12 @@ export const handler = async (event) => {
     }
 
     if (event.httpMethod === "POST") {
-      const body = JSON.parse(event.body || "{}");
+      let body;
+      try { body = JSON.parse(event.body || "{}"); } catch (e) {
+        return antwort(400, { error: "Ungueltige Anfrage" });
+      }
+      if (!body || typeof body !== "object")
+        return antwort(400, { error: "Ungueltige Anfrage" });
       const device = cleanId(body.device);
       if (!device) return antwort(400, { error: "device fehlt" });
       const key = "wecker:" + device;
@@ -120,7 +125,8 @@ export const handler = async (event) => {
       }
 
       if (Array.isArray(body.eintraege)) {
-        const neu = body.eintraege.slice(0, 600).map((e) => ({
+        const neu = body.eintraege.slice(0, 600)
+          .filter((e) => e && typeof e === "object").map((e) => ({
           ref: cleanId(e.ref),
           fireAt: Number(e.fireAt) || 0,
           endAt: Number(e.endAt) || 0,

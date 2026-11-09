@@ -335,3 +335,13 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Belegt:** Rot vor Fix (3 FEHL), gruen danach.
 **Mutationen:** F-030: abgeschalteter KI-Dienst fuer Termine laeuft wieder
 **Nicht geprueft:** Auf dem echten Server.
+
+## F-031
+**Wortlaut:** (Betreiber, 09.11.) optimiere ALLES, finde Fehler auf haertestem Niveau
+**Status:** behoben
+**Test:** F-031 kaputtes JSON ergibt 400 statt 500 (+3, tests/server/wecker.test.mjs)
+**Priorität:** 3
+**Umsetzung:** `wecker.mjs`: kaputtes JSON und leere Eintraege (null, Zahl) in der Plan-Liste fuehrten zu Absturz (500) statt zu einer sauberen Antwort; leere Eintraege werden jetzt uebersprungen.
+**Belegt:** Rot vor Fix (3 FEHL), gruen danach.
+**Mutationen:** F-031: Wecker nimmt leere Eintraege wieder ungeprueft an
+**Nicht geprueft:** `feedback.mjs` und `push-anmelden.mjs` antworten bei kaputtem JSON mit 500 (nicht abstuerzend, nur unschoen); Admin-Token-Vergleich dort nicht zeitkonstant (geringes Risiko).
