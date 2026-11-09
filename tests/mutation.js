@@ -603,6 +603,27 @@ const MUTATIONEN = [
     erwarteRot: ["F-034 script-src erlaubt kein 'unsafe-inline'"],
   },
   {
+    name: 'F-035: Schluessel wird bei jedem Abgleich neu berechnet',
+    datei: 'index.html',
+    suchen: '  if (!syncSchluesselMerker.has(k)) {',
+    ersetzen: '  if (true) {',
+    erwarteRot: ['F-035 Der Schluessel wird je Sitzung nur einmal berechnet'],
+  },
+  {
+    name: 'F-035: Starkes Format nutzt wieder nur 150000 Runden',
+    datei: 'index.html',
+    suchen: 'iterations: v === 2 ? 600000 : 150000',
+    ersetzen: 'iterations: 150000',
+    erwarteRot: ['F-035 v2 nutzt 600000 Runden'],
+  },
+  {
+    name: 'F-035: Standard schreibt schon das neue Format (aeltere Apps wuerden nichts mehr lesen)',
+    datei: 'index.html',
+    suchen: 'const SYNC_SCHREIBT_V2 = false;',
+    ersetzen: 'const SYNC_SCHREIBT_V2 = true;',
+    erwarteRot: ['F-035 Standard schreibt weiter das bisherige Format'],
+  },
+  {
     name: 'F-024: Heute rechnet den Tag wieder ueber UTC',
     datei: 'index.html',
     suchen: 'const tag = isoTag(jetzt);',

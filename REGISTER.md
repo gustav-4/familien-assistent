@@ -375,3 +375,13 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Belegt:** Rot vor Fix (6 FEHL), gruen danach in UTC, Berlin, New_York (329). Echter Browser: alle 71 Aktionen loesen die richtige Funktion aus, keine Seitenfehler.
 **Mutationen:** F-034: Verteiler fuehrt auch nicht erlaubte Funktionen aus / this.value / Aktion fehlt in der Liste
 **Nicht geprueft:** Echtes Antippen auf dem Handy; lokale KI (WebLLM) und Spracherkennung unter der strengen Regel; Antwort des echten Servers nach dem Deploy (Note A+ auf securityheaders.com); Aufklappfeld „Was verlaesst mein Handy?" (toggle) nur per ausgeloestem Ereignis.
+
+## F-035
+**Wortlaut:** (Betreiber, 09.11.) staerkere Schluessel-Berechnung, aber ohne Qualitaets-/Leistungsverlust
+**Status:** behoben (Stufe 1 von 2; das Umschalten auf das neue Format folgt erst, wenn alle Handys aktualisiert sind)
+**Test:** F-035 Der Schluessel wird je Sitzung nur einmal berechnet (+6)
+**Priorität:** 2
+**Umsetzung:** Der Familien-Schluessel wird je Sitzung nur noch einmal berechnet (bisher bei jedem Senden und Abholen: schneller). Neues Format `v2.` mit 600.000 Runden (OWASP-Empfehlung) und eigenem Salz ist les- und schreibbar. `SYNC_SCHREIBT_V2 = false`: Geschrieben wird vorerst das bisherige Format, damit aeltere App-Staende nichts verlieren. Stufe 2 (spaeter, nach Rueckfrage): Schalter auf `true`. Version FUSION51.
+**Belegt:** Rot vor Fix (4 FEHL), gruen danach in UTC, Berlin, New_York (341).
+**Mutationen:** F-035: Schluessel wird bei jedem Abgleich neu berechnet / nur 150000 Runden / Standard schreibt schon das neue Format
+**Nicht geprueft:** Echte Dauer der 600.000 Runden auf aelteren Handys (nur beim Schreiben von v2 relevant, einmal je Sitzung); Zwei-Handy-Abgleich nach dem Update.

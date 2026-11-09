@@ -988,7 +988,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION50";
+const APP_VERSION = "FUSION51";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -1857,20 +1857,32 @@ try { syncStand = Number(localStorage.getItem("ka_sync_stand")) || 0; } catch (e
 let syncTimer = null;
 let syncAktivSendung = false;
 
-async function syncSchluessel(code) {
-  const enc = new TextEncoder();
-  const basis = await crypto.subtle.importKey("raw",
-    enc.encode(String(code).trim().toUpperCase()), "PBKDF2", false,
-    ["deriveKey"]);
-  return crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt: enc.encode("ka-familien-sync-v1"),
-      iterations: 150000, hash: "SHA-256" },
-    basis, { name: "AES-GCM", length: 256 }, false,
-    ["encrypt", "decrypt"]);
+// F-035: Schluessel je Sitzung nur EINMAL berechnen (die Berechnung ist absichtlich
+// langsam). Version 2 nutzt 600.000 Runden (Empfehlung OWASP) und ein eigenes Salz.
+// SYNC_SCHREIBT_V2 bleibt vorerst false: Geschrieben wird das bisherige Format,
+// damit Familienmitglieder mit aelterer App nichts verlieren. Gelesen werden beide.
+const SYNC_SCHREIBT_V2 = false;
+const syncSchluesselMerker = new Map();
+function syncSchluessel(code, version) {
+  const v = version === 2 ? 2 : 1;
+  const k = v + "|" + String(code).trim().toUpperCase();
+  if (!syncSchluesselMerker.has(k)) {
+    const p = (async () => {
+      const enc = new TextEncoder();
+      const basis = await crypto.subtle.importKey("raw",
+        enc.encode(String(code).trim().toUpperCase()), "PBKDF2", false,
+        ["deriveKey"]);
+      return crypto.subtle.deriveKey(
+        { name: "PBKDF2", salt: enc.encode(v === 2 ? "ka-familien-sync-v2" : "ka-familien-sync-v1"),
+          iterations: v === 2 ? 600000 : 150000, hash: "SHA-256" },
+        basis, { name: "AES-GCM", length: 256 }, false,
+        ["encrypt", "decrypt"]);
+    })();
+    p.catch(() => syncSchluesselMerker.delete(k));
+    syncSchluesselMerker.set(k, p);
+  }
+  return syncSchluesselMerker.get(k);
 }
-// F-029: Der Familien-Code ist zugleich der Schluessel und verlaesst das Handy
-// nie. Zum Server geht nur die Kennung (SHA-256-Hash; Rechenweg wie auf dem
-// Server: "ka1|" + CODE, erste 32 Zeichen).
 async function syncKanalHole(code) {
   const c = String(code == null ? syncCode : code).trim().toUpperCase();
   const h = await crypto.subtle.digest("SHA-256",
@@ -1890,22 +1902,26 @@ function syncB64(buf) {
 function syncB64zurueck(s) {
   return Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
 }
-async function syncVerschluesseln(objekt, code) {
-  const key = await syncSchluessel(code);
+async function syncVerschluesseln(objekt, code, version) {
+  // F-035: version 2 = starkes Format; Standard laut SYNC_SCHREIBT_V2 (vorerst bisheriges Format)
+  const v = (version === undefined ? (SYNC_SCHREIBT_V2 ? 2 : 1) : version) === 2 ? 2 : 1;
+  const key = await syncSchluessel(code, v);
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key,
     new TextEncoder().encode(JSON.stringify(objekt)));
-  return syncB64(iv) + "." + syncB64(ct);
+  return (v === 2 ? "v2." : "") + syncB64(iv) + "." + syncB64(ct);
 }
 async function syncEntschluesseln(blob, code) {
-  const [ivB, ctB] = String(blob).split(".");
-  const key = await syncSchluessel(code);
+  let text = String(blob);
+  const v = /^v2\./.test(text) ? 2 : 1;
+  if (v === 2) text = text.slice(3);
+  const [ivB, ctB] = text.split(".");
+  const key = await syncSchluessel(code, v);
   const klar = await crypto.subtle.decrypt(
     { name: "AES-GCM", iv: syncB64zurueck(ivB) }, key,
     syncB64zurueck(ctB));
   return JSON.parse(new TextDecoder().decode(klar));
 }
-
 function syncDaten() {
   return { termine, routinen, mitglieder, verbrauch: vState,
     geloescht: syncTombstones() };

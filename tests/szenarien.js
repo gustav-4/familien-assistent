@@ -1896,3 +1896,40 @@ warte(async () => {
   pruefe("F-034 App-Skripte laden in der urspruenglichen Reihenfolge ohne 'defer'",
     reihenfolge.join(",") === "app-1.js,app-2.js,app-3.js" && !/<script[^>]*\bsrc="\/app-\d+\.js"[^>]*\b(?:defer|async)\b/.test(index));
 }
+
+// F-035: Familien-Schluessel: Der Schluessel wird je Sitzung nur EINMAL berechnet
+// (schneller) und die App kann neben dem bisherigen Format auch das staerkere
+// Format "v2." (600.000 Runden, Empfehlung OWASP) lesen und schreiben. Geschrieben
+// wird vorerst weiter das alte Format, damit Familienmitglieder mit aelterer App
+// nichts verlieren; das Umschalten geschieht erst, wenn alle aktualisiert haben.
+warte(async () => {
+  const code = "FAM-Z2Z2Z-Z3Z3Z";
+  const daten = { termine: [{ titel: "Test" }] };
+  let a = null, b = null, v2 = null, v2zurueck = null, fehler = null, schlecht = null;
+  try {
+    a = await syncVerschluesseln(daten, code);
+    b = await syncVerschluesseln(daten, code);
+    await syncEntschluesseln(a, code);
+    await syncEntschluesseln(b, code);
+  } catch (e) { fehler = e; }
+  pruefe("F-035 Der Schluessel wird je Sitzung nur einmal berechnet (gleiche Antwort wiederverwendet)",
+    fehler === null && syncSchluessel(code) === syncSchluessel("  " + code.toLowerCase() + " ") &&
+    syncSchluessel(code, 2) !== syncSchluessel(code, 1));
+  pruefe("F-035 Standard schreibt weiter das bisherige Format (ohne Vorsatz)",
+    typeof a === "string" && !/^v2\./.test(a) && a.split(".").length === 2);
+  try {
+    v2 = await syncVerschluesseln(daten, code, 2);
+    v2zurueck = await syncEntschluesseln(v2, code);
+  } catch (e) { fehler = e; }
+  pruefe("F-035 Neues Format 'v2.' beginnt mit Vorsatz und laesst sich lesen",
+    typeof v2 === "string" && /^v2\./.test(v2) && v2zurueck && v2zurueck.termine[0].titel === "Test");
+  try { await syncEntschluesseln(v2, "FAM-AAAAA-AAAAA"); } catch (e) { schlecht = e; }
+  pruefe("F-035 Falscher Code kann 'v2.' nicht lesen", schlecht !== null);
+  let altOk = null;
+  try { altOk = await syncEntschluesseln(a, code); } catch (e) {}
+  pruefe("F-035 Bisheriges Format bleibt lesbar", altOk && altOk.termine[0].titel === "Test");
+  pruefe("F-035 v1 und v2 nutzen verschiedene Schluessel (v2-Text laesst sich nicht als v1 lesen)",
+    await (async () => { try { await syncEntschluesseln(v2.replace(/^v2\./, ""), code); return false; } catch (e) { return true; } })());
+  pruefe("F-035 v2 nutzt 600000 Runden und eigenes Salz",
+    /iterations:\s*v === 2 \? 600000 : 150000/.test(APPQUELLE) && /ka-familien-sync-v2/.test(APPQUELLE));
+});
