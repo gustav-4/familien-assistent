@@ -546,6 +546,28 @@ const MUTATIONEN = [
     servertest: 'tests/server/wecker.test.mjs',
   },
   {
+    name: "F-032: Verbindungen zu fremden Servern wieder erlaubt",
+    datei: "netlify.toml",
+    suchen: "connect-src 'self'; worker-src",
+    ersetzen: "connect-src 'self' https:; worker-src",
+    erwarteRot: ["F-032 Verbindungen nur zur eigenen Seite"],
+  },
+  {
+    name: "F-032: Einbettung in fremde Seiten wieder erlaubt",
+    datei: "netlify.toml",
+    suchen: "; frame-ancestors 'none'\"",
+    ersetzen: "\"",
+    erwarteRot: ["F-032 Keine Einbettung auf fremden Seiten"],
+  },
+  {
+    name: "F-032: Rezept-Dienst wieder fuer jede fremde Seite offen",
+    datei: "netlify/functions/rezept.mjs",
+    suchen: '    "Content-Type": "application/json",\n    // F-032:',
+    ersetzen: '    "Content-Type": "application/json",\n    "Access-Control-Allow-Origin": "*",\n    // F-032:',
+    erwarteRot: [],
+    servertest: "tests/server/cors.test.mjs",
+  },
+  {
     name: 'F-024: Heute rechnet den Tag wieder ueber UTC',
     datei: 'index.html',
     suchen: 'const tag = isoTag(jetzt);',

@@ -48,3 +48,20 @@
 # Zeitgeber: prueft alle 5 Minuten, ob Wecksignale faellig sind
 [functions."wecker-cron"]
   schedule = "*/5 * * * *"
+
+# F-032: Schutz-Kopfzeilen fuer alle Seiten.
+# Wichtigster Teil ist connect-src 'self': Die Seite darf nur mit sich selbst
+# Verbindung aufnehmen - selbst bei einem Einbruch koennen so keine Daten an
+# fremde Server abfliessen. 'unsafe-inline' ist uebergangsweise noetig, weil die
+# App Skripte/Stile direkt in der Seite hat; 'wasm-unsafe-eval' brauchen der
+# Scanner (Tesseract) und die lokale KI (WebAssembly). Kein 'unsafe-eval'.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: data:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    Strict-Transport-Security = "max-age=63072000"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "no-referrer"
+    Permissions-Policy = "microphone=(self), camera=(self), geolocation=(), payment=(), usb=(), bluetooth=(), accelerometer=(), gyroscope=()"
+    Cross-Origin-Opener-Policy = "same-origin"

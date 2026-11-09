@@ -1767,3 +1767,37 @@ warte(async () => {
     !/\bcode: (?:\(typeof syncCode|syncCode)/.test(APPHTML) &&
     !/"\/api\/termine\?code="/.test(APPHTML));
 });
+
+// F-032: Schutz-Kopfzeilen. Sie stehen in netlify.toml und gelten fuer alle Seiten.
+// Wichtigster Teil: connect-src 'self' - selbst bei einem Einbruch in die Seite
+// duerfen keine Daten an fremde Server gehen.
+{
+  const fs = process.mainModule.require("fs");
+  let toml = "";
+  try { toml = fs.readFileSync(process.cwd() + "/netlify.toml", "utf8"); } catch (e) {}
+  const block = (toml.match(/\[\[headers\]\]\s*\n\s*for\s*=\s*"\/\*"([\s\S]*?)(?=\n\[\[|$)/) || [])[1] || "";
+  const wert = (n) => ((block.match(new RegExp(n + "\\s*=\\s*\"([^\"]*)\"")) || [])[1]) || "";
+  const csp = wert("Content-Security-Policy");
+  const direktive = (n) => ((csp.match(new RegExp("(?:^|;)\\s*" + n + "\\s+([^;]*)")) || [])[1] || "").trim();
+  pruefe("F-032 Kopfzeilen-Block fuer alle Seiten ist vorhanden", block.length > 0);
+  pruefe("F-032 Content-Security-Policy gesetzt", csp.length > 20);
+  pruefe("F-032 Verbindungen nur zur eigenen Seite (connect-src 'self')", direktive("connect-src") === "'self'");
+  pruefe("F-032 Standard ist 'self' (default-src)", direktive("default-src") === "'self'");
+  pruefe("F-032 Keine Einbettung auf fremden Seiten (frame-ancestors 'none')", direktive("frame-ancestors") === "'none'");
+  pruefe("F-032 Keine Plug-ins (object-src 'none')", direktive("object-src") === "'none'");
+  pruefe("F-032 base-uri und form-action nur 'self'",
+    direktive("base-uri") === "'self'" && direktive("form-action") === "'self'");
+  pruefe("F-032 Kein fremder Server und kein Stern in der Policy",
+    csp.length > 20 && !/https?:\/\//.test(csp) && !/(^|\s)\*(\s|;|$)/.test(csp) && !/'unsafe-eval'/.test(csp));
+  pruefe("F-032 Transport nur ueber HTTPS (HSTS, mind. 6 Monate)",
+    Number((wert("Strict-Transport-Security").match(/max-age=(\d+)/) || [])[1]) >= 15768000);
+  pruefe("F-032 nosniff, kein Rahmen, Referrer aus",
+    wert("X-Content-Type-Options") === "nosniff" && wert("X-Frame-Options") === "DENY" &&
+    /^(no-referrer|same-origin)$/.test(wert("Referrer-Policy")));
+  const pp = wert("Permissions-Policy");
+  pruefe("F-032 Geraete-Rechte: Mikrofon und Kamera nur fuer die App selbst, Standort/Zahlung aus",
+    /microphone=\(self\)/.test(pp) && /camera=\(self\)/.test(pp) && /geolocation=\(\)/.test(pp));
+  pruefe("F-032 security.txt mit Kontakt fuer Sicherheitsmeldungen",
+    fs.existsSync(process.cwd() + "/.well-known/security.txt") &&
+    /^Contact:\s*mailto:/m.test(fs.readFileSync(process.cwd() + "/.well-known/security.txt", "utf8")));
+}

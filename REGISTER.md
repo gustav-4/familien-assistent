@@ -345,3 +345,13 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Belegt:** Rot vor Fix (3 FEHL), gruen danach.
 **Mutationen:** F-031: Wecker nimmt leere Eintraege wieder ungeprueft an
 **Nicht geprueft:** `feedback.mjs` und `push-anmelden.mjs` antworten bei kaputtem JSON mit 500 (nicht abstuerzend, nur unschoen); Admin-Token-Vergleich dort nicht zeitkonstant (geringes Risiko).
+
+## F-032
+**Wortlaut:** (Betreiber, 09.11.) beginne mit der Haertung
+**Status:** behoben
+**Test:** F-032 Verbindungen nur zur eigenen Seite (connect-src 'self') (+11 App, 2 Server in tests/server/cors.test.mjs)
+**Priorität:** 1
+**Umsetzung:** `netlify.toml` setzt fuer alle Seiten: Content-Security-Policy (default/connect/frame-ancestors/object/base/form eng; kein `unsafe-eval`; `unsafe-inline` uebergangsweise, weil die App Skripte/Stile direkt in der Seite hat; `wasm-unsafe-eval` fuer Scanner/lokale KI), HSTS 2 Jahre, nosniff, X-Frame-Options DENY, Referrer-Policy no-referrer, Permissions-Policy (Mikrofon/Kamera nur eigene Seite), COOP same-origin. `rezept.mjs` gibt keine Cross-Origin-Freigabe `*` mehr. `.well-known/security.txt` (Kontakt fuer Sicherheitsmeldungen, Pflicht-Anlaufstelle im Sinne des Cyber Resilience Act, laeuft am 09.11.2027 ab). Version unveraendert (keine App-Aenderung).
+**Belegt:** Rot vor Fix (12 App + 2 Server), gruen danach. Echter Browser mit den Kopfzeilen aus der Datei: alle 7 Reiter ohne Verstoss, Service Worker registriert, Scanner (WebAssembly-Worker) erkennt "Milch 1,29", eine fremde Verbindung wird blockiert.
+**Mutationen:** F-032: Verbindungen zu fremden Servern wieder erlaubt / Einbettung wieder erlaubt / Rezept-Dienst wieder offen
+**Nicht geprueft:** Antwort des echten Servers (ob Netlify die Kopfzeilen auch auf `/api/...` und auf Funktionen anwendet); lokale KI (WebLLM) und Spracherkennung unter diesen Regeln; `unsafe-inline` schuetzt nicht vor eingeschleustem Skript (Umbau der ca. 111 Inline-Stile und Inline-Handler waere noetig); Bei F-025a muessen Modell-Adressen in `connect-src` ergaenzt oder selbst gehostet werden.

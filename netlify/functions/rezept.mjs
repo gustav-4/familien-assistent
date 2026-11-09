@@ -560,9 +560,8 @@ function normalizeRecipe(raw, ohneSchritte) {
 const handler = async (event) => {
   const headers = {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    // F-032: bewusst KEINE Cross-Origin-Freigabe. Die App ruft den Dienst von
+    // der eigenen Adresse auf; fremde Webseiten sollen ihn nicht nutzen koennen.
   };
 
   if (event.httpMethod === "OPTIONS")
