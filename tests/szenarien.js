@@ -1801,3 +1801,18 @@ warte(async () => {
     fs.existsSync(process.cwd() + "/.well-known/security.txt") &&
     /^Contact:\s*mailto:/m.test(fs.readFileSync(process.cwd() + "/.well-known/security.txt", "utf8")));
 }
+
+// F-033: Kostenschutz des KI-Dienstes durch Netlify-Begrenzung pro Besucher-Adresse.
+// Netlify zaehlt am Rand des Netzes; die App speichert dafuer nichts.
+{
+  const fs = process.mainModule.require("fs");
+  let toml = "";
+  try { toml = fs.readFileSync(process.cwd() + "/netlify.toml", "utf8"); } catch (e) {}
+  const m = toml.match(/\[\[redirects\]\]\s*\n\s*from\s*=\s*"\/api\/rezept"([\s\S]*?)(?=\n\[\[|$)/);
+  const b = m ? m[1] : "";
+  const zahl = (n) => Number((b.match(new RegExp(n + "\\s*=\\s*(\\d+)")) || [])[1] || 0);
+  pruefe("F-033 /api/rezept hat eine Begrenzung pro Besucher",
+    /\[redirects\.rate_limit\]/.test(b) && /aggregate_by\s*=\s*\[\s*"ip"\s*,\s*"domain"\s*\]/.test(b));
+  pruefe("F-033 Begrenzung ist sinnvoll bemessen (nicht 0, nicht grenzenlos)",
+    zahl("window_limit") >= 6 && zahl("window_limit") <= 30 && zahl("window_size") >= 30 && zahl("window_size") <= 180);
+}

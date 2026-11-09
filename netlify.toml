@@ -8,6 +8,14 @@
   from = "/api/rezept"
   to = "/.netlify/functions/rezept"
   status = 200
+  force = true
+  # F-033: Kostenschutz - hoechstens 12 Anfragen pro Minute und Besucher-Adresse
+  # (Netlify zaehlt am Rand des Netzes; wir speichern dafuer nichts). Das
+  # Tageslimit pro Geraet bleibt zusaetzlich bestehen.
+  [redirects.rate_limit]
+    window_limit = 12
+    window_size = 60
+    aggregate_by = ["ip", "domain"]
 
 [[redirects]]
   from = "/api/termin-parse"

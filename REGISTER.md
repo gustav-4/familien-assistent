@@ -355,3 +355,13 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Belegt:** Rot vor Fix (12 App + 2 Server), gruen danach. Echter Browser mit den Kopfzeilen aus der Datei: alle 7 Reiter ohne Verstoss, Service Worker registriert, Scanner (WebAssembly-Worker) erkennt "Milch 1,29", eine fremde Verbindung wird blockiert.
 **Mutationen:** F-032: Verbindungen zu fremden Servern wieder erlaubt / Einbettung wieder erlaubt / Rezept-Dienst wieder offen
 **Nicht geprueft:** Antwort des echten Servers (ob Netlify die Kopfzeilen auch auf `/api/...` und auf Funktionen anwendet); lokale KI (WebLLM) und Spracherkennung unter diesen Regeln; `unsafe-inline` schuetzt nicht vor eingeschleustem Skript (Umbau der ca. 111 Inline-Stile und Inline-Handler waere noetig); Bei F-025a muessen Modell-Adressen in `connect-src` ergaenzt oder selbst gehostet werden.
+
+## F-033
+**Wortlaut:** (Betreiber, 09.11.) kostenlose Alternativen zum Missbrauchsschutz
+**Status:** behoben (Konfiguration; Wirkung auf dem echten Server noch nicht bestaetigt)
+**Test:** F-033 /api/rezept hat eine Begrenzung pro Besucher (+1)
+**Priorität:** 2
+**Umsetzung:** `netlify.toml`: `[redirects.rate_limit]` fuer `/api/rezept`, 12 Anfragen pro 60 s je Besucher-Adresse und Domain. Das ist eine in Netlify eingebaute, in allen Tarifen enthaltene Funktion; die App speichert dafuer keine Adressen. Das Tageslimit pro Geraet bleibt bestehen und wird so nicht mehr durch erfundene Geraete-Kennungen umgangen.
+**Belegt:** Rot vor Fix, gruen danach. Quelle: Netlify-Dokumentation Rate Limiting.
+**Mutationen:** F-033: Begrenzung pro Besucher fuer den KI-Dienst entfernt
+**Nicht geprueft:** Laut Netlify bricht eine ungueltige Regel den Deploy NICHT ab - im Deploy-Protokoll nachsehen. Die kostenlosen Tarife erlauben nur 2 solche Regeln. Mehrere Handys im selben WLAN teilen sich eine Adresse (12/Minute sollte reichen). Der freie Wochenplan pro Monat laesst sich weiter ueber erfundene Geraete-Kennungen umgehen, wird aber durch die Minutenbegrenzung nur gebremst, nicht verhindert.

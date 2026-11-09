@@ -568,6 +568,13 @@ const MUTATIONEN = [
     servertest: "tests/server/cors.test.mjs",
   },
   {
+    name: "F-033: Begrenzung pro Besucher fuer den KI-Dienst entfernt",
+    datei: "netlify.toml",
+    suchen: "  [redirects.rate_limit]\n    window_limit = 12",
+    ersetzen: "  [redirects.keine_begrenzung]\n    window_limit = 12",
+    erwarteRot: ["F-033 /api/rezept hat eine Begrenzung pro Besucher"],
+  },
+  {
     name: 'F-024: Heute rechnet den Tag wieder ueber UTC',
     datei: 'index.html',
     suchen: 'const tag = isoTag(jetzt);',
