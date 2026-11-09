@@ -575,6 +575,27 @@ const MUTATIONEN = [
     erwarteRot: ["F-033 /api/rezept hat eine Begrenzung pro Besucher"],
   },
   {
+    name: 'F-034: Verteiler fuehrt auch nicht erlaubte Funktionen aus',
+    datei: 'index.html',
+    suchen: 'if (!m || !liste.has(m[1]) || typeof umg[m[1]] !== "function") return;',
+    ersetzen: 'if (!m || typeof umg[m[1]] !== "function") return;',
+    erwarteRot: ['F-034 Nicht erlaubte Funktion wird NICHT ausgefuehrt'],
+  },
+  {
+    name: 'F-034: Verteiler reicht den Wert des Feldes (this.value) nicht mehr weiter',
+    datei: 'index.html',
+    suchen: '  if (t === "this.value") return el ? el.value : undefined;',
+    ersetzen: '  if (t === "this.value") return undefined;',
+    erwarteRot: ['F-034 Verteiler fuehrt mehrere Aktionen'],
+  },
+  {
+    name: 'F-034: Aktion fehlt in der Erlaubt-Liste',
+    datei: 'index.html',
+    suchen: '  "goTab",\n',
+    ersetzen: '',
+    erwarteRot: ['F-034 Jede benutzte Aktion steht in der Erlaubt-Liste'],
+  },
+  {
     name: 'F-024: Heute rechnet den Tag wieder ueber UTC',
     datei: 'index.html',
     suchen: 'const tag = isoTag(jetzt);',

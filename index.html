@@ -196,7 +196,7 @@
 </style>
 </head>
 <body>
-<div id="gvChip" onclick="gvToggle()" title="Sprachsteuerung an/aus">🎤 starte …</div>
+<div id="gvChip" data-on-click="gvToggle()" title="Sprachsteuerung an/aus">🎤 starte …</div>
 <div id="gvBereit"><span id="gvBereitText">Sprich jetzt</span>
   <span class="klein">„abbrechen“ beendet die Eingabe</span></div>
 <div id="onboarding" class="hidden">
@@ -280,7 +280,7 @@
         <option value="w">♀ weiblich</option>
         <option value="m">♂ männlich</option>
       </select>
-      <button class="btn" type="button" onclick="obMitgliedHinzu()">+ Hinzufügen</button>
+      <button class="btn" type="button" data-on-click="obMitgliedHinzu()">+ Hinzufügen</button>
     </div>
     <div id="obFamListe" class="muted"></div>
     <p class="muted">Allergien &amp; Ernährungsform je Person könnt ihr
@@ -292,7 +292,7 @@
     <h2>🎤 Schritt 2: Mikrofon</h2>
     <p>Das Herz der App: einfach sprechen. Erlaubt einmalig das
     Mikrofon – danach hört die App beim Öffnen automatisch zu.</p>
-    <button class="btn big" type="button" onclick="obMikro()">🎤 Mikrofon jetzt erlauben</button>
+    <button class="btn big" type="button" data-on-click="obMikro()">🎤 Mikrofon jetzt erlauben</button>
     <p id="obMikroStatus" class="muted"></p>
    </div>
 
@@ -300,7 +300,7 @@
     <h2>🔔 Schritt 3: Erinnerungen</h2>
     <p>Damit Termin-Erinnerungen auch bei <b>geschlossener App</b>
     ankommen (datensparsam – der Server kennt keine Inhalte).</p>
-    <button class="btn big" type="button" onclick="obPush()">🔔 Erinnerungen aktivieren</button>
+    <button class="btn big" type="button" data-on-click="obPush()">🔔 Erinnerungen aktivieren</button>
     <p id="obPushStatus" class="muted"></p>
     <p class="muted">📱 iPhone: erst über „Teilen → Zum Home-Bildschirm“
     installieren, dann von dort öffnen und aktivieren.</p>
@@ -310,7 +310,7 @@
     <h2>📲 Schritt 4: Als App installieren</h2>
     <p>Ein Fingertipp vom Startbildschirm – wie eine echte App, und
     eure Daten bleiben dauerhaft erhalten.</p>
-    <button class="btn big" type="button" onclick="obInstall()">📲 Jetzt installieren</button>
+    <button class="btn big" type="button" data-on-click="obInstall()">📲 Jetzt installieren</button>
     <p id="obInstallStatus" class="muted"></p>
    </div>
 
@@ -333,9 +333,9 @@
 
   </div>
   <div class="ob-fuss">
-    <button class="btn ghost" type="button" id="obZurueckBtn" onclick="obZurueck()">‹ Zurück</button>
-    <button class="btn ghost" type="button" onclick="obFertig(true)">Überspringen</button>
-    <button class="btn" type="button" id="obWeiterBtn" onclick="obWeiter()">Weiter ›</button>
+    <button class="btn ghost" type="button" id="obZurueckBtn" data-on-click="obZurueck()">‹ Zurück</button>
+    <button class="btn ghost" type="button" data-on-click="obFertig(true)">Überspringen</button>
+    <button class="btn" type="button" id="obWeiterBtn" data-on-click="obWeiter()">Weiter ›</button>
   </div>
  </div>
 </div>
@@ -349,8 +349,7 @@
   <div>
     <h2>👋 Bis bald!</h2>
     <p>Mikrofon und Stimme sind aus.<br>Ihr könnt diesen Tab jetzt schließen.</p>
-    <button class="btn" onclick="document.getElementById('byeOverlay')
-      .classList.add('hidden'); gvStart();">↩ Doch weitermachen</button>
+    <button class="btn" data-on-click="byeSchliessen()">↩ Doch weitermachen</button>
   </div>
 </div>
 <header>
@@ -441,7 +440,7 @@
       <label>Kinder: <input type="number" id="kids" min="0" max="8" value="2"></label>
       <p class="muted" id="famAutoInfo">Daraus berechne ich automatisch
       die Mengen für Rezepte und Einkaufsliste.</p>
-      <button class="btn ghost" type="button" onclick="onboardingOeffnen()">
+      <button class="btn ghost" type="button" data-on-click="onboardingOeffnen()">
         📖 Einführung &amp; Einrichtung erneut ansehen</button>
       <div class="karte" style="margin-top:10px">
         <b>👨‍👩‍👧 Familien-Sync</b> <span class="muted">(Plus)</span><br>
@@ -451,11 +450,11 @@
         <div id="syncFormular" style="margin-top:8px">
           <input type="text" id="syncCodeEingabe"
                  placeholder="FAM-XXXXX-XXXXX" style="max-width:190px">
-          <button class="btn" type="button" onclick="syncVerbinden()">Verbinden</button>
+          <button class="btn" type="button" data-on-click="syncVerbinden()">Verbinden</button>
         </div>
         <div id="syncVerbunden" class="hidden" style="margin-top:8px">
-          <button class="btn" type="button" onclick="syncEinladen()">📨 Partner einladen</button>
-          <button class="btn ghost" type="button" onclick="syncTrennen()">Trennen</button>
+          <button class="btn" type="button" data-on-click="syncEinladen()">📨 Partner einladen</button>
+          <button class="btn ghost" type="button" data-on-click="syncTrennen()">Trennen</button>
         </div>
         <div id="syncStatus" class="muted" style="margin-top:6px"></div>
         <div id="syncInfo" class="muted" style="margin-top:6px"></div>
@@ -463,17 +462,17 @@
         <b>🔊 Vorlese-Stimme</b><br>
         <span class="muted">Welche Stimme soll euch beim Kochen
         begleiten? Antippen = Hörprobe.</span><br>
-        <select id="stimmeWahl" onchange="stimmeGewaehlt()"
+        <select id="stimmeWahl" data-on-change="stimmeGewaehlt()"
                 style="margin-top:6px;max-width:230px"></select>
         <button class="btn ghost" type="button"
-                onclick="stimmeProbe()">▶ Probe hören</button>
+                data-on-click="stimmeProbe()">▶ Probe hören</button>
         <br><span class="muted">Klangfarbe:</span>
-        <select id="klangWahl" onchange="klangGewaehlt()"
+        <select id="klangWahl" data-on-change="klangGewaehlt()"
                 style="margin-top:4px;max-width:230px"></select>
         <br><label style="display:inline-flex;align-items:center;
                      gap:6px;margin-top:8px;font-size:.9rem">
           <input type="checkbox" id="ruheKochWahl"
-                 onchange="ruheKochGewaehlt()">
+                 data-on-change="ruheKochGewaehlt()">
           🔇 Bereitton weiter reduzieren
         </label>
         <div class="muted" style="font-size:.8rem">
@@ -549,7 +548,7 @@
           App beim Filtern.</p>
         </details>
         <button class="btn" style="padding:9px 14px" type="button"
-                onclick="addMember()">+ Hinzufügen</button>
+                data-on-click="addMember()">+ Hinzufügen</button>
         <div id="memberList" style="margin-top:8px"></div>
         <p class="muted">Ein 13-jähriger isst wie ein Erwachsener, eine
         3-jährige die Hälfte – mit dem Profil rechnet die App das
@@ -580,7 +579,7 @@
                margin-bottom:4px">Zutaten, die nie vorkommen sollen</label>
         <input type="text" id="ausschlussFeld" style="width:100%"
                placeholder="z. B. Schweinefleisch, Alkohol, Koriander"
-               oninput="ausschlussSpeichern()">
+               data-on-input="ausschlussSpeichern()">
         <p class="muted" style="margin-top:4px">Mit Komma trennen. Gedacht für
         Vorlieben und Überzeugungen (Religion, Geschmack, Verzicht). Gängige
         Begriffe werden mitgedacht: „Schwein“ schließt auch Speck, Schinken und
@@ -603,9 +602,9 @@
       Zufallsnummern – keine Namen, keine Inhalte. Es gibt kein Konto,
       keine Werbung, keinen Datenverkauf.</p>
       <button class="btn" style="background:#d64545" type="button"
-              onclick="loescheAlles()">🗑 Alle Daten unwiderruflich löschen</button>
+              data-on-click="loescheAlles()">🗑 Alle Daten unwiderruflich löschen</button>
     </div>
-    <button class="btn big" onclick="goTab('rezepte')">Weiter zu den Rezepten</button>
+    <button class="btn big" data-on-click="goTab('rezepte')">Weiter zu den Rezepten</button>
 
     <div class="card">
       <h2>Häufige Fragen</h2>
@@ -650,7 +649,7 @@
   <section id="tab-rezepte" class="hidden">
     <div class="card">
       <h2>Für wen kochst du heute?</h2>
-      <select id="kochModusSel" onchange="setKochModus(this.value)"
+      <select id="kochModusSel" data-on-change="setKochModus(this.value)"
         style="width:100%;padding:11px;border-radius:8px;
                border:1px solid #ddd;font-size:1rem">
         <option value="familie">👨‍👩‍👧‍👦 Ganze Familie</option>
@@ -665,15 +664,15 @@
       <h2>Wieviel Zeit hast du heute?</h2>
       <div id="timeButtons">
         <button class="btn ghost timebtn active-time" data-min="0" data-max="999"
-                onclick="setTimeGroup(this)">Alle</button>
+                data-on-click="setTimeGroup(this)">Alle</button>
         <button class="btn ghost timebtn" data-min="15" data-max="20"
-                onclick="setTimeGroup(this)">15–20 Min.</button>
+                data-on-click="setTimeGroup(this)">15–20 Min.</button>
         <button class="btn ghost timebtn" data-min="20" data-max="30"
-                onclick="setTimeGroup(this)">20–30 Min.</button>
+                data-on-click="setTimeGroup(this)">20–30 Min.</button>
         <button class="btn ghost timebtn" data-min="30" data-max="40"
-                onclick="setTimeGroup(this)">30–40 Min.</button>
+                data-on-click="setTimeGroup(this)">30–40 Min.</button>
         <button class="btn ghost timebtn" data-min="40" data-max="999"
-                onclick="setTimeGroup(this)">ab 40 Min.</button>
+                data-on-click="setTimeGroup(this)">ab 40 Min.</button>
       </div>
     </div>
     <div class="card">
@@ -692,12 +691,12 @@
         style="width:100%;padding:11px;border-radius:8px;
                border:1px solid #ddd;font-size:1rem">
       <p></p>
-      <button class="btn" id="searchBtn" onclick="rechercheRezept(false)">
+      <button class="btn" id="searchBtn" data-on-click="rechercheRezept(false)">
         Rezept recherchieren</button>
-      <button class="btn ghost" type="button" onclick="rezeptVoiceStart()">
+      <button class="btn ghost" type="button" data-on-click="rezeptVoiceStart()">
         🎤 Wunsch sprechen</button>
       <button class="btn ghost hidden" id="retryBtn"
-        onclick="rechercheRezept(true)">🔄 Andere Vorschläge</button>
+        data-on-click="rechercheRezept(true)">🔄 Andere Vorschläge</button>
       <p class="muted" id="searchStatus"></p>
     </div>
     <div id="searchResults"></div>
@@ -706,7 +705,7 @@
       <p class="muted" id="filterInfo"></p>
     </div>
     <button class="btn ghost" id="stdToggle" type="button"
-            onclick="toggleStdRezepte()">📖 Standard-Rezepte anzeigen</button>
+            data-on-click="toggleStdRezepte()">📖 Standard-Rezepte anzeigen</button>
     <div id="recipeList" class="hidden"></div>
       <div class="muted" style="font-size:.8rem;margin-top:8px">
         ℹ️ Jedes Rezept wird doppelt gegen eure Allergie- und
@@ -719,7 +718,7 @@
     Loskochen · <b>„Auf die Einkaufsliste“</b> zum Einkaufen · oder wählt ein
     anderes Rezept.</p>
     <button class="btn big" id="toShopBtn" disabled
-            onclick="buildShoppingList();goTab('einkauf')">
+            data-on-click="buildShoppingList();goTab('einkauf')">
       Einkaufsliste erstellen</button>
   </section>
 
@@ -729,10 +728,10 @@
       <h2>Einkaufsliste <span class="muted" id="portionInfo"></span></h2>
       <ul class="shop" id="shopList"></ul>
       <br>
-      <button class="btn ghost" onclick="readShoppingList()">🔊 Liste vorlesen</button>
-      <button class="btn ghost" onclick="leereEinkaufslisteKnopf()">🗑 Liste leeren</button>
+      <button class="btn ghost" data-on-click="readShoppingList()">🔊 Liste vorlesen</button>
+      <button class="btn ghost" data-on-click="leereEinkaufslisteKnopf()">🗑 Liste leeren</button>
     </div>
-    <button class="btn big green" onclick="startCooking()">Jetzt kochen 🍳</button>
+    <button class="btn big green" data-on-click="startCooking()">Jetzt kochen 🍳</button>
 
     <div class="card">
       <h2>🧻 Verbrauchsgüter – automatisch geplant</h2>
@@ -743,18 +742,18 @@
       <ul class="shop" id="vbListe"></ul>
       <!-- NEU (Einkaufs-Voice): freihändiges Abhaken beim Einkaufen -->
       <button class="btn ghost" type="button" id="vbVoiceBtn"
-        onclick="vbVoiceCheckoffToggle()">
+        data-on-click="vbVoiceCheckoffToggle()">
         🛒 Freihändig abhaken (Einkaufs-Modus)</button>
       <p class="muted" id="vbVoiceStatus" style="margin:4px 0 0"></p>
       <p class="muted" style="margin:4px 0 10px">Im Einkaufs-Modus einfach
       sagen, was im Wagen ist – z. B. <b>„Milch okay“</b>. Die App bestätigt
       per Stimme und lernt euren echten Verbrauch mit.</p>
-      <button class="btn ghost" type="button" onclick="vbVoiceAdd()">
+      <button class="btn ghost" type="button" data-on-click="vbVoiceAdd()">
         🎤 Artikel per Sprache hinzufügen</button>
       <button class="btn ghost" type="button" id="bonScanBtn"
-        onclick="scanStarten('bonFoto')">🧾 Kassenbon scannen</button>
+        data-on-click="scanStarten('bonFoto')">🧾 Kassenbon scannen</button>
       <input type="file" id="bonFoto" accept="image/*" capture="environment"
-        class="hidden" onchange="bonFotoGewaehlt(this)">
+        class="hidden" data-on-change="bonFotoGewaehlt(this)">
       <p class="muted" style="margin:4px 0 0">Foto vom Bon: Die App erkennt
       Verbrauchsgüter und rechnet ihre Reichweite neu. 🔒 Das Foto wird
       <b>nur auf diesem Gerät</b> gelesen und nicht gespeichert.</p>
@@ -775,12 +774,12 @@
       <p id="stepText">…</p>
       <p id="stepZutaten" class="muted"></p>
       <div id="timerBox" class="hidden"></div>
-      <button class="btn big green" id="doneBtn" onclick="confirmStep()">
+      <button class="btn big green" id="doneBtn" data-on-click="confirmStep()">
         ✓ Fertig / Erledigt</button>
-      <button class="btn ghost" onclick="repeatStep()">🔁 Wiederholen</button>
-      <button class="btn ghost" id="backBtn" onclick="prevStep()">‹ Zurück</button>
+      <button class="btn ghost" data-on-click="repeatStep()">🔁 Wiederholen</button>
+      <button class="btn ghost" id="backBtn" data-on-click="prevStep()">‹ Zurück</button>
       <div id="favoriteBox" class="hidden" style="margin-top:12px">
-        <button class="btn" id="favBtn" onclick="addFavorite()">
+        <button class="btn" id="favBtn" data-on-click="addFavorite()">
           ⭐ Das war lecker – als Favorit speichern</button>
       </div>
       <div id="micStatus">Mikrofon: wird geprüft…</div>
@@ -805,15 +804,15 @@
       <p class="muted">Sprich einfach, z. B.: „Donnerstag halb drei Zahnarzt
       für Lena, dauert eine Stunde, Mama bringt hin, sehr wichtig“</p>
       <button class="btn" id="terminVoiceBtn" type="button"
-              onclick="terminVoiceStart()">🎤 Jetzt sprechen</button>
+              data-on-click="terminVoiceStart()">🎤 Jetzt sprechen</button>
       <button class="btn ghost" id="zettelScanBtn" type="button"
-              onclick="scanStarten('zettelFoto')">📷 Schulzettel scannen</button>
+              data-on-click="scanStarten('zettelFoto')">📷 Schulzettel scannen</button>
       <input type="file" id="zettelFoto" accept="image/*" capture="environment"
-             class="hidden" onchange="zettelFotoGewaehlt(this)">
+             class="hidden" data-on-change="zettelFotoGewaehlt(this)">
       <p class="muted" id="terminVoiceStatus"></p>
       <div id="zettelErgebnis" style="margin-top:6px"></div>
       <button class="btn ghost" id="lauschToggleBtn"
-              onclick="lauschUmschalten()">📣 Lausch-Modus: aus</button>
+              data-on-click="lauschUmschalten()">📣 Lausch-Modus: aus</button>
       <p class="muted" id="lauschStatus">Lausch-Modus: Die App wartet
         still auf den Zuruf „Termin“ – ganz ohne Dauergepiepe. Beim
         Zuruf ertönt ein Bereitton, dann den Termin einfach sprechen.
@@ -826,7 +825,7 @@
       erreicht, wenn die App zu ist. <b>Datenschutz:</b> Der Server kennt
       dabei nur Weckzeiten und Zufallsnummern – die Klartexte deiner
       Termine bleiben ausschließlich auf diesem Gerät.</p>
-      <button class="btn" type="button" onclick="aktivierePush()">
+      <button class="btn" type="button" data-on-click="aktivierePush()">
         🔔 Push-Erinnerungen aktivieren</button>
       <p class="muted" id="pushStatus"></p>
       <p class="muted">📱 iPhone: Zuerst über „Teilen → Zum Home-Bildschirm“
@@ -856,7 +855,7 @@
         </select>
       </label>
       <p id="tKollision" class="muted" style="color:#d64545"></p>
-      <button class="btn green" type="button" onclick="saveTermin()">
+      <button class="btn green" type="button" data-on-click="saveTermin()">
         ✓ Termin speichern</button>
     </div>
 
@@ -864,14 +863,14 @@
       <h2>📅 Wochen-Matrix</h2>
       <div style="margin-bottom:8px">
         <button class="btn ghost" type="button"
-          onclick="wocheWechseln(-1)">‹ Woche</button>
+          data-on-click="wocheWechseln(-1)">‹ Woche</button>
         <button class="btn ghost" type="button"
-          onclick="wocheWechseln(0)">Heute</button>
+          data-on-click="wocheWechseln(0)">Heute</button>
         <button class="btn ghost" type="button"
-          onclick="wocheWechseln(1)">Woche ›</button>
+          data-on-click="wocheWechseln(1)">Woche ›</button>
         <span class="muted" id="matrixWoche"></span>
         <button class="btn" type="button" style="margin-left:8px"
-                onclick="wpPlanen()">✨ Woche planen</button>
+                data-on-click="wpPlanen()">✨ Woche planen</button>
         <div id="wpInfo" class="muted" style="margin-top:6px"></div>
       </div>
       <div style="overflow-x:auto">
@@ -893,7 +892,7 @@
       <div id="rTage" style="margin:8px 0"></div>
       <label>Von: <input type="time" id="rVon" value="08:00"></label>
       <label>Bis: <input type="time" id="rBis" value="16:00"></label>
-      <button class="btn" type="button" onclick="addRoutine()">
+      <button class="btn" type="button" data-on-click="addRoutine()">
         + Routine anlegen</button>
       <div id="routineList" style="margin-top:10px"></div>
     </div>
@@ -905,7 +904,7 @@
   </section>
 
   <!-- Schwebender Feedback-Knopf (Testphase, auf jeder Seite) -->
-  <button id="fbBtn" type="button" onclick="fbOeffnen()"
+  <button id="fbBtn" type="button" data-on-click="fbOeffnen()"
     style="position:fixed;right:14px;bottom:150px;z-index:901;width:54px;
            height:54px;border-radius:50%;border:none;cursor:pointer;
            background:var(--accent2);color:#fff;font-size:1.5rem;
@@ -920,15 +919,15 @@
     <h2 style="margin:0 0 6px">💬 Fehler entdeckt? Wunsch?</h2>
     <p class="muted" style="margin:0 0 10px">Sprich einfach drauflos –
     oder tippe. Geht direkt an die Entwicklung. Danke dir!</p>
-    <button class="btn" type="button" onclick="fbSprechen()"
+    <button class="btn" type="button" data-on-click="fbSprechen()"
             id="fbMicBtn">🎤 Sprechen</button>
     <textarea id="fbText" rows="3" placeholder="… oder hier tippen"
       style="width:100%;margin-top:8px;padding:10px;border-radius:10px;
              border:1px solid #ddd;font-size:1rem"></textarea>
     <div style="margin-top:8px">
-      <button class="btn green" type="button" onclick="fbSenden()">
+      <button class="btn green" type="button" data-on-click="fbSenden()">
         ✓ Absenden</button>
-      <button class="btn ghost" type="button" onclick="fbSchliessen()">
+      <button class="btn ghost" type="button" data-on-click="fbSchliessen()">
         Abbrechen</button>
     </div>
     <p class="muted" id="fbStatus" style="margin:8px 0 0"></p>
@@ -942,20 +941,135 @@
     <b id="reminderText"></b>
     <div style="margin-top:8px">
       <button class="btn" style="background:#fff;color:#d64545"
-              type="button" onclick="reminderOk()">✓ OK / Erledigt</button>
+              type="button" data-on-click="reminderOk()">✓ OK / Erledigt</button>
     </div>
   </div>
 </main>
 
 <nav>
-  <button id="nav-heute" onclick="goTab('heute')">📍 Heute</button>
-  <button id="nav-familie" class="active" onclick="goTab('familie')">👨‍👩‍👧 Familie</button>
-  <button id="nav-rezepte" onclick="goTab('rezepte')">📖 Rezepte</button>
-  <button id="nav-einkauf" onclick="goTab('einkauf')">🛒 Einkauf</button>
-  <button id="nav-kochen" onclick="goTab('kochen')">🍳 Kochen</button>
-  <button id="nav-favoriten" onclick="goTab('favoriten')">⭐ Favoriten</button>
-  <button id="nav-termine" onclick="goTab('termine')">📅 Termine</button>
+  <button id="nav-heute" data-on-click="goTab('heute')">📍 Heute</button>
+  <button id="nav-familie" class="active" data-on-click="goTab('familie')">👨‍👩‍👧 Familie</button>
+  <button id="nav-rezepte" data-on-click="goTab('rezepte')">📖 Rezepte</button>
+  <button id="nav-einkauf" data-on-click="goTab('einkauf')">🛒 Einkauf</button>
+  <button id="nav-kochen" data-on-click="goTab('kochen')">🍳 Kochen</button>
+  <button id="nav-favoriten" data-on-click="goTab('favoriten')">⭐ Favoriten</button>
+  <button id="nav-termine" data-on-click="goTab('termine')">📅 Termine</button>
 </nav>
+
+<script>
+// =====================================================
+// AKTIONS-VERTEILER (F-034)
+// Knoepfe tragen keine Programmzeilen (onclick="...") mehr, sondern eine
+// Beschriftung (data-on-click mit Funktionsname und Werten). Das erlaubt eine strenge
+// Sicherheitsregel ohne 'unsafe-inline' fuer Skripte. Ausgefuehrt werden
+// NUR Funktionen aus der festen Liste unten, mit einfachen Werten
+// ('Text', Zahl, true/false, this, this.value) - nichts wird ausgewertet.
+// =====================================================
+const AKTIONEN_ERLAUBT = new Set([
+  "addFavorite",
+  "addMember",
+  "addRoutine",
+  "aktivierePush",
+  "ausschlussSpeichern",
+  "bonFotoGewaehlt",
+  "buildShoppingList",
+  "byeSchliessen",
+  "confirmStep",
+  "datenschutzToggle",
+  "fbOeffnen",
+  "fbSchliessen",
+  "fbSenden",
+  "fbSprechen",
+  "goTab",
+  "gvToggle",
+  "klangGewaehlt",
+  "lauschUmschalten",
+  "leereEinkaufslisteKnopf",
+  "loescheAlles",
+  "obFertig",
+  "obInstall",
+  "obMikro",
+  "obMitgliedHinzu",
+  "obPush",
+  "obWeiter",
+  "obZurueck",
+  "onboardingOeffnen",
+  "prevStep",
+  "readShoppingList",
+  "rechercheRezept",
+  "reminderOk",
+  "repeatStep",
+  "rezeptVoiceStart",
+  "ruheKochGewaehlt",
+  "saveTermin",
+  "scanStarten",
+  "setKochModus",
+  "setTimeGroup",
+  "sicherungDateiGewaehlt",
+  "sicherungSpeichern",
+  "sicherungWiederherstellen",
+  "startCooking",
+  "stimmeGewaehlt",
+  "stimmeProbe",
+  "syncEinladen",
+  "syncTrennen",
+  "syncVerbinden",
+  "terminVoiceStart",
+  "toggleStdRezepte",
+  "updatePruefen",
+  "vbVoiceAdd",
+  "vbVoiceCheckoffToggle",
+  "wocheWechseln",
+  "wpPlanen",
+  "zettelFotoGewaehlt"
+]);
+function aktionWert(roh, el, ev) {
+  const t = roh.trim();
+  if (t === "this") return el;
+  if (t === "this.value") return el ? el.value : undefined;
+  if (t === "event") return ev;
+  if (t === "true") return true;
+  if (t === "false") return false;
+  if (t === "null") return null;
+  if (/^-?\d+(?:\.\d+)?$/.test(t)) return Number(t);
+  const m = t.match(/^'([^'\\]*)'$/) || t.match(/^"([^"\\]*)"$/);
+  if (m) return m[1];
+  throw new Error("Wert nicht erlaubt");
+}
+function fuehreAktionAus(text, el, ev, umgebung, erlaubt) {
+  const umg = umgebung || globalThis;
+  const liste = erlaubt || AKTIONEN_ERLAUBT;
+  let anzahl = 0;
+  String(text || "").split(";").forEach((teil) => {
+    if (!teil.trim()) return;
+    try {
+      const m = teil.match(/^\s*([A-Za-z_$][\w$]*)\((.*)\)\s*$/);
+      if (!m || !liste.has(m[1]) || typeof umg[m[1]] !== "function") return;
+      const roh = m[2].trim();
+      const args = roh === "" ? [] : roh.split(",").map((a) => aktionWert(a, el, ev));
+      umg[m[1]](...args);
+      anzahl++;
+    } catch (e) { /* abgewiesen oder Fehler in der Aktion: Knopf bleibt ruhig */ }
+  });
+  return anzahl;
+}
+["click", "change", "input", "toggle"].forEach((art) => {
+  // Erfassungsphase, weil "toggle" (Aufklappfeld) nicht nach oben weitergereicht wird.
+  document.addEventListener(art, (ev) => {
+    const el = ev.target && ev.target.closest
+      ? ev.target.closest("[data-on-" + art + "]") : null;
+    if (el) fuehreAktionAus(el.getAttribute("data-on-" + art), el, ev);
+  }, true);
+});
+function byeSchliessen() {
+  const o = document.getElementById("byeOverlay");
+  if (o) o.classList.add("hidden");
+  gvStart();
+}
+function datenschutzToggle(el) {
+  if (el && el.open) datenschutzRendern();
+}
+</script>
 
 <script>
 // =====================================================
@@ -6807,9 +6921,9 @@ function vbVoiceCheckoffToggle() {
   <a href="/datenschutz.html">Datenschutz</a> ·
   <a href="/plus.html">💎 Familien-Plus</a>
   <div style="margin-top:4px"><span id="appVersion"></span> ·
-  <button type="button" onclick="updatePruefen()" style="background:none;border:0;padding:0;color:inherit;text-decoration:underline;font:inherit;cursor:pointer">Nach Update suchen</button></div>
+  <button type="button" data-on-click="updatePruefen()" style="background:none;border:0;padding:0;color:inherit;text-decoration:underline;font:inherit;cursor:pointer">Nach Update suchen</button></div>
   <div id="updateStatus" role="status" aria-live="polite" style="margin-top:4px"></div>
-  <details style="margin-top:8px;text-align:left;max-width:420px;margin-left:auto;margin-right:auto" ontoggle="if(this.open)datenschutzRendern()">
+  <details style="margin-top:8px;text-align:left;max-width:420px;margin-left:auto;margin-right:auto" data-on-toggle="datenschutzToggle(this)">
     <summary style="cursor:pointer">🔒 Was verlässt mein Handy?</summary>
     <div id="datenschutzSeite" style="margin-top:6px"></div>
   </details>
@@ -6818,10 +6932,10 @@ function vbVoiceCheckoffToggle() {
     <p style="margin:6px 0">Speichert Termine, Familie, Favoriten und Einstellungen als Datei auf deinem Gerät. Nichts wird ins Internet geschickt.</p>
     <label for="sicherungPw">Passwort (empfohlen):</label>
     <input id="sicherungPw" type="password" autocomplete="new-password" style="width:100%;box-sizing:border-box;margin:4px 0">
-    <button type="button" onclick="sicherungSpeichern()">Sicherung speichern</button>
+    <button type="button" data-on-click="sicherungSpeichern()">Sicherung speichern</button>
     <p style="margin:10px 0 4px">Sicherung zurückholen: erst das Passwort eintragen, dann die Datei wählen.</p>
-    <input id="sicherungDatei" type="file" accept=".json,application/json" onchange="sicherungDateiGewaehlt(this)">
-    <button type="button" id="sicherungGoBtn" class="hidden" onclick="sicherungWiederherstellen()">Jetzt wiederherstellen</button>
+    <input id="sicherungDatei" type="file" accept=".json,application/json" data-on-change="sicherungDateiGewaehlt(this)">
+    <button type="button" id="sicherungGoBtn" class="hidden" data-on-click="sicherungWiederherstellen()">Jetzt wiederherstellen</button>
     <div id="sicherungStatus" role="status" aria-live="polite" style="margin-top:6px"></div>
   </details>
 </footer>

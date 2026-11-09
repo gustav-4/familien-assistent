@@ -365,3 +365,13 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Belegt:** Rot vor Fix, gruen danach. Quelle: Netlify-Dokumentation Rate Limiting.
 **Mutationen:** F-033: Begrenzung pro Besucher fuer den KI-Dienst entfernt
 **Nicht geprueft:** Laut Netlify bricht eine ungueltige Regel den Deploy NICHT ab - im Deploy-Protokoll nachsehen. Die kostenlosen Tarife erlauben nur 2 solche Regeln. Mehrere Handys im selben WLAN teilen sich eine Adresse (12/Minute sollte reichen). Der freie Wochenplan pro Monat laesst sich weiter ueber erfundene Geraete-Kennungen umgehen, wird aber durch die Minutenbegrenzung nur gebremst, nicht verhindert.
+
+## F-034
+**Wortlaut:** (Betreiber, 09.11.) Umbau zu A+ (strenge Sicherheitsregel)
+**Status:** teilweise (Stufe 1 und 2 von 3 fertig)
+**Test:** F-034 Keine Programmzeilen mehr in Knoepfen (onclick= & Co.) (+10)
+**Priorität:** 1
+**Umsetzung:** Stufe 1: Test-Werkzeuge lesen App-Code auch aus ausgelagerten Dateien (`tests/lib/quellen.js`). Stufe 2: 71 Knopf-Aktionen (`onclick=` u. a.) wurden zu `data-on-click=` u. a.; ein Aktions-Verteiler (`fuehreAktionAus`) fuehrt nur 56 Funktionen aus einer festen Liste mit einfachen Werten aus, nichts wird ausgewertet. Stufe 3 (offen): Skriptbloecke in app-1.js/app-2.js auslagern, Admin-Seiten umbauen, `'unsafe-inline'` aus script-src streichen.
+**Belegt:** Rot vor Fix (6 FEHL), gruen danach in UTC, Berlin, New_York (329). Echter Browser: alle 71 Aktionen loesen die richtige Funktion aus, keine Seitenfehler.
+**Mutationen:** F-034: Verteiler fuehrt auch nicht erlaubte Funktionen aus / this.value / Aktion fehlt in der Liste
+**Nicht geprueft:** Echtes Antippen auf dem Handy; Aufklappfeld „Was verlaesst mein Handy?" (toggle) nur per ausgeloestem Ereignis.

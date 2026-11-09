@@ -1341,7 +1341,7 @@ pruefe("F-018 Stueck-Mengen bleiben ganzzahlig", (function () {
   pruefe("F-021 Text 'aktuell' nennt die Version",
     sicher(() => updateText("aktuell").includes(APP_VERSION)) === true);
   pruefe("F-021 Seite hat Knopf und Statusfeld",
-    APPHTML.includes('onclick="updatePruefen()"') && APPHTML.includes('id="updateStatus"'));
+    APPHTML.includes('data-on-click="updatePruefen()"') && APPHTML.includes('id="updateStatus"'));
   warte(async () => {
     const vorher = JSON.stringify(localStorage._d);
     const navAlt = Object.getOwnPropertyDescriptor(navigator, "serviceWorker");
@@ -1818,4 +1818,51 @@ warte(async () => {
     /\[redirects\.rate_limit\]/.test(b) && /aggregate_by\s*=\s*\[\s*"ip"\s*,\s*"domain"\s*\]/.test(b));
   pruefe("F-033 Begrenzung ist sinnvoll bemessen (nicht 0, nicht grenzenlos)",
     zahl("window_limit") >= 6 && zahl("window_limit") <= 30 && zahl("window_size") >= 30 && zahl("window_size") <= 180);
+}
+
+// F-034: Strenge Sicherheitsregel (CSP ohne 'unsafe-inline' fuer Skripte).
+// Knoepfe tragen keine Programmzeilen mehr (onclick="..."), sondern eine
+// Beschriftung data-on-click="name(args)". Ein Verteiler fuehrt NUR Funktionen
+// aus einer festen Liste aus - eingeschleustes HTML kann damit nichts Neues anstossen.
+{
+  const html = APPHTML;
+  const handlerAttr = html.match(/<[a-zA-Z][^>]*\son(?:click|change|input|toggle|submit|keydown|keyup|focus|blur|load|error)\s*=/g) || [];
+  pruefe("F-034 Keine Programmzeilen mehr in Knoepfen (onclick= & Co.)", handlerAttr.length === 0);
+
+  const benutzt = new Set();
+  (html.match(/\sdata-on-(?:click|change|input|toggle)="[^"]*"/g) || []).forEach((a) => {
+    a.replace(/^[^"]*"|"$/g, "").split(";").forEach((st) => {
+      const m = st.match(/^\s*([A-Za-z_$][\w$]*)\(/); if (m) benutzt.add(m[1]);
+    });
+  });
+  const erlaubt = (typeof AKTIONEN_ERLAUBT !== "undefined") ? AKTIONEN_ERLAUBT : new Set();
+  pruefe("F-034 Es gibt Beschriftungen fuer Aktionen", benutzt.size > 30);
+  pruefe("F-034 Jede benutzte Aktion steht in der Erlaubt-Liste",
+    benutzt.size > 0 && [...benutzt].every((n) => erlaubt.has(n)));
+  pruefe("F-034 Die Erlaubt-Liste enthaelt nichts Ungenutztes",
+    erlaubt.size > 0 && [...erlaubt].every((n) => benutzt.has(n)));
+
+  const aufrufe = [];
+  const umg = { zzA: (...a) => aufrufe.push(["A", ...a]), zzB: (...a) => aufrufe.push(["B", ...a]),
+    zzNein: () => aufrufe.push(["NEIN"]) };
+  const liste = new Set(["zzA", "zzB"]);
+  let r1 = null, f1 = null;
+  try {
+    r1 = fuehreAktionAus("zzA('x', 3, true);zzB(this.value)", { value: "v", open: true }, null, umg, liste);
+  } catch (e) { f1 = e; }
+  pruefe("F-034 Verteiler fuehrt mehrere Aktionen mit Zeichen-, Zahl- und Wahrheitswerten aus",
+    f1 === null && JSON.stringify(aufrufe) === JSON.stringify([["A", "x", 3, true], ["B", "v"]]));
+  pruefe("F-034 Verteiler reicht 'this' (das Element) weiter",
+    (() => { aufrufe.length = 0; const el = { id: "k" };
+      fuehreAktionAus("zzA(this)", el, null, umg, liste); return aufrufe[0] && aufrufe[0][1] === el; })());
+  aufrufe.length = 0;
+  fuehreAktionAus("zzNein()", {}, null, umg, liste);
+  pruefe("F-034 Nicht erlaubte Funktion wird NICHT ausgefuehrt", aufrufe.length === 0);
+  fuehreAktionAus("constructor.constructor('1')()", {}, null, umg, liste);
+  fuehreAktionAus("zzA(alert(1))", {}, null, umg, liste);
+  fuehreAktionAus("zzA(1+1)", {}, null, umg, liste);
+  pruefe("F-034 Fremde Ausdruecke (Verkettung, verschachtelte Aufrufe, Rechnen) werden abgewiesen",
+    aufrufe.length === 0);
+  pruefe("F-034 'Bis bald'-Knopf und Aufklapp-Feld nutzen benannte Funktionen",
+    typeof byeSchliessen === "function" && typeof datenschutzToggle === "function");
 }
