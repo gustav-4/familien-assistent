@@ -1933,3 +1933,85 @@ warte(async () => {
   pruefe("F-035 v2 nutzt 600000 Runden und eigenes Salz",
     /iterations:\s*v === 2 \? 600000 : 150000/.test(APPQUELLE) && /ka-familien-sync-v2/.test(APPQUELLE));
 });
+
+// F-036: "Nach Update suchen" darf nicht stehen bleiben. Beobachtet auf einem
+// echten Handy: "Neue Version gefunden, die App laedt gleich neu" - danach passierte
+// nichts und die alte Version blieb. Ursache: Die Seite lud nur neu, wenn sie beim
+// Start schon von einem Service Worker gesteuert wurde. Jetzt laedt die Seite selbst
+// neu, sobald die neue Version aktiv ist, und erkennt auch den Fall "neue Version ist
+// schon aktiv, die Seite aber noch alt" (Versionsabfrage beim Service Worker).
+warte(async () => {
+  pruefe("F-036 Versionen werden verglichen (app-fusion51 = FUSION51)",
+    updateVersionGleich("app-fusion51", "FUSION51") === true &&
+    updateVersionGleich("app-fusion50", "FUSION51") === false &&
+    updateVersionGleich("", "FUSION51") === false);
+  // Hilfsfunktion: neu laden, sobald der Worker aktiv ist
+  updateNeuGeladenZuruecksetzen();
+  let n = 0;
+  const w1 = { state: "installing", _f: null, addEventListener(e, f) { this._f = f; } };
+  updateNachAktivierungNeuLaden(w1, () => n++, 0);
+  await new Promise((r) => setTimeout(r, 5));
+  const vorAktiv = n;
+  w1.state = "activated"; w1._f();
+  await new Promise((r) => setTimeout(r, 5));
+  pruefe("F-036 Neu laden erst nach Aktivierung der neuen Version", vorAktiv === 0 && n === 1);
+  const w2 = { state: "activated", addEventListener() {} };
+  updateNeuGeladenZuruecksetzen();
+  let n2 = 0;
+  updateNachAktivierungNeuLaden(w2, () => n2++, 0);
+  await new Promise((r) => setTimeout(r, 5));
+  pruefe("F-036 Schon aktive neue Version laedt sofort neu", n2 === 1);
+  updateNachAktivierungNeuLaden(w2, () => n2++, 0);
+  await new Promise((r) => setTimeout(r, 5));
+  pruefe("F-036 Nur einmal neu laden (kein Dauer-Neuladen)", n2 === 1);
+  updateNeuGeladenZuruecksetzen();
+  const navAlt = Object.getOwnPropertyDescriptor(navigator, "serviceWorker");
+  const locAlt = location.reload;
+  let neuGeladen = 0;
+  location.reload = () => { neuGeladen++; };
+  try {
+    updateNeuGeladenZuruecksetzen();
+    const aktiv = { state: "installing", _f: null, addEventListener(e, f) { this._f = f; } };
+    Object.defineProperty(navigator, "serviceWorker", { configurable: true,
+      value: { getRegistration: async () => ({ installing: aktiv, waiting: null, update: async () => {} }) } });
+    const z = await updatePruefen();
+    aktiv.state = "activated"; aktiv._f();
+    await new Promise((r) => setTimeout(r, 900));
+    pruefe("F-036 updatePruefen: neue Version gefunden, danach wirklich neu geladen", z === "neu" && neuGeladen === 1);
+
+    // neue Version schon aktiv, Seite noch alt
+    updateNeuGeladenZuruecksetzen(); neuGeladen = 0;
+    const regAlt = { installing: null, waiting: null, update: async () => {},
+      active: { postMessage(m, ports) { if (m === "version") ports[0].postMessage("app-fusion00"); } } };
+    Object.defineProperty(navigator, "serviceWorker", { configurable: true,
+      value: { getRegistration: async () => regAlt } });
+    const z2 = await updatePruefen();
+    await new Promise((r) => setTimeout(r, 900));
+    pruefe("F-036 neue Version schon aktiv, Seite noch alt: wird als 'neu' erkannt und neu geladen",
+      z2 === "neu" && neuGeladen === 1);
+
+    updateNeuGeladenZuruecksetzen(); neuGeladen = 0;
+    const regGleich = { installing: null, waiting: null, update: async () => {},
+      active: { postMessage(m, ports) { if (m === "version") ports[0].postMessage("app-" + APP_VERSION.toLowerCase()); } } };
+    Object.defineProperty(navigator, "serviceWorker", { configurable: true,
+      value: { getRegistration: async () => regGleich } });
+    const z3 = await updatePruefen();
+    await new Promise((r) => setTimeout(r, 900));
+    pruefe("F-036 gleiche Version: 'aktuell' und KEIN Neuladen", z3 === "aktuell" && neuGeladen === 0);
+  } catch (e) {
+    pruefe("F-036 updatePruefen-Szenarien laufen ohne Fehler (" + e.message + ")", false);
+  } finally {
+    if (navAlt) Object.defineProperty(navigator, "serviceWorker", navAlt);
+    location.reload = locAlt;
+  }
+});
+{
+  // sw.js antwortet auf die Versionsfrage
+  const code = process.mainModule.require("fs").readFileSync(process.cwd() + "/sw.js", "utf8");
+  const hoerer = {};
+  const self_ = { addEventListener: (n, f) => { hoerer[n] = f; }, registration: {}, skipWaiting() {} };
+  try { new Function("self", "caches", "clients", "indexedDB", "fetch", code)(self_, {}, {}, {}, () => {}); } catch (e) {}
+  let antwort = null;
+  if (hoerer.message) hoerer.message({ data: "version", ports: [{ postMessage: (v) => { antwort = v; } }] });
+  pruefe("F-036 sw.js nennt auf Nachfrage seine Version", /^app-fusion\d+$/.test(String(antwort)));
+}

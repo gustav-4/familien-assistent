@@ -9,9 +9,15 @@
  * dieses Strings reicht, damit der Browser die sw.js als
  * geändert erkennt und den Update-Zyklus (Weg A) auslöst.
  */
-const VERSION = "app-fusion51";
+const VERSION = "app-fusion52";
 
 self.addEventListener("install", (e) => self.skipWaiting());
+
+/* F-036: Die Seite fragt hier nach der Version, um zu erkennen, ob sie selbst
+   noch eine aeltere Programmversion zeigt, obwohl diese Version schon aktiv ist. */
+self.addEventListener("message", (e) => {
+  if (e.data === "version" && e.ports && e.ports[0]) e.ports[0].postMessage(VERSION);
+});
 
 self.addEventListener("activate", (e) =>
   e.waitUntil((async () => {

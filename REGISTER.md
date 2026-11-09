@@ -385,3 +385,13 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Belegt:** Rot vor Fix (4 FEHL), gruen danach in UTC, Berlin, New_York (341).
 **Mutationen:** F-035: Schluessel wird bei jedem Abgleich neu berechnet / nur 150000 Runden / Standard schreibt schon das neue Format
 **Nicht geprueft:** Echte Dauer der 600.000 Runden auf aelteren Handys (nur beim Schreiben von v2 relevant, einmal je Sitzung); Zwei-Handy-Abgleich nach dem Update.
+
+## F-036
+**Wortlaut:** (Betreiber, 09.11.) Version 49, nach Update suchen, "neue Version gefunden, die App laedt gleich neu", nichts passiert
+**Status:** behoben fuer kuenftige Updates; das Handy mit FUSION49 muss EINMAL von Hand neu gestartet werden
+**Test:** F-036 updatePruefen: neue Version gefunden, danach wirklich neu geladen (+8)
+**Priorität:** 1
+**Umsetzung:** Das Neuladen nach einem Update haengte daran, dass die Seite beim Start schon von einem Service Worker gesteuert wurde (`swHatteController`); sonst blieb die alte Version stehen. Jetzt laedt `updatePruefen` selbst neu, sobald die neue Version aktiv ist (nur einmal). Zusaetzlich erkennt es "neue Version schon aktiv, Seite noch alt" ueber eine Versionsabfrage beim Service Worker (`sw.js` antwortet auf "version"). Version FUSION52.
+**Belegt:** Fehler nachgestellt (echter Browser, FUSION49 -> neu: bleibt auf 49, kein Neuladen). Mit dem Fix: FUSION52 -> FUSION53 ohne vorheriges Neuladen laedt neu auf 53. Rot vor Fix, gruen danach (349 in drei Zeitzonen).
+**Mutationen:** F-036: kein Neuladen mehr / alte Seite nicht erkannt / Neuladen ohne Sperre
+**Nicht geprueft:** Echtes Handy (Chrome Android, installierte App). Die alte Seite (FUSION49-51) hat die Reparatur nicht und kann sich nicht selbst heilen.

@@ -624,6 +624,27 @@ const MUTATIONEN = [
     erwarteRot: ['F-035 Standard schreibt weiter das bisherige Format'],
   },
   {
+    name: 'F-036: Nach "neue Version gefunden" wird nicht mehr neu geladen',
+    datei: 'index.html',
+    suchen: '    updateNachAktivierungNeuLaden(w, () => { try { location.reload(); } catch (e) {} });',
+    ersetzen: '    void w;',
+    erwarteRot: ['F-036 updatePruefen: neue Version gefunden, danach wirklich neu geladen'],
+  },
+  {
+    name: 'F-036: Schon aktive neue Version bei alter Seite wird nicht mehr erkannt',
+    datei: 'index.html',
+    suchen: '    if (sv && !updateVersionGleich(sv, APP_VERSION)) z = "neu";',
+    ersetzen: '    void sv;',
+    erwarteRot: ['F-036 neue Version schon aktiv, Seite noch alt'],
+  },
+  {
+    name: 'F-036: Neuladen ohne Sperre (Dauerschleife moeglich)',
+    datei: 'index.html',
+    suchen: '    if (updateNeuGeladen) return;           // nur einmal, kein Dauer-Neuladen',
+    ersetzen: '',
+    erwarteRot: ['F-036 Nur einmal neu laden'],
+  },
+  {
     name: 'F-024: Heute rechnet den Tag wieder ueber UTC',
     datei: 'index.html',
     suchen: 'const tag = isoTag(jetzt);',

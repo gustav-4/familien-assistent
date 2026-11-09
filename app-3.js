@@ -1851,6 +1851,41 @@ function updateText(zustand) {
   };
   return t[zustand] || t.nichtUnterstuetzt;
 }
+// F-036: Nach "neue Version gefunden" muss auch wirklich neu geladen werden.
+// Vorher haengte das Neuladen daran, dass die Seite beim Start schon von einem
+// Service Worker gesteuert wurde - sonst blieb die alte Version stehen.
+let updateNeuGeladen = false;
+function updateNeuGeladenZuruecksetzen() { updateNeuGeladen = false; }
+function updateVersionGleich(swVersion, appVersion) {
+  const sv = String(swVersion || "").replace(/^app-/i, "").toUpperCase();
+  return sv !== "" && sv === String(appVersion || "").toUpperCase();
+}
+function updateNachAktivierungNeuLaden(worker, neuLaden, verzoegerungMs) {
+  if (!worker) return false;
+  const los = () => {
+    if (updateNeuGeladen) return;           // nur einmal, kein Dauer-Neuladen
+    updateNeuGeladen = true;
+    setTimeout(neuLaden, verzoegerungMs === undefined ? 600 : verzoegerungMs);
+  };
+  if (worker.state === "activated") { los(); return true; }
+  worker.addEventListener("statechange", () => {
+    if (worker.state === "activated") los();
+  });
+  return true;
+}
+// Fragt den aktiven Service Worker nach seiner Version (leer = keine Antwort).
+function updateSwVersionFragen(reg) {
+  return new Promise((ok) => {
+    try {
+      const w = reg && reg.active;
+      if (!w || typeof MessageChannel === "undefined") return ok("");
+      const kanal = new MessageChannel();
+      const t = setTimeout(() => ok(""), 1500);
+      kanal.port1.onmessage = (e) => { clearTimeout(t); ok(String(e.data || "")); };
+      w.postMessage("version", [kanal.port2]);
+    } catch (e) { ok(""); }
+  });
+}
 async function updatePruefen() {
   const el = document.getElementById("updateStatus");
   if (el) el.textContent = "Suche nach Updates …";
@@ -1862,8 +1897,17 @@ async function updatePruefen() {
       if (reg && online) await reg.update();
     }
   } catch (e) { /* Netzfehler: unten als 'aktuell' bzw. 'offline' gemeldet */ }
-  const z = updateZustand(reg, online);
+  let z = updateZustand(reg, online);
+  if (z === "aktuell") {
+    // Neue Version schon aktiv, aber diese Seite noch die alte? Dann neu laden.
+    const sv = await updateSwVersionFragen(reg);
+    if (sv && !updateVersionGleich(sv, APP_VERSION)) z = "neu";
+  }
   if (el) el.textContent = updateText(z);
+  if (z === "neu") {
+    const w = reg.installing || reg.waiting || { state: "activated" };
+    updateNachAktivierungNeuLaden(w, () => { try { location.reload(); } catch (e) {} });
+  }
   return z;
 }
 (function initTermine() {
