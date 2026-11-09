@@ -325,3 +325,13 @@ Im Kochmodus Rueckfrage "Wirklich das Kochen beenden? Sag ja oder nein." wie vom
 **Belegt:** Rot vor Fix (App 3, Server 4), gruen danach. Rechenweg App = Server per Test gleich.
 **Mutationen:** F-029: Abgleich schickt den Code wieder im Klartext / Kennung mit falschem Vorsatz
 **Nicht geprueft:** Echter Abgleich zweier Handys nach dem Update; `rezept.mjs`-Zweig nur im Quelltext geaendert, nicht per Servertest. Restrisiko: Der Code hat nur ca. 50 Bit; wer die Kennung hat und sehr viel rechnet, koennte ihn erraten (Abhilfe: langsame Ableitung, braucht Umzug bestehender Plus-Codes - nur mit Rueckfrage).
+
+## F-030
+**Wortlaut:** (Betreiber, 09.11.) optimiere ALLES, finde Fehler auf haertestem Niveau
+**Status:** behoben
+**Test:** F-030 Antwort ist 410 (abgeschaltet) (+2, tests/server/termin-parse.test.mjs)
+**Priorität:** 2
+**Umsetzung:** Nach F-025b nutzt die App den KI-Dienst `termin-parse` nicht mehr. Er war aber weiter offen erreichbar (ohne Anmeldung) und haette KI-Kosten verursachen koennen. Er antwortet jetzt mit 410 und dem Hinweis, die App zu aktualisieren; es wird keine KI aufgerufen.
+**Belegt:** Rot vor Fix (3 FEHL), gruen danach.
+**Mutationen:** F-030: abgeschalteter KI-Dienst fuer Termine laeuft wieder
+**Nicht geprueft:** Auf dem echten Server.

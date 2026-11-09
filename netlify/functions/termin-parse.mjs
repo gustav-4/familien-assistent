@@ -29,6 +29,11 @@ function safeJsonParse(text) {
 }
 
 const handler = async (event) => {
+  // F-030: abgeschaltet. Termine werden seit FUSION47 auf dem Handy
+  // verstanden. Der offene KI-Zugang waere sonst nur ein Kostenrisiko.
+  if (event) return antwort(410, { success: false, error:
+    "Diese Funktion gibt es nicht mehr. Bitte die App aktualisieren " +
+    "(schließen und neu öffnen)." });
   if (event.httpMethod !== "POST")
     return antwort(405, { success: false, error: "Nur POST" });
 

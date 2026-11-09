@@ -522,6 +522,22 @@ const MUTATIONEN = [
     erwarteRot: ['F-029 Kennung stimmt mit der Server-Berechnung ueberein'],
   },
   {
+    name: 'F-029: Abgleich-Server nimmt die Kennung nicht mehr an',
+    datei: 'netlify/functions/termine.mjs',
+    suchen: 'if (event.httpMethod === "GET" && (q.code || q.kanal)) {',
+    ersetzen: 'if (event.httpMethod === "GET" && q.code) {',
+    erwarteRot: [],
+    servertest: 'tests/server/termine.test.mjs',
+  },
+  {
+    name: 'F-030: abgeschalteter KI-Dienst fuer Termine laeuft wieder',
+    datei: 'netlify/functions/termin-parse.mjs',
+    suchen: '  if (event) return antwort(410, { success: false, error:',
+    ersetzen: '  if (false) return antwort(410, { success: false, error:',
+    erwarteRot: [],
+    servertest: 'tests/server/termin-parse.test.mjs',
+  },
+  {
     name: 'F-024: Heute rechnet den Tag wieder ueber UTC',
     datei: 'index.html',
     suchen: 'const tag = isoTag(jetzt);',
