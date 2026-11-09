@@ -1797,6 +1797,9 @@ warte(async () => {
   const pp = wert("Permissions-Policy");
   pruefe("F-032 Geraete-Rechte: Mikrofon und Kamera nur fuer die App selbst, Standort/Zahlung aus",
     /microphone=\(self\)/.test(pp) && /camera=\(self\)/.test(pp) && /geolocation=\(\)/.test(pp));
+  pruefe("F-032 security.txt nennt die Hauptadresse familienassistent.net",
+    fs.existsSync(process.cwd() + "/.well-known/security.txt") &&
+    /^Canonical:\s*https:\/\/familienassistent\.net\//m.test(fs.readFileSync(process.cwd() + "/.well-known/security.txt", "utf8")));
   pruefe("F-032 security.txt mit Kontakt fuer Sicherheitsmeldungen",
     fs.existsSync(process.cwd() + "/.well-known/security.txt") &&
     /^Contact:\s*mailto:/m.test(fs.readFileSync(process.cwd() + "/.well-known/security.txt", "utf8")));
