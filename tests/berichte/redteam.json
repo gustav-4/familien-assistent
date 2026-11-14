@@ -1,0 +1,15 @@
+{
+  "zeitpunkt": "2026-11-14T07:12:27.814Z",
+  "modell": "claude-sonnet-4-6",
+  "erzeugteTestfaelle": 16,
+  "bestanden": 384,
+  "verdachtsfaelle": [
+    {
+      "name": "RT3-02 'auf die liste' (ohne einkaufs) ist KEIN Befehl",
+      "bestanden": false,
+      "fehlertext": ""
+    }
+  ],
+  "bestandsfehler": [],
+  "stoerung": ""
+}

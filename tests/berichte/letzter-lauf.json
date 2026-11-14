@@ -1,12 +1,18 @@
 {
-  "zeitpunkt": "2026-11-09T17:29:16.879Z",
-  "version": "FUSION54",
-  "gesamt": 355,
-  "bestanden": 355,
-  "fehlgeschlagen": 0,
+  "zeitpunkt": "2026-11-14T07:12:27.809Z",
+  "version": "FUSION55",
+  "gesamt": 385,
+  "bestanden": 384,
+  "fehlgeschlagen": 1,
   "selbstheilung": {
     "geschlosseneAttrappenLuecken": [],
     "hinweis": "Keine Attrappen-Luecken."
   },
-  "fehler": []
+  "fehler": [
+    {
+      "name": "RT3-02 'auf die liste' (ohne einkaufs) ist KEIN Befehl",
+      "bestanden": false,
+      "fehlertext": ""
+    }
+  ]
 }
