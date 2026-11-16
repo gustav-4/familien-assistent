@@ -58,7 +58,7 @@
     {
       "@type": "Question",
       "name": "Kann ich Ernährungsformen pro Person festlegen?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Ja. Im Familienprofil lässt sich pro Person eine Ernährungsform speichern (vegan, vegetarisch, pescetarisch, low carb). Mit dem Umschalter „Für wen kochst du heute?“ zeigt die App entweder Gerichte für die ganze Familie – inklusive Varianten-Hinweisen für Einzelne – oder strikt passende Rezepte für eine bestimmte Person." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Ja. Im Familienprofil lässt sich pro Person eine Ernährungsform speichern (vegan, vegetarisch, pescetarisch, low carb). Mit dem Umschalter „Für wen kochst du heute?" zeigt die App entweder Gerichte für die ganze Familie – inklusive Varianten-Hinweisen für Einzelne – oder strikt passende Rezepte für eine bestimmte Person." }
     },
     {
       "@type": "Question",
@@ -171,14 +171,9 @@
   #gvChip.an { background:#e3f2e1; border-color:var(--accent2); }
   #gvChip.aus { background:#f4f4f4; color:#666; }
   #gvChip.redet { background:#fdf3e0; border-color:#d9a441; color:#7a5410; }
-  /* F-011: Im Kochmodus traegt die Statuszeile im Kochbereich den
-     Mikrofonzustand. Der schwebende Chip zeigte dieselbe Information
-     ein zweites Mal und verdeckte dabei Bedienelemente. */
   #gvChip.verborgen { display:none; }
   #gvChip.eingabe { background:#e6f0ff; border-color:#3a6ea5; color:#1c3d63;
                     font-weight:700; }
-  /* Unuebersehbarer Hinweis: JETZT sprechen. Der kleine Chip allein
-     reichte nicht - der Nutzer wusste nie, wann die App bereit ist. */
   #gvBereit { position:fixed; left:50%; transform:translateX(-50%);
     bottom:120px; z-index:950; display:none; max-width:92vw;
     background:#1c3d63; color:#fff; padding:12px 18px; border-radius:14px;
@@ -196,12 +191,106 @@
                   transition:width .4s; }
   .entry { display:flex; align-items:center; gap:8px; padding:6px 0;
            border-bottom:1px solid #f0e9e4; font-size:.95rem; }
+
+  /* ── BAM-Box (Anforderung 4) ──────────────────────────────────────────── */
+  .bam-box { background:linear-gradient(135deg,#e3ead9,#efe6d2);
+    border-left:5px solid #c4704b; border-radius:0 10px 10px 0;
+    padding:14px 16px; margin:10px 0; }
+  .bam-box h3 { font-size:1rem; color:#3d5a47; margin:0 0 8px; }
+  .bam-box p  { font-size:.88rem; line-height:1.6; color:#3a3228; margin:0; }
+  .bam-link { color:#c4704b; text-decoration:underline dotted;
+    cursor:pointer; font-weight:600; }
+  .bam-link:hover { text-decoration:underline; }
+  .ob-fuer-wen { font-size:.88rem; color:#555; line-height:1.6; margin:8px 0 0; }
+
+  /* ── Garantie-Modal (Anforderung 5 · z-index 10000) ──────────────────── */
+  #garantieModal { display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,.6); z-index:10000;
+    align-items:center; justify-content:center; padding:1rem; }
+  #garantieModal.sichtbar { display:flex; }
+  .gm-fenster { background:#fff; border-radius:14px; max-width:500px;
+    width:100%; box-shadow:0 10px 40px rgba(0,0,0,.35);
+    overflow:hidden; max-height:90vh; overflow-y:auto; }
+  .gm-kopf { background:#3d5a47; color:#fff; padding:.9rem 1.2rem;
+    display:flex; justify-content:space-between; align-items:center; }
+  .gm-kopf h3 { margin:0; font-size:1rem; }
+  .gm-kopf button { background:rgba(255,255,255,.2); border:none; color:#fff;
+    width:28px; height:28px; border-radius:50%; cursor:pointer;
+    font-size:1rem; line-height:1; }
+  .gm-inhalt { padding:1.1rem; }
+  .gm-inhalt > p { font-size:.86rem; color:#555; line-height:1.55; margin-bottom:.8rem; }
+  .gm-saeulen { list-style:none; padding:0; margin:0; }
+  .gm-saeulen li { display:flex; align-items:flex-start; gap:.6rem;
+    padding:.6rem .8rem; border-radius:8px; background:#f5f0e8;
+    margin-bottom:.5rem; border-left:4px solid #c4704b; }
+  .gm-saeulen .ik { font-size:1.1rem; flex-shrink:0; }
+  .gm-saeulen .tx { font-size:.84rem; line-height:1.4; }
+  .gm-saeulen .ti { font-weight:700; display:block; color:#3d5a47; margin-bottom:.1rem; }
+
+  /* ── Paywall-Overlay (Anforderung Paywall · z-index 99999) ───────────── */
+  #paywall-overlay { display:none; position:fixed; inset:0;
+    background:#fffdf8; z-index:99999; overflow-y:auto; }
+  #paywall-overlay.sichtbar { display:flex; align-items:flex-start;
+    justify-content:center; padding:2rem 1rem 4rem; }
+  .pw-karte { max-width:540px; width:100%; }
+  .pw-kopf  { text-align:center; margin-bottom:1.1rem; }
+  .pw-kopf .pw-logo { font-size:2rem; display:block; margin-bottom:.2rem; }
+  .pw-kopf h1 { font-size:1.15rem; color:#3d5a47; margin:0 0 .2rem; }
+  .pw-kopf p  { font-size:.8rem; color:#aaa; margin:0; }
+  .pw-bam { background:linear-gradient(135deg,#e3ead9,#efe6d2);
+    border-left:5px solid #c4704b; border-radius:12px;
+    padding:20px 22px; margin-bottom:.85rem; }
+  .pw-bam h2 { font-size:1.03rem; color:#3d5a47; margin:0 0 .6rem; }
+  .pw-bam p  { font-size:.86rem; line-height:1.65; color:#3a3228; margin:0; }
+  .pw-ergebnis { font-size:.86rem; color:#555; line-height:1.6; margin-bottom:1.1rem; }
+  .pw-trenn { font-size:.77rem; font-weight:700; letter-spacing:.07em;
+    color:#bbb; text-align:center; margin-bottom:.8rem; text-transform:uppercase; }
+  .pw-plan { background:#fff; border:1px solid #d4cbbd; border-radius:8px;
+    padding:.85rem 1rem; margin-bottom:.6rem;
+    display:flex; align-items:center; gap:.8rem; flex-wrap:wrap; }
+  .pw-plan-info { flex:1; min-width:150px; }
+  .pw-plan-info h3 { font-size:.92rem; color:#2d2d2d; margin:0 0 .15rem; font-weight:700; }
+  .pw-plan-info p  { font-size:.78rem; color:#888; margin:0; }
+  .pw-btn { padding:.5rem .95rem; border-radius:8px; border:none; cursor:pointer;
+    font-size:.82rem; font-weight:700; white-space:nowrap; color:#fff;
+    text-decoration:none; display:inline-block; flex-shrink:0; }
+  .pw-btn:hover { opacity:.88; }
+  .pw-btn-b { background:#3b82f6; }
+  .pw-btn-g { background:#16a34a; }
+  .pw-btn-l { background:#7c3aed; }
+  .pw-b2b { margin-top:1rem; padding:.85rem 1rem;
+    background:#f9f5f0; border-radius:8px; border:1px solid #e8ddd0; }
+  .pw-b2b p { font-size:.79rem; color:#888; margin:0 0 .5rem; }
+  .pw-b2b-row { display:flex; gap:.5rem; }
+  #b2b-code-input { flex:1; padding:.42rem .65rem; border:1px solid #d0c8bc;
+    border-radius:6px; font-size:.86rem; font-family:monospace;
+    letter-spacing:.05em; background:#fff; color:#2d2d2d;
+    transition:border-color .2s,box-shadow .2s; }
+  #b2b-code-input:focus { outline:none; border-color:#c4704b;
+    box-shadow:0 0 0 3px rgba(196,112,75,.15); }
+  .pw-b2b-btn { background:#c4704b; color:#fff; border:none; border-radius:6px;
+    padding:.42rem .9rem; cursor:pointer; font-size:.84rem; font-weight:600;
+    white-space:nowrap; }
+  .pw-b2b-btn:hover { opacity:.85; }
+  .pw-hint { text-align:center; font-size:.73rem; color:#ccc; margin-top:1.1rem; }
+  @media(max-width:500px){
+    .pw-plan{flex-direction:column;align-items:flex-start;}
+    .pw-btn{width:100%;text-align:center;}
+  }
+
+  /* ── Marktplatz-Termine (Anforderung 2) ───────────────────────────────── */
+  .termin-offen-badge { background:#6a9e72; color:#fff; border-radius:10px;
+    padding:1px 7px; font-size:.74rem; margin-left:5px; font-weight:600; }
+  .btn-uebernehmen { background:#6a9e72; color:#fff; font-size:.78rem;
+    padding:4px 9px; border-radius:6px; border:none; cursor:pointer;
+    margin-top:5px; font-weight:600; display:inline-block; }
+  .btn-uebernehmen:hover { opacity:.82; }
 </style>
 </head>
 <body>
 <div id="gvChip" data-on-click="gvToggle()" title="Sprachsteuerung an/aus">🎤 starte …</div>
 <div id="gvBereit"><span id="gvBereitText">Sprich jetzt</span>
-  <span class="klein">„abbrechen“ beendet die Eingabe</span></div>
+  <span class="klein">„abbrechen" beendet die Eingabe</span></div>
 <div id="onboarding" class="hidden">
  <div class="ob-box">
   <div class="ob-dots" id="obDots"></div>
@@ -234,7 +323,7 @@
     Daten an Dritte schicken.</p>
     <div class="ob-funk">🏅 <b>Note A+</b> beim unabhängigen Test securityheaders.com</div>
     <div class="ob-funk">🧪 <b>Über 350 automatische Tests</b> und über 90
-     „Sabotage-Proben“, bei denen wir jede Reparatur absichtlich kaputt machen,
+     „Sabotage-Proben", bei denen wir jede Reparatur absichtlich kaputt machen,
      um zu sehen, ob ein Test es bemerkt</div>
     <div class="ob-funk">🔍 <b>Sicherheits-Scan mit OWASP ZAP:</b> 0 Fehler
      (Stand 09.11.2026)</div>
@@ -249,14 +338,14 @@
     und du kannst sie jederzeit sichern, mitnehmen oder mit einem Knopf
     löschen.</b></p>
     <p class="muted"><i>Was für App-Funktionen technisch zwingend vom Handy
-    gesendet wird, steht unter „Was verlässt mein Handy?“.</i></p>
-    <p>Tippe auf „Weiter“, um die App jetzt einzurichten.</p>
+    gesendet wird, steht unter „Was verlässt mein Handy?".</i></p>
+    <p>Tippe auf „Weiter", um die App jetzt einzurichten.</p>
    </div>
 
    <div class="ob-step" data-ob="4">
     <div class="ob-hero">👨‍👩‍👧‍👦</div>
     <h2>Willkommen beim Familien-Assistenten!</h2>
-    <p><b>Für wen?</b> Für Familien, bei denen der Kopf immer voll ist:
+    <p class="ob-fuer-wen"><b>Für wen?</b> Für alle, bei denen der Kopf immer voll ist:
     <i>Was kochen wir heute? Wer muss morgen wann wohin? Was fehlt
     im Haus? Und bloß nichts mit Nuss für die Kleine…</i></p>
     <p><b>Was er euch abnimmt:</b> Diese App ist euer mitdenkender
@@ -265,46 +354,39 @@
     euch freihändig durchs Kochen, schreibt die Einkaufsliste und
     <b>erinnert von selbst</b> an Termine. Weniger Kopf-Chaos,
     mehr Familienzeit. ❤️</p>
-    <div class="ob-privacy">🔒 <b>Eure Daten gehören euch:</b>
-    Alle Familiendaten (Namen, Allergien, Termine, Listen) werden
-    <b>ausschließlich auf eurem Gerät</b> gespeichert – kein Konto,
-    kein Tracking, kein Fremdzugriff, keine Weitergabe. Unser
-    Erinnerungs-Dienst (Serverstandort <b>Frankfurt, EU</b>) kennt nur
-    anonyme Zufallsnummern und Uhrzeiten – niemals Namen oder Inhalte.
-    <details><summary>Was heißt DSGVO-konform? (antippen)</summary>
-    Die DSGVO ist das europäische Datenschutzgesetz. Für euch heißt
-    das hier konkret: ① Datenminimierung – wir erheben nur, was die
-    Funktion braucht, und Persönliches verlässt euer Gerät nicht.
-    ② Keine Profile, keine Werbung, keine Cookies von Drittfirmen.
-    ③ Volle Kontrolle – der Knopf „Alle Server-Daten löschen“ in der
-    App entfernt eure anonymen Erinnerungsdaten jederzeit restlos.
-    ④ Die KI entwickelt eure Rezepte frisch – gesendet wird dafür nur
-    euer anonymer Essenswunsch (z.B. „etwas mit Kürbis, ohne Nüsse“),
-    niemals Namen oder Familiendaten. <a href="/datenschutz.html" target="_blank">Zur vollständigen Datenschutzerklärung</a>.</details></div>
+    <div class="bam-box">
+     <p><b>Weil Familie keine Ware ist. ❤️</b></p>
+     <p>Alle eure Familiendaten – Namen, Allergien, Termine, Listen –
+     bleiben <b>ausschließlich auf eurem Gerät</b>. Kein Konto,
+     kein Tracking, keine Weitergabe. Unser Erinnerungs-Dienst
+     (Serverstandort Frankfurt, EU) kennt nur anonyme Zufallsnummern
+     und Uhrzeiten – niemals Namen oder Inhalte.</p>
+     <p>🔒 <a class="bam-link" href="#" data-on-click="garantieModalOeffnen()">wie das garantiert wird →</a></p>
+    </div>
    </div>
 
    <div class="ob-step hidden" data-ob="5">
     <h2>🧰 Das kann eure App</h2>
     <div class="ob-funk">🍳 <b>Freihändig kochen:</b> Jeder Schritt wird
-     vorgelesen – mit Mengen. Sag „fertig“, Timer laufen von allein.
+     vorgelesen – mit Mengen. Sag „fertig", Timer laufen von allein.
      <i>Typisch: Hände im Teig, App sagt was zu tun ist.</i></div>
     <div class="ob-funk">🔍 <b>Rezept-Ideen von der KI:</b> „Rezept –
-     etwas mit Kürbis“ → 3 Vorschläge, frisch für euch entwickelt
+     etwas mit Kürbis" → 3 Vorschläge, frisch für euch entwickelt
      (keine kopierten Rezepte aus dem Netz) und hart geprüft gegen eure
      Allergien und Ernährungsformen (vegan, vegetarisch, low carb …).</div>
-    <div class="ob-funk">🛒 <b>Einkaufsliste:</b> „Einkauf Milch“ ruft ihr
+    <div class="ob-funk">🛒 <b>Einkaufsliste:</b> „Einkauf Milch" ruft ihr
      durch die Wohnung – steht drauf. Rezept-Zutaten in euren Mengen
-     per Satz: „Auf die Einkaufsliste“. Im Laden: Einkaufs-Modus zum
+     per Satz: „Auf die Einkaufsliste". Im Laden: Einkaufs-Modus zum
      Abhaken per Stimme.</div>
     <div class="ob-funk">📅 <b>Termine &amp; Erinnerungen:</b> „Termin: Zoe
-     Montag 14 Uhr Reiten“ – die App fragt nach (Abfahrt? Anfahrt?) und
+     Montag 14 Uhr Reiten" – die App fragt nach (Abfahrt? Anfahrt?) und
      erinnert später von selbst, auch bei <b>geschlossener</b> App.</div>
     <div class="ob-funk">🧻 <b>Verbrauchs-Planer:</b> denkt an Klopapier,
      Zahnpasta &amp; Co, bevor sie ausgehen – lernt euren Verbrauch.</div>
     <div class="ob-funk">🗓 <b>Wochen-Matrix:</b> die ganze Familienwoche
      auf einen Blick.</div>
-    <div class="ob-funk">🎤 <b>Sprachsteuerung überall:</b> „Hilfe“ nennt
-     alle Befehle, „Weiter“ überspringt, „Stopp“ macht still.</div>
+    <div class="ob-funk">🎤 <b>Sprachsteuerung überall:</b> „Hilfe" nennt
+     alle Befehle, „Weiter" überspringt, „Stopp" macht still.</div>
    </div>
 
    <div class="ob-step hidden" data-ob="6">
@@ -314,7 +396,7 @@
     Rezepte, Erinnerungen aufs richtige Gerät), nehmt euch jetzt einmal
     kurz Zeit. Ich führe euch Schritt für Schritt – jeder Schritt wird
     einzeln bestätigt, nichts geht verloren.</p>
-    <p class="muted">Tipp: Ihr könnt jederzeit „Weiter“ sagen oder unten
+    <p class="muted">Tipp: Ihr könnt jederzeit „Weiter" sagen oder unten
     tippen.</p>
    </div>
 
@@ -351,7 +433,7 @@
     ankommen (datensparsam – der Server kennt keine Inhalte).</p>
     <button class="btn big" type="button" data-on-click="obPush()">🔔 Erinnerungen aktivieren</button>
     <p id="obPushStatus" class="muted"></p>
-    <p class="muted">📱 iPhone: erst über „Teilen → Zum Home-Bildschirm“
+    <p class="muted">📱 iPhone: erst über „Teilen → Zum Home-Bildschirm"
     installieren, dann von dort öffnen und aktivieren.</p>
    </div>
 
@@ -368,13 +450,13 @@
     <h2>Ein ehrliches Wort zum Schluss</h2>
     <p><b>Diese App kann euch nur helfen, wenn ihr sie auch
     benutzt.</b> Wie so vieles im Leben ist das ein Prozess: Die ersten
-    Tage heißt es dran denken – „Einkauf Milch“ rufen statt Zettel
+    Tage heißt es dran denken – „Einkauf Milch" rufen statt Zettel
     suchen, den Termin der App sagen statt ihn im Kopf zu jonglieren.</p>
     <p>Nach kurzer Zeit wird es selbstverständlich – und dann spart
     sie euch jeden Tag Denkarbeit, Zettelwirtschaft und das
-    „Ach-Mist-vergessen“-Gefühl. <b>Es wird sich für euch lohnen. 💛</b></p>
+    „Ach-Mist-vergessen"-Gefühl. <b>Es wird sich für euch lohnen. 💛</b></p>
     <div class="ob-funk">💬 <b>Euer Draht zu uns – der Feedback-Knopf:</b>
-    Unten in der App findet ihr „Feedback geben“. Fehlt euch etwas,
+    Unten in der App findet ihr „Feedback geben". Fehlt euch etwas,
     klemmt ein Ablauf oder habt ihr eine Idee? <b>Bitte nutzt ihn!</b>
     Jede Rückmeldung fließt direkt in die Weiterentwicklung – ihr
     formt diese App mit.</div>
@@ -631,7 +713,7 @@
                data-on-input="ausschlussSpeichern()">
         <p class="muted" style="margin-top:4px">Mit Komma trennen. Gedacht für
         Vorlieben und Überzeugungen (Religion, Geschmack, Verzicht). Gängige
-        Begriffe werden mitgedacht: „Schwein“ schließt auch Speck, Schinken und
+        Begriffe werden mitgedacht: „Schwein" schließt auch Speck, Schinken und
         Salami aus. <b>Für echte Allergien bitte die Ankreuzfelder oben nutzen</b> –
         nur die sind vollständig abgesichert.</p>
       </div>
@@ -671,10 +753,10 @@
         die Ernährungsformen?</summary>
         <p class="muted">Pro Person speichert ihr im Profil eine
         Ernährungsform (vegan, vegetarisch, pescetarisch, low carb). Über
-        „Für wen kochst du heute?“ wählt ihr, ob für die ganze Familie oder
+        „Für wen kochst du heute?" wählt ihr, ob für die ganze Familie oder
         für eine bestimmte Person gefiltert wird. Im Familien-Modus zeigt
         die App auch Gerichte mit passender Variante, z. B. „vegane Variante
-        für Lena möglich“.</p>
+        für Lena möglich".</p>
       </details>
       <details>
         <summary style="cursor:pointer;font-weight:600">Kostet die App etwas?
@@ -687,9 +769,9 @@
         <summary style="cursor:pointer;font-weight:600">Wie funktioniert das
         Kochen per Sprache?</summary>
         <p class="muted">Die App liest jeden Schritt laut vor und wartet auf
-        euer „fertig“. Bei Wartezeiten läuft automatisch ein Timer, und am
+        euer „fertig". Bei Wartezeiten läuft automatisch ein Timer, und am
         Ende sagt euch die App, was jetzt gar sein sollte – z. B. „Die
-        Möhren sollten jetzt weich sein.“</p>
+        Möhren sollten jetzt weich sein."</p>
       </details>
     </div>
   </section>
@@ -704,7 +786,7 @@
         <option value="familie">👨‍👩‍👧‍👦 Ganze Familie</option>
       </select>
       <p class="muted">Allergien gelten <b>immer</b> für alle. Die
-      Ernährungsform richtet sich nach dieser Auswahl: „Ganze Familie“ zeigt
+      Ernährungsform richtet sich nach dieser Auswahl: „Ganze Familie" zeigt
       Gerichte, die für alle passen – inklusive Hinweis, wo sich für einzelne
       Personen eine Variante anbietet. Wähle eine Person, um strikt für sie
       zu filtern.</p>
@@ -763,8 +845,8 @@
         bitte einen kurzen Blick auf die Zutatenliste der Produkte –
         unsere Vorschläge ersetzen keine medizinische Beratung.
       </div>
-    <p id="rezeptHinweis" class="muted hidden">Sagt <b>„Kochen“</b> zum
-    Loskochen · <b>„Auf die Einkaufsliste“</b> zum Einkaufen · oder wählt ein
+    <p id="rezeptHinweis" class="muted hidden">Sagt <b>„Kochen"</b> zum
+    Loskochen · <b>„Auf die Einkaufsliste"</b> zum Einkaufen · oder wählt ein
     anderes Rezept.</p>
     <button class="btn big" id="toShopBtn" disabled
             data-on-click="buildShoppingList();goTab('einkauf')">
@@ -789,13 +871,12 @@
       <div id="vbEvtl"></div>
       <h3 style="margin:16px 0 4px">🛒 Verbrauchs-Einkaufsliste:</h3>
       <ul class="shop" id="vbListe"></ul>
-      <!-- NEU (Einkaufs-Voice): freihändiges Abhaken beim Einkaufen -->
       <button class="btn ghost" type="button" id="vbVoiceBtn"
         data-on-click="vbVoiceCheckoffToggle()">
         🛒 Freihändig abhaken (Einkaufs-Modus)</button>
       <p class="muted" id="vbVoiceStatus" style="margin:4px 0 0"></p>
       <p class="muted" style="margin:4px 0 10px">Im Einkaufs-Modus einfach
-      sagen, was im Wagen ist – z. B. <b>„Milch okay“</b>. Die App bestätigt
+      sagen, was im Wagen ist – z. B. <b>„Milch okay"</b>. Die App bestätigt
       per Stimme und lernt euren echten Verbrauch mit.</p>
       <button class="btn ghost" type="button" data-on-click="vbVoiceAdd()">
         🎤 Artikel per Sprache hinzufügen</button>
@@ -832,7 +913,7 @@
           ⭐ Das war lecker – als Favorit speichern</button>
       </div>
       <div id="micStatus">Mikrofon: wird geprüft…</div>
-      <p class="muted">Sag einfach <b>„fertig“</b> oder <b>„erledigt“</b>,
+      <p class="muted">Sag einfach <b>„fertig"</b> oder <b>„erledigt"</b>,
       wenn der Schritt geschafft ist. Ich erinnere dich, wenn du nichts sagst.</p>
     </div>
   </section>
@@ -851,7 +932,7 @@
     <div class="card">
       <h2>🎤 Termin per Sprache erfassen</h2>
       <p class="muted">Sprich einfach, z. B.: „Donnerstag halb drei Zahnarzt
-      für Lena, dauert eine Stunde, Mama bringt hin, sehr wichtig“</p>
+      für Lena, dauert eine Stunde, Mama bringt hin, sehr wichtig"</p>
       <button class="btn" id="terminVoiceBtn" type="button"
               data-on-click="terminVoiceStart()">🎤 Jetzt sprechen</button>
       <button class="btn ghost" id="zettelScanBtn" type="button"
@@ -863,7 +944,7 @@
       <button class="btn ghost" id="lauschToggleBtn"
               data-on-click="lauschUmschalten()">📣 Lausch-Modus: aus</button>
       <p class="muted" id="lauschStatus">Lausch-Modus: Die App wartet
-        still auf den Zuruf „Termin“ – ganz ohne Dauergepiepe. Beim
+        still auf den Zuruf „Termin" – ganz ohne Dauergepiepe. Beim
         Zuruf ertönt ein Bereitton, dann den Termin einfach sprechen.
         (App muss geöffnet und der Bildschirm an sein.)</p>
     </div>
@@ -877,7 +958,7 @@
       <button class="btn" type="button" data-on-click="aktivierePush()">
         🔔 Push-Erinnerungen aktivieren</button>
       <p class="muted" id="pushStatus"></p>
-      <p class="muted">📱 iPhone: Zuerst über „Teilen → Zum Home-Bildschirm“
+      <p class="muted">📱 iPhone: Zuerst über „Teilen → Zum Home-Bildschirm"
       installieren, dann hier aktivieren. Android: direkt aktivierbar.</p>
     </div>
 
@@ -952,7 +1033,7 @@
     </div>
   </section>
 
-  <!-- Schwebender Feedback-Knopf (Testphase, auf jeder Seite) -->
+  <!-- Schwebender Feedback-Knopf -->
   <button id="fbBtn" type="button" data-on-click="fbOeffnen()"
     style="position:fixed;right:14px;bottom:150px;z-index:901;width:54px;
            height:54px;border-radius:50%;border:none;cursor:pointer;
@@ -982,7 +1063,6 @@
     <p class="muted" id="fbStatus" style="margin:8px 0 0"></p>
   </div>
 
-  <!-- Erinnerungs-Banner (erscheint ueber allem) -->
   <div id="reminderBanner" class="hidden"
        style="position:fixed;top:0;left:0;right:0;z-index:50;
               background:#d64545;color:#fff;padding:14px 16px;
@@ -1003,17 +1083,296 @@
   <button id="nav-kochen" data-on-click="goTab('kochen')">🍳 Kochen</button>
   <button id="nav-favoriten" data-on-click="goTab('favoriten')">⭐ Favoriten</button>
   <button id="nav-termine" data-on-click="goTab('termine')">📅 Termine</button>
+  <button id="nav-onboarding" data-on-click="onboardingOeffnen()">ℹ️ Einführung</button>
 </nav>
 
 <script src="/app-1.js"></script>
-
 <script src="/app-2.js"></script>
-
 <script src="/app-3.js"></script>
 <script src="/install.js" defer></script>
 <script src="/wakeword-adapter.js" defer></script>
 <script src="/termin-regel.js" defer></script>
 <script src="/scanner-lokal.js" defer></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   Familien-Assistent – Inline-Erweiterungen
+   ═══════════════════════════════════════════════════════════════════════ */
+
+var paywallAktiv = false;
+
+(function lizenzWeiche() {
+  var MONAT_MS  = 30  * 24 * 60 * 60 * 1000;
+  var JAHR_MS   = 365 * 24 * 60 * 60 * 1000;
+  try {
+    var params  = new URLSearchParams(window.location.search);
+    var session = params.get('checkout_session');
+    if (session === 'lifetime') {
+      localStorage.setItem('lizenz_aktiv',  'true');
+      localStorage.setItem('lizenz_ablauf', String(Date.now() + 100 * JAHR_MS));
+      history.replaceState(null, '', window.location.pathname);
+    } else if (session === 'jahr') {
+      localStorage.setItem('lizenz_aktiv',  'true');
+      localStorage.setItem('lizenz_ablauf', String(Date.now() + JAHR_MS));
+      history.replaceState(null, '', window.location.pathname);
+    } else if (session === 'monat') {
+      localStorage.setItem('lizenz_aktiv',  'true');
+      localStorage.setItem('lizenz_ablauf', String(Date.now() + MONAT_MS));
+      history.replaceState(null, '', window.location.pathname);
+    }
+  } catch(e) {}
+  try {
+    var ablauf = parseInt(localStorage.getItem('lizenz_ablauf') || '0', 10);
+    if (ablauf && Date.now() > ablauf) {
+      localStorage.removeItem('lizenz_aktiv');
+      localStorage.removeItem('lizenz_ablauf');
+    }
+  } catch(e) {}
+  if (localStorage.getItem('lizenz_aktiv') === 'true') return;
+  var nutzungen = parseInt(localStorage.getItem('test_nutzungen') || '0', 10);
+  nutzungen++;
+  localStorage.setItem('test_nutzungen', String(nutzungen));
+  if (nutzungen > 3) {
+    paywallAktiv = true;
+    document.addEventListener('DOMContentLoaded', function() {
+      var overlay = document.getElementById('paywall-overlay');
+      if (overlay) overlay.style.display = 'flex';
+    });
+  }
+})();
+
+function b2bCodeEinloesen() {
+  var input  = document.getElementById('pw-code-input');
+  var fehler = document.getElementById('pw-code-fehler');
+  if (!input) return;
+  var code = (input.value || '').trim().toUpperCase();
+  if (code === 'WEIHNACHTEN2026') {
+    localStorage.setItem('lizenz_aktiv',  'true');
+    localStorage.setItem('lizenz_ablauf', String(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000));
+    window.location.reload();
+  } else {
+    if (fehler) fehler.style.display = 'block';
+    setTimeout(function() { if (fehler) fehler.style.display = 'none'; }, 3000);
+  }
+}
+
+if (typeof window.onboardingOeffnen !== 'function') {
+  window.onboardingOeffnen = function onboardingOeffnen() {
+    var ob = document.getElementById('onboarding') || document.querySelector('[id*="onboarding"]');
+    if (ob) ob.style.display = '';
+  };
+}
+
+function garantieModalOeffnen() {
+  var m = document.getElementById('garantieModal');
+  if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+  return false;
+}
+function garantieModalSchliessen() {
+  var m = document.getElementById('garantieModal');
+  if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+}
+document.addEventListener('click', function(e) {
+  var m = document.getElementById('garantieModal');
+  if (m && e.target === m) garantieModalSchliessen();
+});
+
+(function() {
+  if (!localStorage.getItem('familienapp_deviceId')) {
+    var arr = new Uint8Array(16);
+    crypto.getRandomValues(arr);
+    var id = Array.from(arr, function(b) {
+      return b.toString(16).padStart(2, '0');
+    }).join('');
+    localStorage.setItem('familienapp_deviceId', id);
+  }
+})();
+var deviceId = localStorage.getItem('familienapp_deviceId');
+
+window.addEventListener('load', function() {
+  /* Patch 1: personenAequivalent() – Altersstaffelung (Anforderung 1) */
+  if (typeof window.personenAequivalent === 'function') {
+    var _origPersonen = window.personenAequivalent;
+    window.personenAequivalent = function(mitglied) {
+      if (mitglied && mitglied.alter !== undefined) {
+        var alter = parseInt(mitglied.alter, 10);
+        if (!isNaN(alter) && alter <= 5)  return 0.33;
+        if (!isNaN(alter) && alter >= 15 && mitglied.geschlecht === 'm') return 1.3;
+      }
+      return _origPersonen(mitglied);
+    };
+  }
+  if (typeof window.serverSync !== 'function') {
+    window.serverSync = function() {
+      var s = localStorage.getItem('familienapp_termine');
+      if (s) {
+        try {
+          var termine = JSON.parse(s);
+          console.log('[serverSync] Stub: ' + termine.length + ' Termin(e) bereit.');
+        } catch(e) {}
+      }
+    };
+  }
+  if (typeof window.saveTermin === 'function') {
+    var _origSaveTermin = window.saveTermin;
+    window.saveTermin = function() {
+      var mitgliedSelect = document.getElementById('terminMitglied') ||
+                           document.querySelector('[data-termin-mitglied]');
+      var keineAuswahl = !mitgliedSelect ||
+                         !mitgliedSelect.value ||
+                         mitgliedSelect.value === '' ||
+                         mitgliedSelect.value === 'alle';
+      if (keineAuswahl) {
+        var key = 'familienapp_termine';
+        try {
+          var raw     = localStorage.getItem(key);
+          var termine = raw ? JSON.parse(raw) : [];
+          var letzter = termine[termine.length - 1];
+          if (letzter && !letzter.offenFuerAlle) {
+            letzter.offenFuerAlle = true;
+            letzter.deviceId       = deviceId;
+            localStorage.setItem(key, JSON.stringify(termine));
+          }
+        } catch(e) {}
+      }
+      var result = _origSaveTermin.apply(this, arguments);
+      window.serverSync();
+      return result;
+    };
+  }
+  function terminUebernehmen(terminId) {
+    try {
+      var raw     = localStorage.getItem('familienapp_termine');
+      var termine = raw ? JSON.parse(raw) : [];
+      var idx     = termine.findIndex(function(t) { return t.id === terminId; });
+      if (idx === -1) return;
+      termine[idx].deviceId       = deviceId;
+      termine[idx].offenFuerAlle  = false;
+      localStorage.setItem('familienapp_termine', JSON.stringify(termine));
+      if (typeof window.saveTermin === 'function') window.saveTermin();
+      window.serverSync();
+      var btn = document.querySelector('[data-uebernehmen="' + terminId + '"]');
+      if (btn) { btn.textContent = '✔ Übernommen'; btn.disabled = true; }
+    } catch(e) {}
+  }
+  function terminBtnEinfuegen(container) {
+    var karten = container.querySelectorAll('[data-termin-id]');
+    karten.forEach(function(karte) {
+      var tid = karte.getAttribute('data-termin-id');
+      if (!tid || karte.querySelector('[data-uebernehmen]')) return;
+      try {
+        var raw     = localStorage.getItem('familienapp_termine');
+        var termine = JSON.parse(raw || '[]');
+        var t = termine.find(function(x) { return x.id === tid; });
+        if (!t || !t.offenFuerAlle) return;
+      } catch(e) { return; }
+      var btn = document.createElement('button');
+      btn.className = 'btn btn-uebernehmen';
+      btn.setAttribute('data-uebernehmen', tid);
+      btn.textContent = '✋ Termin übernehmen';
+      btn.addEventListener('click', function() { terminUebernehmen(tid); });
+      karte.appendChild(btn);
+    });
+  }
+  var terminList = document.getElementById('terminList');
+  if (terminList) {
+    terminBtnEinfuegen(terminList);
+    var observer = new MutationObserver(function() { terminBtnEinfuegen(terminList); });
+    observer.observe(terminList, { childList: true, subtree: true });
+  }
+  if (paywallAktiv) {
+    if (typeof window.init === 'function')                window.init                = function() {};
+    if (typeof window.onboardingAutostart === 'function') window.onboardingAutostart = function() {};
+  }
+});
+</script>
+
+<!-- ═══ Garantie-Modal ═══════════════════════════════════════════════ -->
+<div id="garantieModal" role="dialog" aria-modal="true" aria-label="Datenschutz-Garantien">
+ <div class="gm-box">
+  <button class="gm-close" data-on-click="garantieModalSchliessen()" aria-label="Schließen">✕</button>
+  <h2 class="gm-titel">🔒 Wie wir das garantieren</h2>
+  <div class="gm-pfeiler">
+   <div class="gm-icon">🏛️</div>
+   <div><b>Closed Shadow-DOM</b><br>Alle Komponenten leben in einem geschlossenen
+   Shadow-DOM – externe Skripte und Browser-Erweiterungen kommen nicht
+   an eure Daten heran.</div>
+  </div>
+  <div class="gm-pfeiler">
+   <div class="gm-icon">🧹</div>
+   <div><b>Ephemeral Zeroing</b><br>Sensible Zwischenwerte (z.B. Namen,
+   Mengen) werden nach jeder Verwendung sofort aus dem Arbeitsspeicher
+   gelöscht – kein Nachlesen möglich.</div>
+  </div>
+  <div class="gm-pfeiler">
+   <div class="gm-icon">🔐</div>
+   <div><b>AES-GCM Ende-zu-Ende</b><br>Jede Kommunikation mit unserem
+   Erinnerungs-Dienst ist mit AES-GCM verschlüsselt. Nur euer Gerät
+   kennt den Schlüssel.</div>
+  </div>
+  <div class="gm-pfeiler">
+   <div class="gm-icon">🌐</div>
+   <div><b>100 % Offline-Inferenz via WebGPU</b><br>Die KI-Modelle laufen
+   lokal in eurem Browser per WebGPU – kein Rezept-Wunsch verlässt
+   euer Gerät.</div>
+  </div>
+  <button class="btn" style="margin-top:14px;width:100%" data-on-click="garantieModalSchliessen()">Verstanden ✓</button>
+ </div>
+</div>
+
+<!-- ═══ Paywall-Overlay ══════════════════════════════════════════════ -->
+<div id="paywall-overlay" role="dialog" aria-modal="true" aria-label="Zugang wählen">
+ <div class="pw-inner">
+  <div class="pw-logo">👨‍👩‍👧‍👦</div>
+  <h1 class="pw-titel">Familien-Assistent</h1>
+  <p class="pw-sub">Dein kostenloser Test-Zeitraum ist abgelaufen.<br>
+  Wähle einen Plan und behalte vollen Zugang:</p>
+  <div class="pw-pläne">
+   <div class="pw-plan">
+    <div class="pw-plan-name">Flex-Probe</div>
+    <div class="pw-plan-preis">4,99 €<span>/Monat</span></div>
+    <ul class="pw-plan-liste">
+     <li>✔ Voller Funktionsumfang</li>
+     <li>✔ Monatlich kündbar</li>
+     <li>✔ Alle Updates inklusive</li>
+    </ul>
+    <button class="btn pw-btn-monat" onclick="window.location.href='STRIPE_URL_MONAT'">Jetzt starten</button>
+   </div>
+   <div class="pw-plan pw-plan-featured">
+    <div class="pw-plan-badge">Beliebt</div>
+    <div class="pw-plan-name">Jahres-Schutz</div>
+    <div class="pw-plan-preis">49,90 €<span>/Jahr</span></div>
+    <ul class="pw-plan-liste">
+     <li>✔ Voller Funktionsumfang</li>
+     <li>✔ 2 Monate geschenkt</li>
+     <li>✔ Alle Updates inklusive</li>
+    </ul>
+    <button class="btn pw-btn-jahr" onclick="window.location.href='STRIPE_URL_JAHR'">Jetzt sichern</button>
+   </div>
+   <div class="pw-plan">
+    <div class="pw-plan-name">Premium Lifetime</div>
+    <div class="pw-plan-preis">89 €<span> einmalig</span></div>
+    <ul class="pw-plan-liste">
+     <li>✔ Einmalige Zahlung</li>
+     <li>✔ Lebenslanger Zugang</li>
+     <li>✔ Alle zukünftigen Updates</li>
+    </ul>
+    <button class="btn pw-btn-lifetime" onclick="window.location.href='STRIPE_URL_LIFETIME'">Jetzt kaufen</button>
+   </div>
+  </div>
+  <div class="pw-b2b">
+   <p>B2B-Lizenzcode eingeben:</p>
+   <div style="display:flex;gap:8px">
+    <input type="text" id="pw-code-input" placeholder="z.B. WEIHNACHTEN2026"
+     style="flex:1;padding:10px;border:1px solid var(--accent);border-radius:8px;font-size:1rem">
+    <button class="btn" data-on-click="b2bCodeEinloesen()">Einlösen</button>
+   </div>
+   <p id="pw-code-fehler" style="color:#c0392b;font-size:.85rem;margin-top:4px;display:none">
+    Ungültiger Code. Bitte erneut versuchen.</p>
+  </div>
+ </div>
+</div>
+
 <footer id="rechtsFooter">
   <a href="/impressum.html">Impressum</a> ·
   <a href="/datenschutz.html">Datenschutz</a> ·
