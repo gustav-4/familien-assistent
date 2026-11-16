@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Familien-Assistent – Sprachgesteuerter Kochassistent &amp; Essensplaner für Familien</title>
-<meta name="description" content="Kostenlose Familien-App: Rezepte passend zu Zeit, Unverträglichkeiten (alle 14 EU-Allergene) und Ernährungsform finden, Einkaufsliste automatisch in Familienmengen erstellen und freihändig mit Sprachführung kochen – inkl. Timer und Garzeit-Ansagen. Ohne Konto, direkt im Browser.">
+<meta name="description" content="Familien-App: Rezepte passend zu Zeit, Unverträglichkeiten (alle 14 EU-Allergene) und Ernährungsform finden, Einkaufsliste automatisch in Familienmengen erstellen und freihändig mit Sprachführung kochen – inkl. Timer und Garzeit-Ansagen. Ohne Konto, direkt im Browser.">
 <link rel="canonical" href="https://familienassistent.netlify.app/">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#c4704b">
@@ -12,12 +12,12 @@
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Familien-Assistent – Kochen mit freien Händen">
-<meta property="og:description" content="Rezepte nach Zeit, Unverträglichkeiten &amp; Ernährungsform, automatische Einkaufsliste, sprachgeführtes Kochen mit Timern. Kostenlos im Browser.">
+<meta property="og:description" content="Rezepte nach Zeit, Unverträglichkeiten &amp; Ernährungsform, automatische Einkaufsliste, sprachgeführtes Kochen mit Timern. Direkt im Browser.">
 <meta property="og:url" content="https://familienassistent.netlify.app/">
 <meta property="og:locale" content="de_DE">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Familien-Assistent – Kochen mit freien Händen">
-<meta name="twitter:description" content="Sprachgesteuerter Koch- und Essensplaner für Familien. Kostenlos, ohne Konto.">
+<meta name="twitter:description" content="Sprachgesteuerter Koch- und Essensplaner für Familien. Direkt im Browser, ohne Konto.">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -48,7 +48,7 @@
     {
       "@type": "Question",
       "name": "Was ist der Familien-Assistent?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Eine kostenlose Web-App für Familien, die Rezepte passend zu verfügbarer Zeit, Unverträglichkeiten und Ernährungsform findet, automatisch eine Einkaufsliste in Familienmengen erstellt und beim Kochen Schritt für Schritt per Sprache führt – mit Timern und Garzeit-Ansagen, ganz ohne die Hände zu benutzen." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Eine Web-App für Familien, die Rezepte passend zu verfügbarer Zeit, Unverträglichkeiten und Ernährungsform findet, automatisch eine Einkaufsliste in Familienmengen erstellt und beim Kochen Schritt für Schritt per Sprache führt – mit Timern und Garzeit-Ansagen, ganz ohne die Hände zu benutzen." }
     },
     {
       "@type": "Question",
@@ -62,8 +62,8 @@
     },
     {
       "@type": "Question",
-      "name": "Ist die App kostenlos und brauche ich ein Konto?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Ja, die App ist kostenlos und läuft direkt im Browser auf Handy oder Tablet. Ein Konto ist nicht nötig, Favoriten und Profile werden lokal auf dem Gerät gespeichert." }
+      "name": "Brauche ich ein Konto?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Nein. Die App läuft direkt im Browser auf Handy oder Tablet. Ein Konto ist nicht nötig – Favoriten und Profile werden lokal auf dem Gerät gespeichert." }
     }
   ]
 }
@@ -171,9 +171,14 @@
   #gvChip.an { background:#e3f2e1; border-color:var(--accent2); }
   #gvChip.aus { background:#f4f4f4; color:#666; }
   #gvChip.redet { background:#fdf3e0; border-color:#d9a441; color:#7a5410; }
+  /* F-011: Im Kochmodus traegt die Statuszeile im Kochbereich den
+     Mikrofonzustand. Der schwebende Chip zeigte dieselbe Information
+     ein zweites Mal und verdeckte dabei Bedienelemente. */
   #gvChip.verborgen { display:none; }
   #gvChip.eingabe { background:#e6f0ff; border-color:#3a6ea5; color:#1c3d63;
                     font-weight:700; }
+  /* Unuebersehbarer Hinweis: JETZT sprechen. Der kleine Chip allein
+     reichte nicht - der Nutzer wusste nie, wann die App bereit ist. */
   #gvBereit { position:fixed; left:50%; transform:translateX(-50%);
     bottom:120px; z-index:950; display:none; max-width:92vw;
     background:#1c3d63; color:#fff; padding:12px 18px; border-radius:14px;
@@ -484,7 +489,7 @@
   </div>
 </div>
 <header>
-  <h1>Familien-Assistent <span style="font-size:.7em">(Prototyp)</span></h1>
+  <h1>Familien-Assistent</h1>
   <p>Sprachgeführt kochen, planen, einkaufen – Hände frei für alles andere</p>
 </header>
 
@@ -759,9 +764,8 @@
         für Lena möglich".</p>
       </details>
       <details>
-        <summary style="cursor:pointer;font-weight:600">Kostet die App etwas?
-        Brauche ich ein Konto?</summary>
-        <p class="muted">Nein – die App ist kostenlos, läuft direkt im
+        <summary style="cursor:pointer;font-weight:600">Brauche ich ein Konto?</summary>
+        <p class="muted">Nein – die App läuft direkt im
         Browser auf Handy oder Tablet und braucht kein Konto. Favoriten und
         Profile bleiben lokal auf eurem Gerät gespeichert.</p>
       </details>
@@ -1033,7 +1037,7 @@
     </div>
   </section>
 
-  <!-- Schwebender Feedback-Knopf -->
+  <!-- Schwebender Feedback-Knopf (Testphase, auf jeder Seite) -->
   <button id="fbBtn" type="button" data-on-click="fbOeffnen()"
     style="position:fixed;right:14px;bottom:150px;z-index:901;width:54px;
            height:54px;border-radius:50%;border:none;cursor:pointer;
@@ -1063,6 +1067,7 @@
     <p class="muted" id="fbStatus" style="margin:8px 0 0"></p>
   </div>
 
+  <!-- Erinnerungs-Banner (erscheint ueber allem) -->
   <div id="reminderBanner" class="hidden"
        style="position:fixed;top:0;left:0;right:0;z-index:50;
               background:#d64545;color:#fff;padding:14px 16px;
@@ -1087,7 +1092,9 @@
 </nav>
 
 <script src="/app-1.js"></script>
+
 <script src="/app-2.js"></script>
+
 <script src="/app-3.js"></script>
 <script src="/install.js" defer></script>
 <script src="/wakeword-adapter.js" defer></script>
@@ -1097,13 +1104,18 @@
 <script>
 /* ═══════════════════════════════════════════════════════════════════════
    Familien-Assistent – Inline-Erweiterungen
+   Reihenfolge: Paywall-Gate → Garantie-Modal → Load-Patches
    ═══════════════════════════════════════════════════════════════════════ */
 
+/* ── Paywall-Zustandsvariable ──────────────────────────────────────── */
 var paywallAktiv = false;
 
+/* ── Lizenz-Weiche (IIFE, läuft synchron beim Parsen) ─────────────── */
 (function lizenzWeiche() {
   var MONAT_MS  = 30  * 24 * 60 * 60 * 1000;
   var JAHR_MS   = 365 * 24 * 60 * 60 * 1000;
+
+  /* 1. Stripe-Redirect auswerten */
   try {
     var params  = new URLSearchParams(window.location.search);
     var session = params.get('checkout_session');
@@ -1121,6 +1133,8 @@ var paywallAktiv = false;
       history.replaceState(null, '', window.location.pathname);
     }
   } catch(e) {}
+
+  /* 2. Ablauf prüfen */
   try {
     var ablauf = parseInt(localStorage.getItem('lizenz_ablauf') || '0', 10);
     if (ablauf && Date.now() > ablauf) {
@@ -1128,11 +1142,20 @@ var paywallAktiv = false;
       localStorage.removeItem('lizenz_ablauf');
     }
   } catch(e) {}
+
+  /* 3. Lizenz aktiv → fertig */
   if (localStorage.getItem('lizenz_aktiv') === 'true') return;
-  var nutzungen = parseInt(localStorage.getItem('test_nutzungen') || '0', 10);
-  nutzungen++;
-  localStorage.setItem('test_nutzungen', String(nutzungen));
-  if (nutzungen > 3) {
+
+  /* 4. Test-Startdatum setzen (einmalig beim ersten Besuch) */
+  var testStart = parseInt(localStorage.getItem('test_start') || '0', 10);
+  if (!testStart) {
+    testStart = Date.now();
+    try { localStorage.setItem('test_start', String(testStart)); } catch(e) {}
+  }
+
+  /* 5. Paywall auslösen nach 14 Tagen */
+  var VIERZEHN_TAGE_MS = 14 * 24 * 60 * 60 * 1000;
+  if (Date.now() > testStart + VIERZEHN_TAGE_MS) {
     paywallAktiv = true;
     document.addEventListener('DOMContentLoaded', function() {
       var overlay = document.getElementById('paywall-overlay');
@@ -1141,6 +1164,7 @@ var paywallAktiv = false;
   }
 })();
 
+/* ── B2B-Code einlösen ─────────────────────────────────────────────── */
 function b2bCodeEinloesen() {
   var input  = document.getElementById('pw-code-input');
   var fehler = document.getElementById('pw-code-fehler');
@@ -1156,6 +1180,7 @@ function b2bCodeEinloesen() {
   }
 }
 
+/* ── Onboarding-Öffner (Fallback, falls extern noch nicht geladen) ── */
 if (typeof window.onboardingOeffnen !== 'function') {
   window.onboardingOeffnen = function onboardingOeffnen() {
     var ob = document.getElementById('onboarding') || document.querySelector('[id*="onboarding"]');
@@ -1163,6 +1188,7 @@ if (typeof window.onboardingOeffnen !== 'function') {
   };
 }
 
+/* ── Garantie-Modal ────────────────────────────────────────────────── */
 function garantieModalOeffnen() {
   var m = document.getElementById('garantieModal');
   if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
@@ -1172,24 +1198,32 @@ function garantieModalSchliessen() {
   var m = document.getElementById('garantieModal');
   if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
 }
-document.addEventListener('click', function(e) {
-  var m = document.getElementById('garantieModal');
-  if (m && e.target === m) garantieModalSchliessen();
-});
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+  document.addEventListener('click', function(e) {
+    var m = document.getElementById('garantieModal');
+    if (m && e.target === m) garantieModalSchliessen();
+  });
+}
 
+/* ── Geräte-ID initialisieren ──────────────────────────────────────── */
 (function() {
-  if (!localStorage.getItem('familienapp_deviceId')) {
-    var arr = new Uint8Array(16);
-    crypto.getRandomValues(arr);
-    var id = Array.from(arr, function(b) {
-      return b.toString(16).padStart(2, '0');
-    }).join('');
-    localStorage.setItem('familienapp_deviceId', id);
-  }
+  try {
+    if (!localStorage.getItem('familienapp_deviceId')) {
+      var arr = new Uint8Array(16);
+      crypto.getRandomValues(arr);
+      var id = Array.from(arr, function(b) {
+        return b.toString(16).padStart(2, '0');
+      }).join('');
+      localStorage.setItem('familienapp_deviceId', id);
+    }
+  } catch(e) {}
 })();
-var deviceId = localStorage.getItem('familienapp_deviceId');
+var deviceId = (function() { try { return localStorage.getItem('familienapp_deviceId'); } catch(e) { return ''; } })();
 
+/* ── Load-Patches (warten auf externe Scripts) ─────────────────────── */
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
 window.addEventListener('load', function() {
+
   /* Patch 1: personenAequivalent() – Altersstaffelung (Anforderung 1) */
   if (typeof window.personenAequivalent === 'function') {
     var _origPersonen = window.personenAequivalent;
@@ -1202,17 +1236,21 @@ window.addEventListener('load', function() {
       return _origPersonen(mitglied);
     };
   }
+
+  /* Patch 2: serverSync global verfügbar machen (Fallback-Stub) */
   if (typeof window.serverSync !== 'function') {
     window.serverSync = function() {
       var s = localStorage.getItem('familienapp_termine');
       if (s) {
         try {
           var termine = JSON.parse(s);
-          console.log('[serverSync] Stub: ' + termine.length + ' Termin(e) bereit.');
+          console.log('[serverSync] Stub: ' + termine.length + ' Termin(e) bereit zur Synchronisation.');
         } catch(e) {}
       }
     };
   }
+
+  /* Patch 3: saveTermin – "offen für alle" Marktplatz-Markierung */
   if (typeof window.saveTermin === 'function') {
     var _origSaveTermin = window.saveTermin;
     window.saveTermin = function() {
@@ -1240,6 +1278,8 @@ window.addEventListener('load', function() {
       return result;
     };
   }
+
+  /* Patch 4: MutationObserver – "Termin übernehmen"-Buttons */
   function terminUebernehmen(terminId) {
     try {
       var raw     = localStorage.getItem('familienapp_termine');
@@ -1255,6 +1295,7 @@ window.addEventListener('load', function() {
       if (btn) { btn.textContent = '✔ Übernommen'; btn.disabled = true; }
     } catch(e) {}
   }
+
   function terminBtnEinfuegen(container) {
     var karten = container.querySelectorAll('[data-termin-id]');
     karten.forEach(function(karte) {
@@ -1274,17 +1315,23 @@ window.addEventListener('load', function() {
       karte.appendChild(btn);
     });
   }
+
   var terminList = document.getElementById('terminList');
   if (terminList) {
     terminBtnEinfuegen(terminList);
-    var observer = new MutationObserver(function() { terminBtnEinfuegen(terminList); });
+    var observer = new MutationObserver(function() {
+      terminBtnEinfuegen(terminList);
+    });
     observer.observe(terminList, { childList: true, subtree: true });
   }
+
+  /* Paywall-Guard für init / onboardingAutostart */
   if (paywallAktiv) {
-    if (typeof window.init === 'function')                window.init                = function() {};
+    if (typeof window.init === 'function')               window.init               = function() {};
     if (typeof window.onboardingAutostart === 'function') window.onboardingAutostart = function() {};
   }
-});
+}); /* end load */
+} /* end window.addEventListener guard */
 </script>
 
 <!-- ═══ Garantie-Modal ═══════════════════════════════════════════════ -->
@@ -1325,7 +1372,7 @@ window.addEventListener('load', function() {
  <div class="pw-inner">
   <div class="pw-logo">👨‍👩‍👧‍👦</div>
   <h1 class="pw-titel">Familien-Assistent</h1>
-  <p class="pw-sub">Dein kostenloser Test-Zeitraum ist abgelaufen.<br>
+  <p class="pw-sub">Dein Test-Zeitraum ist abgelaufen.<br>
   Wähle einen Plan und behalte vollen Zugang:</p>
   <div class="pw-pläne">
    <div class="pw-plan">
