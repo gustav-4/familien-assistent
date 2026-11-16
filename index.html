@@ -1218,7 +1218,7 @@ if (typeof document !== 'undefined' && typeof document.addEventListener === 'fun
     }
   } catch(e) {}
 })();
-var deviceId = (function() { try { return localStorage.getItem('familienapp_deviceId'); } catch(e) { return ''; } })();
+var _inlineDeviceId = (function() { try { return localStorage.getItem('familienapp_deviceId'); } catch(e) { return ''; } })();
 
 /* ── Load-Patches (warten auf externe Scripts) ─────────────────────── */
 if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
@@ -1268,7 +1268,7 @@ window.addEventListener('load', function() {
           var letzter = termine[termine.length - 1];
           if (letzter && !letzter.offenFuerAlle) {
             letzter.offenFuerAlle = true;
-            letzter.deviceId       = deviceId;
+        letzter.deviceId       = _inlineDeviceId;
             localStorage.setItem(key, JSON.stringify(termine));
           }
         } catch(e) {}
@@ -1286,7 +1286,7 @@ window.addEventListener('load', function() {
       var termine = raw ? JSON.parse(raw) : [];
       var idx     = termine.findIndex(function(t) { return t.id === terminId; });
       if (idx === -1) return;
-      termine[idx].deviceId       = deviceId;
+      termine[idx].deviceId       = _inlineDeviceId;
       termine[idx].offenFuerAlle  = false;
       localStorage.setItem('familienapp_termine', JSON.stringify(termine));
       if (typeof window.saveTermin === 'function') window.saveTermin();
