@@ -78,13 +78,13 @@ function b2bCodeEinloesen() {
 
 /* ── Stripe-Zahlungsweiterleitung ───────────────────────────────────── */
 function paywallMonat() {
-  window.location.href = 'STRIPE_URL_MONAT';
+  window.location.href = 'https://buy.stripe.com/9B6eVdadD3Vbevc6wEdEs00';
 }
 function paywallJahr() {
-  window.location.href = 'STRIPE_URL_JAHR';
+  window.location.href =  'https://buy.stripe.com/00w7sLetT0IZ4UCcV2dEs01';
 }
 function paywallLifetime() {
-  window.location.href = 'STRIPE_URL_LIFETIME';
+  window.location.href = 'https://buy.stripe.com/9B6eVd5Xn4Zf3Qy8EMdEs02';
 }
 
 /* ── Onboarding-Öffner (Fallback, falls extern noch nicht geladen) ── */
