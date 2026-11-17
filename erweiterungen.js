@@ -86,6 +86,10 @@ function paywallJahr() {
 function paywallLifetime() {
   window.location.href = 'https://buy.stripe.com/9B6eVd5Xn4Zf3Qy8EMdEs02';
 }
+function paywallOeffnen() {
+  var o = document.getElementById('paywall-overlay');
+  if (o) o.style.display = 'flex';
+}
 
 /* ── Onboarding-Öffner (Fallback, falls extern noch nicht geladen) ── */
 if (typeof window.onboardingOeffnen !== 'function') {
