@@ -18,14 +18,17 @@ var paywallAktiv = false;
     if (session === 'lifetime') {
       localStorage.setItem('lizenz_aktiv',  'true');
       localStorage.setItem('lizenz_ablauf', String(Date.now() + 100 * JAHR_MS));
+      localStorage.setItem('lizenz_plan',   'lifetime');
       history.replaceState(null, '', window.location.pathname);
     } else if (session === 'jahr') {
       localStorage.setItem('lizenz_aktiv',  'true');
       localStorage.setItem('lizenz_ablauf', String(Date.now() + JAHR_MS));
+      localStorage.setItem('lizenz_plan',   'jahr');
       history.replaceState(null, '', window.location.pathname);
     } else if (session === 'monat') {
       localStorage.setItem('lizenz_aktiv',  'true');
       localStorage.setItem('lizenz_ablauf', String(Date.now() + MONAT_MS));
+      localStorage.setItem('lizenz_plan',   'monat');
       history.replaceState(null, '', window.location.pathname);
     }
   } catch(e) {}
@@ -36,6 +39,7 @@ var paywallAktiv = false;
     if (ablauf && Date.now() > ablauf) {
       localStorage.removeItem('lizenz_aktiv');
       localStorage.removeItem('lizenz_ablauf');
+      localStorage.removeItem('lizenz_plan');
     }
   } catch(e) {}
 
@@ -81,7 +85,7 @@ function paywallMonat() {
   window.location.href = 'https://buy.stripe.com/9B6eVdadD3Vbevc6wEdEs00';
 }
 function paywallJahr() {
-  window.location.href =  'https://buy.stripe.com/00w7sLetT0IZ4UCcV2dEs01';
+  window.location.href = 'https://buy.stripe.com/00w7sLetT0IZ4UCcV2dEs01';
 }
 function paywallLifetime() {
   window.location.href = 'https://buy.stripe.com/9B6eVd5Xn4Zf3Qy8EMdEs02';
@@ -90,6 +94,31 @@ function paywallOeffnen() {
   var o = document.getElementById('paywall-overlay');
   if (o) o.style.display = 'flex';
 }
+
+/* ── Verlängerungs-Erinnerung ──────────────────────────────────────── */
+function verlaengerungPruefen() {
+  if (localStorage.getItem('lizenz_aktiv') !== 'true') return;
+  var plan   = localStorage.getItem('lizenz_plan');
+  var ablauf = parseInt(localStorage.getItem('lizenz_ablauf') || '0', 10);
+  if (!ablauf || !plan || plan === 'lifetime') return;
+  var verbleibend = Math.ceil((ablauf - Date.now()) / (24 * 60 * 60 * 1000));
+  var schwelle = plan === 'monat' ? 5 : 15;
+  if (verbleibend > schwelle || verbleibend < 0) return;
+  var banner = document.getElementById('verlaengerung-banner');
+  if (!banner) return;
+  var txt = document.getElementById('verlaengerung-text');
+  if (txt) txt.textContent = verbleibend <= 1
+    ? 'Dein Zugang läuft morgen ab.'
+    : 'Dein Zugang läuft in ' + verbleibend + ' Tagen ab.';
+  banner.style.display = 'flex';
+}
+function verlaengerungOeffnen() {
+  var plan = localStorage.getItem('lizenz_plan');
+  if (plan === 'monat') paywallMonat();
+  else if (plan === 'jahr') paywallJahr();
+  else paywallOeffnen();
+}
+document.addEventListener('DOMContentLoaded', verlaengerungPruefen);
 
 /* ── Onboarding-Öffner (Fallback, falls extern noch nicht geladen) ── */
 if (typeof window.onboardingOeffnen !== 'function') {
