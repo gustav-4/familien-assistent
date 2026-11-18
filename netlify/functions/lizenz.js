@@ -58,67 +58,74 @@ async function handleWebhook(event) {
   console.log(TAG, 'Event:', type);
 
   try {
-    if (type === 'checkout.session.completed') {
-      const deviceId       = obj.client_reference_id;
-      const subscriptionId = obj.subscription;
-      if (!deviceId) return ok();
-
-      const MONAT_MS = 30  * 24 * 60 * 60 * 1000;
-      const JAHR_MS  = 365 * 24 * 60 * 60 * 1000;
-
-      let plan   = 'lifetime';
-      let ablauf = Date.now() + 100 * JAHR_MS;
-
-      if (subscriptionId) {
-        plan   = (obj.amount_total || 0) < 1500 ? 'monat' : 'jahr';
-        ablauf = Date.now() + (plan === 'monat' ? MONAT_MS : JAHR_MS);
-        await subMapping.set(subscriptionId, deviceId);
-      }
-
-      await lizenzen.set(deviceId, JSON.stringify({ aktiv: true, plan, ablauf }));
-      console.log(TAG, 'Neue Lizenz:', deviceId, plan);
-    }
-
-    else if (type === 'invoice.payment_succeeded') {
-      const subscriptionId = obj.subscription;
-      if (!subscriptionId) return ok();
-
-      const deviceId = await subMapping.get(subscriptionId);
-      if (!deviceId) return ok();
-
-      const periodEnd = obj.lines?.data?.[0]?.period?.end;
-      const ablauf    = periodEnd
-        ? periodEnd * 1000
-        : Date.now() + 30 * 24 * 60 * 60 * 1000;
-
-      const existing = await lizenzen.get(deviceId);
-      const lizenz   = existing ? JSON.parse(existing) : { plan: 'monat' };
-      await lizenzen.set(deviceId, JSON.stringify({ ...lizenz, aktiv: true, ablauf }));
-      console.log(TAG, 'Verlängert:', deviceId, 'bis', new Date(ablauf).toISOString());
-    }
-
-    else if (type === 'customer.subscription.deleted') {
-      const subscriptionId = obj.id;
-      const deviceId       = await subMapping.get(subscriptionId);
-      if (!deviceId) return ok();
-
-      const ablauf   = (obj.current_period_end || 0) * 1000;
-      const existing = await lizenzen.get(deviceId);
-      const lizenz   = existing ? JSON.parse(existing) : {};
-      await lizenzen.set(deviceId, JSON.stringify({
-        ...lizenz,
-        aktiv:  ablauf > Date.now(),
-        ablauf
-      }));
-      console.log(TAG, 'Kündigung:', deviceId, 'läuft bis', new Date(ablauf).toISOString());
-    }
-
+    if (type === 'checkout.session.completed')    await onCheckout(obj, lizenzen, subMapping);
+    else if (type === 'invoice.payment_succeeded') await onRenewal(obj, lizenzen, subMapping);
+    else if (type === 'customer.subscription.deleted') await onCancel(obj, lizenzen, subMapping);
   } catch (e) {
     console.error(TAG, 'Verarbeitungsfehler:', e.message);
     return { statusCode: 500, body: 'Interner Fehler' };
   }
 
   return ok();
+}
+
+/* ── Neue Zahlung abgeschlossen ─────────────────────────────────────── */
+async function onCheckout(obj, lizenzen, subMapping) {
+  const deviceId       = obj.client_reference_id;
+  const subscriptionId = obj.subscription;
+  if (!deviceId) return;
+
+  const MONAT_MS = 30  * 24 * 60 * 60 * 1000;
+  const JAHR_MS  = 365 * 24 * 60 * 60 * 1000;
+
+  let plan   = 'lifetime';
+  let ablauf = Date.now() + 100 * JAHR_MS;
+
+  if (subscriptionId) {
+    // Betrag in Cent: <1500 → Monat (4,99 €), sonst Jahr (49,90 €)
+    plan   = (obj.amount_total || 0) < 1500 ? 'monat' : 'jahr';
+    ablauf = Date.now() + (plan === 'monat' ? MONAT_MS : JAHR_MS);
+    await subMapping.set(subscriptionId, deviceId);
+  }
+
+  await lizenzen.set(deviceId, JSON.stringify({ aktiv: true, plan, ablauf }));
+  console.log(TAG, 'Neue Lizenz:', deviceId, plan);
+}
+
+/* ── Automatische Verlängerung (monatlich / jährlich) ──────────────── */
+async function onRenewal(obj, lizenzen, subMapping) {
+  const subscriptionId = obj.subscription;
+  if (!subscriptionId) return;
+
+  const deviceId = await subMapping.get(subscriptionId);
+  if (!deviceId) return;
+
+  const periodEnd = obj.lines?.data?.[0]?.period?.end;
+  const ablauf    = periodEnd
+    ? periodEnd * 1000
+    : Date.now() + 30 * 24 * 60 * 60 * 1000;
+
+  const existing = await lizenzen.get(deviceId);
+  const lizenz   = existing ? JSON.parse(existing) : { plan: 'monat' };
+  await lizenzen.set(deviceId, JSON.stringify({ ...lizenz, aktiv: true, ablauf }));
+  console.log(TAG, 'Verlängert:', deviceId, 'bis', new Date(ablauf).toISOString());
+}
+
+/* ── Kündigung – Zugang läuft bis Periodenende ──────────────────────── */
+async function onCancel(obj, lizenzen, subMapping) {
+  const subscriptionId = obj.id;
+  const deviceId       = await subMapping.get(subscriptionId);
+  if (!deviceId) return;
+
+  const ablauf   = (obj.current_period_end || 0) * 1000;
+  const existing = await lizenzen.get(deviceId);
+  const lizenz   = existing ? JSON.parse(existing) : {};
+  await lizenzen.set(deviceId, JSON.stringify({
+    ...lizenz,
+    aktiv:  ablauf > Date.now(),
+    ablauf
+  }));
+  console.log(TAG, 'Kündigung:', deviceId, 'läuft bis', new Date(ablauf).toISOString());
 }
 
 /* ── Stripe-Signatur verifizieren (ohne SDK) ────────────────────────── */
