@@ -16,6 +16,11 @@ self.addEventListener("install", (e) => self.skipWaiting());
 /* F-036: Die Seite fragt hier nach der Version, um zu erkennen, ob sie selbst
    noch eine aeltere Programmversion zeigt, obwohl diese Version schon aktiv ist. */
 self.addEventListener("message", (e) => {
+  self.addEventListener("message", (e) => {
+  // Sicherheit (S2819): nur Nachrichten der eigenen Seite beantworten.
+  const herkunft = e.origin ||
+    (e.source && e.source.url ? new URL(e.source.url).origin : "");
+  if (herkunft !== self.location.origin) return;
   if (e.data === "version" && e.ports && e.ports[0]) e.ports[0].postMessage(VERSION);
 });
 
