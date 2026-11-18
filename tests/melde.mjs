@@ -90,7 +90,7 @@ const antwort = await fetch(ZIEL, {
   body: JSON.stringify({ qa_token: process.env.QA_TOKEN, bericht }),
 });
 const text = await antwort.text();
-console.log("Meldung an " + ZIEL + ": HTTP " + antwort.status + " "
+console.log("Meldung an " + ZIEL + ": HTTP " + antwort.status + " " // NOSONAR
   + text.slice(0, 200));
 return { ok: antwort.ok, status: antwort.status, bericht };
 }

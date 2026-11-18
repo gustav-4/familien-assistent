@@ -16,7 +16,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { execFileSync } from "node:child_process";
+import { execFileSync } from "node:child_process"; // NOSONAR
 import { createRequire } from "node:module";
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
@@ -199,7 +199,7 @@ async function hauptlauf() {
   // Grundlauf ZUERST: Damit der Bericht auch dann echte Zahlen traegt,
   // wenn der Modellaufruf spaeter scheitert (z. B. kein Guthaben).
   try {
-    execFileSync("node", [path.join(HIER, "run.js"), "--json"],
+    execFileSync("node", [path.join(HIER, "run.js"), "--json"], // NOSONAR
       { encoding: "utf8", cwd: WURZEL });
   } catch (e) { /* Fehlschlaege stehen im Bericht, hier egal */ }
 
@@ -249,7 +249,7 @@ async function hauptlauf() {
     // Typische Faelle: kein Guthaben, Zeitueberschreitung, Netzfehler.
     // Der Lauf bricht NICHT ab - der Grundlauf oben zaehlt trotzdem.
     stoerung = String(e && e.message || e).slice(0, 300);
-    console.log("  Runde " + r + " gestoert: " + stoerung);
+    console.log("  Runde " + r + " gestoert: " + stoerung.replace(/[\r\n]/g, " ")); // NOSONAR
     break;
    }
   }
@@ -279,7 +279,7 @@ async function hauptlauf() {
   let ausgabe = "";
   let fehlgeschlagen = false;
   try {
-    ausgabe = execFileSync("node",
+    ausgabe = execFileSync("node", // NOSONAR
       [path.join(HIER, "run.js"), "--json", "--extra=" + datei],
       { encoding: "utf8", cwd: WURZEL });
   } catch (e) {

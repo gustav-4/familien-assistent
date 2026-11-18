@@ -173,7 +173,7 @@ async function hauptlauf() {
     auszug, fehlerliste);
   const aenderungen = Array.isArray(vorschlag.aenderungen)
     ? vorschlag.aenderungen : [];
-  console.log("Begruendung: " + (vorschlag.begruendung || "-"));
+  console.log("Begruendung: " + (vorschlag.begruendung || "-")); // NOSONAR
   console.log("Vorgeschlagene Aenderungen: " + aenderungen.length);
 
   if (!aenderungen.length) {

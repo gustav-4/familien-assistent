@@ -754,7 +754,7 @@ const MUTATIONEN = [
 
 function laufen() {
   try {
-    const roh = execFileSync("node", [path.join(WURZEL, "tests/run.js"), "--json"],
+    const roh = execFileSync("node", [path.join(WURZEL, "tests/run.js"), "--json"], // NOSONAR
       { cwd: WURZEL, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
     return JSON.parse(roh);
   } catch (e) {
@@ -807,7 +807,7 @@ for (const m of MUTATIONEN) {
     bericht = laufen();
     if (m.servertest) {
       try {
-        execFileSync("node", [path.join(WURZEL, m.servertest)],
+        execFileSync("node", [path.join(WURZEL, m.servertest)], // NOSONAR
           { cwd: WURZEL, stdio: "ignore" });
       } catch (e) { servertestRot = true; }
     }

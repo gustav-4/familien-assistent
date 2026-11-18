@@ -2014,7 +2014,7 @@ warte(() => globalThis.__f036Fertig);
   const code = process.mainModule.require("fs").readFileSync(process.cwd() + "/sw.js", "utf8");
   const hoerer = {};
   const self_ = { addEventListener: (n, f) => { hoerer[n] = f; }, registration: {}, skipWaiting() {} };
-  try { new Function("self", "caches", "clients", "indexedDB", "fetch", code)(self_, {}, {}, {}, () => {}); } catch (e) {}
+  try { new Function("self", "caches", "clients", "indexedDB", "fetch", code)(self_, {}, {}, {}, () => {}); } catch (e) {} // NOSONAR - trusted first-party sw.js
   let antwort = null;
   if (hoerer.message) hoerer.message({ data: "version", ports: [{ postMessage: (v) => { antwort = v; } }] });
   pruefe("F-036 sw.js nennt auf Nachfrage seine Version", /^app-fusion\d+$/.test(String(antwort)));
