@@ -669,8 +669,8 @@ const MUTATIONEN = [
   {
     name: 'F-039: Ehrlicher Hinweis auf noetige Uebermittlung entfernt',
     datei: 'index.html',
-    suchen: 'Was für App-Funktionen technisch zwingend vom Handy\n    gesendet wird, steht unter „Was verlässt mein Handy?“.',
-    ersetzen: 'Alles bleibt immer auf dem Handy.',
+    suchen: 'technisch zwingend vom Handy',
+    ersetzen: 'garantiert gar nicht vom Handy',
     erwarteRot: ['F-039 Bildschirm 4: ehrlicher Hinweis'],
   },
   {
