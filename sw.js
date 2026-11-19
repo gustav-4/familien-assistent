@@ -1,13 +1,13 @@
-/*
- * Familien-Assistent – Service Worker (Zero-Knowledge-Push)
+﻿/*
+ * Familien-Assistent â€“ Service Worker (Zero-Knowledge-Push)
  * Der Server schickt nur ein leeres Wecksignal. Dieser Worker
- * holt die fälligen Zufallsnummern, schlägt die Klartexte
- * im LOKALEN Speicher des Geräts nach und baut die
+ * holt die fÃ¤lligen Zufallsnummern, schlÃ¤gt die Klartexte
+ * im LOKALEN Speicher des GerÃ¤ts nach und baut die
  * Benachrichtigung erst hier zusammen.
  *
- * VERSION: bei jedem Release hochzählen. Allein die Änderung
+ * VERSION: bei jedem Release hochzÃ¤hlen. Allein die Ã„nderung
  * dieses Strings reicht, damit der Browser die sw.js als
- * geändert erkennt und den Update-Zyklus (Weg A) auslöst.
+ * geÃ¤ndert erkennt und den Update-Zyklus (Weg A) auslÃ¶st.
  */
 const VERSION = "app-fusion56";
 
@@ -16,7 +16,6 @@ self.addEventListener("install", (e) => self.skipWaiting());
 /* F-036: Die Seite fragt hier nach der Version, um zu erkennen, ob sie selbst
    noch eine aeltere Programmversion zeigt, obwohl diese Version schon aktiv ist. */
 self.addEventListener("message", (e) => {
-  self.addEventListener("message", (e) => {
   // Sicherheit (S2819): nur Nachrichten der eigenen Seite beantworten.
   const herkunft = e.origin ||
     (e.source && e.source.url ? new URL(e.source.url).origin : "");
@@ -56,7 +55,7 @@ function idbGet(key) {
 
 function fallbackNotification() {
   return self.registration.showNotification("Familien-Assistent", {
-    body: "⏰ Erinnerung – bitte App öffnen",
+    body: "â° Erinnerung â€“ bitte App Ã¶ffnen",
     tag: "ka-fallback",
     icon: "/icon.svg",
   });
@@ -85,11 +84,11 @@ self.addEventListener("push", (e) => {
         const texte = (await idbGet("refs")) || {};
         for (const ref of refs.slice(0, 3)) {
           await self.registration.showNotification("Familien-Assistent", {
-            body: texte[ref] || "⏰ Erinnerung – bitte App öffnen",
+            body: texte[ref] || "â° Erinnerung â€“ bitte App Ã¶ffnen",
             tag: ref,
             icon: "/icon.svg",
             requireInteraction: true,
-            actions: [{ action: "ok", title: "✓ OK / Erledigt" }],
+            actions: [{ action: "ok", title: "âœ“ OK / Erledigt" }],
             data: { ref, device },
           });
           gezeigt++;
@@ -100,8 +99,8 @@ self.addEventListener("push", (e) => {
         const qNeu = Number(data && data.qa) || 0;
         if (qNeu > 0) {
           await self.registration.showNotification("Familien-Assistent", {
-            body: "🔧 QA-Bericht: " + qNeu + " Punkt" +
-              (qNeu === 1 ? "" : "e") + " zu prüfen – tippen zum Öffnen",
+            body: "ðŸ”§ QA-Bericht: " + qNeu + " Punkt" +
+              (qNeu === 1 ? "" : "e") + " zu prÃ¼fen â€“ tippen zum Ã–ffnen",
             tag: "ka-qa",
             icon: "/icon.svg",
             data: { url: "/qa-admin.html" },
@@ -115,8 +114,8 @@ self.addEventListener("push", (e) => {
         const dNeu = Number(data && data.digest) || 0;
         if (dNeu > 0) {
           await self.registration.showNotification("Familien-Assistent", {
-            body: "📬 " + dNeu + " neue Rückmeldung" +
-              (dNeu === 1 ? "" : "en") + " – Postfach öffnen",
+            body: "ðŸ“¬ " + dNeu + " neue RÃ¼ckmeldung" +
+              (dNeu === 1 ? "" : "en") + " â€“ Postfach Ã¶ffnen",
             tag: "ka-feedback",
             icon: "/icon.svg",
             data: { url: "/feedback-admin.html" },
@@ -150,9 +149,10 @@ self.addEventListener("notificationclick", (e) => {
 });
 
 /* =====================================================================
-   FETCH-HANDLER – Pflicht, damit Chrome die App als installierbar
+   FETCH-HANDLER â€“ Pflicht, damit Chrome die App als installierbar
    erkennt und den Installations-Knopf anzeigt (beforeinstallprompt).
-   Kein respondWith -> der Browser lädt ganz normal aus dem Netz,
-   es wird also nichts an der bestehenden Funktion verändert.
+   Kein respondWith -> der Browser lÃ¤dt ganz normal aus dem Netz,
+   es wird also nichts an der bestehenden Funktion verÃ¤ndert.
    ===================================================================== */
 self.addEventListener("fetch", (e) => {});
+
