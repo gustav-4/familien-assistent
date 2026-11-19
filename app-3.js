@@ -1522,7 +1522,7 @@ function istDatenObjekt(x) {
 }
 function ladeListe(key, istGueltig) {
   const w = tLoad(key, []);
-  return Array.isArray(w) ? w.filter(istGueltig) : [];
+  return Array.isArray(w) ? w.filter((x) => istGueltig(x)) : [];
 }
 function termineLaden() {
   mitglieder = ladeListe("ka_mitglieder",
