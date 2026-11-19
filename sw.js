@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Familien-Assistent â€“ Service Worker (Zero-Knowledge-Push)
  * Der Server schickt nur ein leeres Wecksignal. Dieser Worker
  * holt die fÃ¤lligen Zufallsnummern, schlÃ¤gt die Klartexte
