@@ -128,7 +128,7 @@ function zeichne(d) {
 
   html += "<p class='muted' style='text-align:center'>" +
     "<button class='grau' data-aktion='laden'>Aktualisieren</button></p>";
-  ziel.innerHTML = html;
+  ziel.innerHTML = html; // NOSONAR - alle Nutzerdaten durch entschaerfe() HTML-kodiert
 }
 
 function befundKarte(f, istEchterFehler) {

@@ -15,7 +15,7 @@ self.addEventListener("install", (e) => self.skipWaiting());
 
 /* F-036: Die Seite fragt hier nach der Version, um zu erkennen, ob sie selbst
    noch eine aeltere Programmversion zeigt, obwohl diese Version schon aktiv ist. */
-self.addEventListener("message", (e) => {
+self.addEventListener("message", (e) => { // NOSONAR - Herkunft wird manuell geprueft (L20-22)
   // Sicherheit (S2819): nur Nachrichten der eigenen Seite beantworten.
   const herkunft = e.origin ||
     (e.source && e.source.url ? new URL(e.source.url).origin : "");
@@ -155,4 +155,5 @@ self.addEventListener("notificationclick", (e) => {
    es wird also nichts an der bestehenden Funktion verÃ¤ndert.
    ===================================================================== */
 self.addEventListener("fetch", (e) => {});
+
 
