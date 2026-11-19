@@ -380,9 +380,9 @@ const MUTATIONEN = [
   },
   {
     name: "F-020: defekte Eintraege im Speicher werden nicht mehr uebersprungen",
-    datei: "index.html",
-    suchen: "return Array.isArray(w) ? w.filter(istGueltig) : [];",
-    ersetzen: "return w;",
+    datei: "app-3.js",
+    suchen: "  return Array.isArray(w) ? w.filter((x) => istGueltig(x)) : [];",
+    ersetzen: "  return w;",
     erwarteRot: ["F-020 intakte Mitglieder bleiben",
       "F-020 Speicher ohne Liste", "F-020 defekte Termine und Routinen"],
   },
