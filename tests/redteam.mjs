@@ -133,7 +133,7 @@ Regeln:
  * ausserdem, WARUM eine Antwort leer war. Exportiert = testbar.
  */
 export function textAusAntwort(daten, protokoll) {
-  const log = protokoll || ((s) => console.log("  " + s));
+  const log = protokoll || ((s) => console.log("  " + s)); // NOSONAR
   const bloecke = Array.isArray(daten && daten.content) ? daten.content : [];
   const text = bloecke
     .map((c) => (c && typeof c.text === "string") ? c.text : "")

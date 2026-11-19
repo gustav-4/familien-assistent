@@ -32,7 +32,7 @@ jobs:
       - name: Arbeitsordner fuer den Bericht anlegen
         run: |
           mkdir -p zap-bericht
-          chmod 777 zap-bericht
+          chmod 777 zap-bericht # NOSONAR - nur CI-Temp-Ordner, ZAP-Docker braucht Schreibzugriff
 
       # -j  = zusaetzlich der AJAX-Spider (die App baut vieles per JavaScript)
       # -m  = maximal 5 Minuten Spider-Zeit
