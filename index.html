@@ -1,271 +1,1216 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moderne & DSGVO-konforme Landingpage</title>
-    <style>
-        :root {
-            --primary: #2563eb;
-            --dark: #1e293b;
-            --light: #f8fafc;
-            --text: #334155;
-            --border: #e2e8f0;
-        }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: var(--text);
-            line-height: 1.6;
-            background-color: var(--light);
-        }
-        header {
-            background: #ffffff;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 70px;
-        }
-        .logo {
-            font-weight: 700;
-            font-size: 1.25rem;
-            color: var(--dark);
-        }
-        .nav-links a {
-            color: var(--text);
-            text-decoration: none;
-            margin-left: 20px;
-            font-size: 0.95rem;
-        }
-        .nav-links a:hover {
-            color: var(--primary);
-        }
-        .hero {
-            padding: 80px 0;
-            text-align: center;
-            background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
-        }
-        .hero h1 {
-            font-size: 2.5rem;
-            color: var(--dark);
-            margin-bottom: 20px;
-        }
-        .hero p {
-            font-size: 1.15rem;
-            max-width: 600px;
-            margin: 0 auto 30px;
-        }
-        .btn {
-            display: inline-block;
-            background: var(--primary);
-            color: white;
-            padding: 12px 28px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .features {
-            padding: 60px 0;
-            background: white;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
-        }
-        .card {
-            padding: 20px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-        }
-        .placeholder-img {
-            width: 100%;
-            height: 200px;
-            background: #cbd5e1;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 15px;
-            color: #475569;
-            font-weight: 500;
-        }
-        .contact {
-            padding: 60px 0;
-        }
-        form {
-            max-width: 500px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-        }
-        .dsgvo-check {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-        }
-        .dsgvo-check input {
-            width: auto;
-            margin-top: 5px;
-        }
-        footer {
-            background: var(--dark);
-            color: #94a3b8;
-            padding: 40px 0;
-            text-align: center;
-            font-size: 0.9rem;
-        }
-        footer a {
-            color: white;
-            text-decoration: none;
-            margin: 0 10px;
-        }
-        /* Cookie Banner Simulation - Keine externen Skripte */
-        #cookie-banner {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            background: white;
-            border: 1px solid var(--border);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            z-index: 1000;
-        }
-        #cookie-banner button {
-            background: var(--dark);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Familien-Assistent ÔÇô Sprachgesteuerter Kochassistent &amp; Essensplaner f├╝r Familien</title>
+<meta name="description" content="Familien-App: Rezepte passend zu Zeit, Unvertr├ñglichkeiten (alle 14 EU-Allergene) und Ern├ñhrungsform finden, Einkaufsliste automatisch in Familienmengen erstellen und freih├ñndig mit Sprachf├╝hrung kochen ÔÇô inkl. Timer und Garzeit-Ansagen. Ohne Konto, direkt im Browser.">
+<link rel="canonical" href="https://familienassistent.netlify.app/">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#c4704b">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Familien-Assistent ÔÇô Kochen mit freien H├ñnden">
+<meta property="og:description" content="Rezepte nach Zeit, Unvertr├ñglichkeiten &amp; Ern├ñhrungsform, automatische Einkaufsliste, sprachgef├╝hrtes Kochen mit Timern. Direkt im Browser.">
+<meta property="og:url" content="https://familienassistent.netlify.app/">
+<meta property="og:locale" content="de_DE">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Familien-Assistent ÔÇô Kochen mit freien H├ñnden">
+<meta name="twitter:description" content="Sprachgesteuerter Koch- und Essensplaner f├╝r Familien. Direkt im Browser, ohne Konto.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Familien-Assistent",
+  "url": "https://familienassistent.netlify.app/",
+  "description": "Sprachgesteuerter Kochassistent und Essensplaner f├╝r Familien: Rezepte nach verf├╝gbarer Zeit, Unvertr├ñglichkeiten und Ern├ñhrungsform, automatisch skalierte Einkaufslisten und Schritt-f├╝r-Schritt-Sprachf├╝hrung beim Kochen.",
+  "applicationCategory": "LifestyleApplication",
+  "operatingSystem": "Web Browser",
+  "inLanguage": "de",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+  "featureList": [
+    "Sprachgef├╝hrtes Kochen mit Best├ñtigung per Stimme",
+    "Rezeptsuche nach Zubereitungszeit (15-20, 20-30, 30-40, 40+ Minuten)",
+    "Harte Filterung aller 14 EU-Hauptallergene",
+    "Ern├ñhrungsformen pro Familienmitglied (vegan, vegetarisch, pescetarisch, low carb)",
+    "Automatische Einkaufsliste in Familienmengen",
+    "Timer mit Garzeit-Ansagen",
+    "Favoriten-Sammlung"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Was ist der Familien-Assistent?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Eine Web-App f├╝r Familien, die Rezepte passend zu verf├╝gbarer Zeit, Unvertr├ñglichkeiten und Ern├ñhrungsform findet, automatisch eine Einkaufsliste in Familienmengen erstellt und beim Kochen Schritt f├╝r Schritt per Sprache f├╝hrt ÔÇô mit Timern und Garzeit-Ansagen, ganz ohne die H├ñnde zu benutzen." }
+    },
+    {
+      "@type": "Question",
+      "name": "Welche Unvertr├ñglichkeiten ber├╝cksichtigt die App?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Alle 14 EU-Hauptallergene: Gluten, Laktose/Milch, N├╝sse, Ei, Erdn├╝sse, Soja, Fisch, Krebs- und Weichtiere, Sellerie, Senf, Sesam, Lupinen und Sulfite. Rezepte mit ausgeschlossenen Zutaten werden hart herausgefiltert ÔÇô auch versteckte Quellen wie Sellerie in Br├╝he." }
+    },
+    {
+      "@type": "Question",
+      "name": "Kann ich Ern├ñhrungsformen pro Person festlegen?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Ja. Im Familienprofil l├ñsst sich pro Person eine Ern├ñhrungsform speichern (vegan, vegetarisch, pescetarisch, low carb). Mit dem Umschalter ÔÇ×F├╝r wen kochst du heute?" zeigt die App entweder Gerichte f├╝r die ganze Familie ÔÇô inklusive Varianten-Hinweisen f├╝r Einzelne ÔÇô oder strikt passende Rezepte f├╝r eine bestimmte Person." }
+    },
+    {
+      "@type": "Question",
+      "name": "Brauche ich ein Konto?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Nein. Die App l├ñuft direkt im Browser auf Handy oder Tablet. Ein Konto ist nicht n├Âtig ÔÇô Favoriten und Profile werden lokal auf dem Ger├ñt gespeichert." }
+    }
+  ]
+}
+</script>
+<style>
+  /* Modernes-Landhaus-Palette: Creme, Salbei, Terrakotta */
+  :root { --bg:#f7f1e6; --card:#fffdf8; --accent:#c4704b; --accent2:#7e9c6f;
+          --text:#3e3832; --muted:#94897a; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,Arial,sans-serif; background:var(--bg);
+         color:var(--text); padding-bottom:90px; }
+  header { background:linear-gradient(135deg,#efe6d2,#e3ead9);
+           color:var(--text); padding:16px 20px; }
+  header h1 { margin:0; font-size:1.3rem; color:#a85a38; }
+  header p { margin:4px 0 0; font-size:.85rem; color:var(--muted); }
+  nav { display:flex; position:fixed; bottom:0; left:0; right:0;
+        background:#fff; border-top:1px solid #eee; z-index:10; }
+  nav button { flex:1; padding:12px 2px; border:none; background:none;
+               font-size:.72rem; color:var(--muted); cursor:pointer; }
+  nav button.active { color:var(--accent); font-weight:700; }
+  main { padding:16px; max-width:560px; margin:0 auto; }
+  .card { background:var(--card); border-radius:14px; padding:16px;
+          margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,.07); }
+  h2 { margin:0 0 10px; font-size:1.05rem; }
+  label { display:flex; align-items:center; gap:8px; margin:8px 0;
+          font-size:.95rem; }
+  input[type=number] { width:64px; padding:6px; border:1px solid #ddd;
+                       border-radius:8px; font-size:1rem; }
+  .btn { display:inline-block; border:none; border-radius:10px;
+         padding:12px 18px; font-size:1rem; font-weight:700; cursor:pointer;
+         background:var(--accent); color:#fff; margin:4px 4px 4px 0; }
+  .btn.green { background:var(--accent2); }
+  .btn.ghost { background:#efe6d4; color:var(--text); }
+  .btn.big { width:100%; padding:16px; font-size:1.15rem; }
+  .timebtn { font-size:.85rem; padding:9px 12px; }
+  .timebtn.active-time { background:var(--accent); color:#fff; }
+  .muted { color:var(--muted); font-size:.85rem; }
+  .recipe { border:2px solid transparent; cursor:pointer; }
+  .recipe.selected { border-color:var(--accent); }
+  .tag { display:inline-block; background:#f1e8d6; border-radius:6px;
+         padding:2px 8px; font-size:.75rem; margin-right:4px;
+         margin-bottom:3px; }
+  .card { box-shadow:0 1px 5px rgba(120,100,70,.10); }
+  ul.shop { list-style:none; padding:0; margin:0; }
+  ul.shop li { display:flex; align-items:center; gap:10px; padding:8px 0;
+               border-bottom:1px solid #f0e9e4; font-size:1rem; }
+  ul.shop li.done span { text-decoration:line-through; color:var(--muted); }
+  #stepText { font-size:1.25rem; line-height:1.5; min-height:90px; }
+  #timerBox { font-size:2.2rem; font-weight:800; color:var(--accent);
+              text-align:center; margin:10px 0; }
+  #micStatus { text-align:center; font-size:.85rem; padding:8px;
+               border-radius:8px; background:#f0e9e4; margin-top:10px; }
+#onboarding { position:fixed; inset:0; z-index:970;
+    background:linear-gradient(160deg,#f7f1e6,#e3ead9);
+    display:flex; align-items:center; justify-content:center; padding:14px; }
+  #onboarding.hidden { display:none; }
+  .ob-box { background:var(--card); border-radius:18px; max-width:560px;
+    width:100%; max-height:92vh; max-height:88dvh; display:flex; flex-direction:column;
+    box-shadow:0 8px 30px rgba(120,100,70,.25); overflow:hidden; }
+  .ob-inhalt { padding:20px 22px; overflow-y:auto; }
+  .ob-hero { font-size:3rem; text-align:center; }
+  .ob-versprechen { text-align:center; padding:18px 4px 6px; }
+  .ob-versprechen h1 { font-size:2rem; line-height:1.15; color:#a85a38; margin:0 0 16px; }
+  .ob-step .gross { font-size:1.1rem; line-height:1.45; }
+  .ob-box h2 { color:#a85a38; margin:8px 0 10px; }
+  .ob-funk { background:#f7f1e6; border-radius:10px; padding:9px 12px;
+    margin:7px 0; font-size:.92rem; }
+  .ob-funk i { color:var(--muted); }
+  .ob-privacy { background:#e8f2e4; border:1px solid #b9d3ae;
+    border-radius:10px; padding:10px 12px; margin-top:10px;
+    font-size:.9rem; }
+  .ob-privacy summary { color:#4a7a3a; cursor:pointer; margin-top:6px;
+    font-weight:bold; }
+  .ob-form { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+  .ob-form input { flex:1; min-width:110px; padding:10px;
+    border:1px solid #ccc; border-radius:8px; }
+  .ob-dots { display:flex; gap:7px; justify-content:center; padding:14px 0 0; }
+  .ob-dots span { width:9px; height:9px; border-radius:50%;
+    background:#d8cfc0; }
+  .ob-dots span.an { background:var(--accent); }
+  .ob-fuss { display:flex; flex-wrap:wrap; gap:8px;
+    justify-content:space-between; padding:12px 14px
+    calc(12px + env(safe-area-inset-bottom)); border-top:1px solid #eee2d0; }
+  .ob-fuss .btn { flex:1 1 30%; min-width:104px; padding:12px 6px;
+    white-space:nowrap; }
+  
+  #lokalBanner { position:sticky; top:0; z-index:960; background:#fff3cd;
+    border-bottom:2px solid #e0a800; padding:10px 14px; font-size:.95rem; }
+  #lokalBanner.hidden { display:none; }
+  #byeOverlay { position:fixed; inset:0; z-index:950; background:rgba(255,255,255,.97);
+    display:flex; align-items:center; justify-content:center; text-align:center; }
+  #byeOverlay.hidden { display:none; }
+  #gvSage { position:fixed; left:10px; right:10px; bottom:120px;
+    z-index:899; background:#333; color:#fff; border-radius:12px;
+    padding:10px 14px; font-size:.95rem; opacity:0; pointer-events:none;
+    transition:opacity .25s; box-shadow:0 2px 10px rgba(0,0,0,.3); }
+  #gvSage.sichtbar { opacity:.95; }
+  #rechtsFooter { text-align:center; padding:18px 10px 84px;
+    font-size:.82rem; color:var(--muted); }
+  #rechtsFooter a { color:var(--muted); }
+  #gvChip { position:fixed; right:10px; bottom:74px; z-index:900;
+    background:#fff; border:1px solid #ccc; border-radius:20px;
+    padding:7px 13px; font-size:.85rem; box-shadow:0 2px 8px rgba(0,0,0,.15);
+    cursor:pointer; user-select:none; }
+  #gvChip.an { background:#e3f2e1; border-color:var(--accent2); }
+  #gvChip.aus { background:#f4f4f4; color:#666; }
+  #gvChip.redet { background:#fdf3e0; border-color:#d9a441; color:#7a5410; }
+  /* F-011: Im Kochmodus traegt die Statuszeile im Kochbereich den
+     Mikrofonzustand. Der schwebende Chip zeigte dieselbe Information
+     ein zweites Mal und verdeckte dabei Bedienelemente. */
+  #gvChip.verborgen { display:none; }
+  #gvChip.eingabe { background:#e6f0ff; border-color:#3a6ea5; color:#1c3d63;
+                    font-weight:700; }
+  /* Unuebersehbarer Hinweis: JETZT sprechen. Der kleine Chip allein
+     reichte nicht - der Nutzer wusste nie, wann die App bereit ist. */
+  #gvBereit { position:fixed; left:50%; transform:translateX(-50%);
+    bottom:120px; z-index:950; display:none; max-width:92vw;
+    background:#1c3d63; color:#fff; padding:12px 18px; border-radius:14px;
+    box-shadow:0 4px 16px rgba(0,0,0,.28); font-size:1rem; font-weight:700;
+    text-align:center; }
+  #gvBereit.sichtbar { display:block; }
+  #gvBereit .klein { display:block; font-weight:400; font-size:.8rem;
+    opacity:.85; margin-top:3px; }
+  #micStatus.listening { background:#e3f2e1; color:var(--accent2);
+                         font-weight:700; }
+  .hidden { display:none; }
+  .progress { height:8px; background:#f0e9e4; border-radius:4px;
+              overflow:hidden; margin-bottom:12px; }
+  .progress div { height:100%; background:var(--accent2); width:0%;
+                  transition:width .4s; }
+  .entry { display:flex; align-items:center; gap:8px; padding:6px 0;
+           border-bottom:1px solid #f0e9e4; font-size:.95rem; }
+
+  /* ÔöÇÔöÇ BAM-Box (Anforderung 4) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
+  .bam-box { background:linear-gradient(135deg,#e3ead9,#efe6d2);
+    border-left:5px solid #c4704b; border-radius:0 10px 10px 0;
+    padding:14px 16px; margin:10px 0; }
+  .bam-box h3 { font-size:1rem; color:#3d5a47; margin:0 0 8px; }
+  .bam-box p  { font-size:.88rem; line-height:1.6; color:#3a3228; margin:0; }
+  .bam-link { color:#c4704b; text-decoration:underline dotted;
+    cursor:pointer; font-weight:600; }
+  .bam-link:hover { text-decoration:underline; }
+  .ob-fuer-wen { font-size:.88rem; color:#555; line-height:1.6; margin:8px 0 0; }
+
+  /* ÔöÇÔöÇ Garantie-Modal (Anforderung 5 ┬À z-index 10000) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
+  #garantieModal { display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,.6); z-index:10000;
+    align-items:center; justify-content:center; padding:1rem; }
+  #garantieModal.sichtbar { display:flex; }
+  .gm-fenster { background:#fff; border-radius:14px; max-width:500px;
+    width:100%; box-shadow:0 10px 40px rgba(0,0,0,.35);
+    overflow:hidden; max-height:90vh; overflow-y:auto; }
+  .gm-kopf { background:#3d5a47; color:#fff; padding:.9rem 1.2rem;
+    display:flex; justify-content:space-between; align-items:center; }
+  .gm-kopf h3 { margin:0; font-size:1rem; }
+  .gm-kopf button { background:rgba(255,255,255,.2); border:none; color:#fff;
+    width:28px; height:28px; border-radius:50%; cursor:pointer;
+    font-size:1rem; line-height:1; }
+  .gm-inhalt { padding:1.1rem; }
+  .gm-inhalt > p { font-size:.86rem; color:#555; line-height:1.55; margin-bottom:.8rem; }
+  .gm-saeulen { list-style:none; padding:0; margin:0; }
+  .gm-saeulen li { display:flex; align-items:flex-start; gap:.6rem;
+    padding:.6rem .8rem; border-radius:8px; background:#f5f0e8;
+    margin-bottom:.5rem; border-left:4px solid #c4704b; }
+  .gm-saeulen .ik { font-size:1.1rem; flex-shrink:0; }
+  .gm-saeulen .tx { font-size:.84rem; line-height:1.4; }
+  .gm-saeulen .ti { font-weight:700; display:block; color:#3d5a47; margin-bottom:.1rem; }
+
+  /* ÔöÇÔöÇ Paywall-Overlay (Anforderung Paywall ┬À z-index 99999) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
+  #paywall-overlay { display:none; position:fixed; inset:0;
+    background:#fffdf8; z-index:99999; overflow-y:auto; }
+  #paywall-overlay.sichtbar { display:flex; align-items:flex-start;
+    justify-content:center; padding:2rem 1rem 4rem; }
+  .pw-karte { max-width:540px; width:100%; }
+  .pw-kopf  { text-align:center; margin-bottom:1.1rem; }
+  .pw-kopf .pw-logo { font-size:2rem; display:block; margin-bottom:.2rem; }
+  .pw-kopf h1 { font-size:1.15rem; color:#3d5a47; margin:0 0 .2rem; }
+  .pw-kopf p  { font-size:.8rem; color:#aaa; margin:0; }
+  .pw-bam { background:linear-gradient(135deg,#e3ead9,#efe6d2);
+    border-left:5px solid #c4704b; border-radius:12px;
+    padding:20px 22px; margin-bottom:.85rem; }
+  .pw-bam h2 { font-size:1.03rem; color:#3d5a47; margin:0 0 .6rem; }
+  .pw-bam p  { font-size:.86rem; line-height:1.65; color:#3a3228; margin:0; }
+  .pw-ergebnis { font-size:.86rem; color:#555; line-height:1.6; margin-bottom:1.1rem; }
+  .pw-trenn { font-size:.77rem; font-weight:700; letter-spacing:.07em;
+    color:#bbb; text-align:center; margin-bottom:.8rem; text-transform:uppercase; }
+  .pw-plan { background:#fff; border:1px solid #d4cbbd; border-radius:8px;
+    padding:.85rem 1rem; margin-bottom:.6rem;
+    display:flex; align-items:center; gap:.8rem; flex-wrap:wrap; }
+  .pw-plan-info { flex:1; min-width:150px; }
+  .pw-plan-info h3 { font-size:.92rem; color:#2d2d2d; margin:0 0 .15rem; font-weight:700; }
+  .pw-plan-info p  { font-size:.78rem; color:#888; margin:0; }
+  .pw-btn { padding:.5rem .95rem; border-radius:8px; border:none; cursor:pointer;
+    font-size:.82rem; font-weight:700; white-space:nowrap; color:#fff;
+    text-decoration:none; display:inline-block; flex-shrink:0; }
+  .pw-btn:hover { opacity:.88; }
+  .pw-btn-b { background:#3b82f6; }
+  .pw-btn-g { background:#16a34a; }
+  .pw-btn-l { background:#7c3aed; }
+  .pw-b2b { margin-top:1rem; padding:.85rem 1rem;
+    background:#f9f5f0; border-radius:8px; border:1px solid #e8ddd0; }
+  .pw-b2b p { font-size:.79rem; color:#888; margin:0 0 .5rem; }
+  .pw-b2b-row { display:flex; gap:.5rem; }
+  #b2b-code-input { flex:1; padding:.42rem .65rem; border:1px solid #d0c8bc;
+    border-radius:6px; font-size:.86rem; font-family:monospace;
+    letter-spacing:.05em; background:#fff; color:#2d2d2d;
+    transition:border-color .2s,box-shadow .2s; }
+  #b2b-code-input:focus { outline:none; border-color:#c4704b;
+    box-shadow:0 0 0 3px rgba(196,112,75,.15); }
+  .pw-b2b-btn { background:#c4704b; color:#fff; border:none; border-radius:6px;
+    padding:.42rem .9rem; cursor:pointer; font-size:.84rem; font-weight:600;
+    white-space:nowrap; }
+  .pw-b2b-btn:hover { opacity:.85; }
+  .pw-hint { text-align:center; font-size:.73rem; color:#ccc; margin-top:1.1rem; }
+  @media(max-width:500px){
+    .pw-plan{flex-direction:column;align-items:flex-start;}
+    .pw-btn{width:100%;text-align:center;}
+  }
+
+  /* ÔöÇÔöÇ Marktplatz-Termine (Anforderung 2) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
+  .termin-offen-badge { background:#6a9e72; color:#fff; border-radius:10px;
+    padding:1px 7px; font-size:.74rem; margin-left:5px; font-weight:600; }
+  .btn-uebernehmen { background:#6a9e72; color:#fff; font-size:.78rem;
+    padding:4px 9px; border-radius:6px; border:none; cursor:pointer;
+    margin-top:5px; font-weight:600; display:inline-block; }
+  .btn-uebernehmen:hover { opacity:.82; }
+</style>
 </head>
 <body>
+<div id="gvChip" data-on-click="gvToggle()" title="Sprachsteuerung an/aus">­ƒÄñ starte ÔÇª</div>
+<div id="gvBereit"><span id="gvBereitText">Sprich jetzt</span>
+  <span class="klein">ÔÇ×abbrechen" beendet die Eingabe</span></div>
+<div id="onboarding" class="hidden">
+ <div class="ob-box">
+  <div class="ob-dots" id="obDots"></div>
+  <div class="ob-inhalt">
 
-    <div id="cookie-banner">
-        <p><strong>Datenschutz-Hinweis:</strong> Diese Website verwendet ausschließlich technisch notwendige Cookies. Es werden keine Tracking-Daten erhoben. <a href="#privacy" style="color: var(--primary);">Mehr erfahren</a></p>
-        <button onclick="document.getElementById('cookie-banner').style.display='none'">Einverstanden</button>
+   <div class="ob-step" data-ob="0">
+    <div class="ob-versprechen">
+     <h1>Deine Familie ist keine Ware</h1>
+     <p class="gross">Alle Informationen ├╝ber deine Termine, Allergien, Kinder und
+     Eink├ñufe geh├Âren ausschlie├ƒlich dir ÔÇô nicht uns, nicht Werbefirmen,
+     nicht Datenh├ñndlern.</p>
+     <p class="gross"><b>Darum bleibt alles, was deine Familie ausmacht, auf deinem Handy.</b></p>
+    </div>
+   </div>
+
+   <div class="ob-step hidden" data-ob="1">
+    <h2>Das bleibt bei dir</h2>
+    <div class="ob-funk">­ƒæ¿ÔÇì­ƒæ®ÔÇì­ƒæº <b>Namen, Alter und Allergien</b> deiner Familie</div>
+    <div class="ob-funk">­ƒôà <b>Termine und Routinen</b></div>
+    <div class="ob-funk">­ƒøÆ <b>Einkaufsliste, Vorr├ñte und Favoriten</b></div>
+    <div class="ob-funk">­ƒôÀ <b>Fotos von Kassenbons und Elternbriefen:</b>
+     Die Texterkennung l├ñuft direkt auf dem Ger├ñt.</div>
+    <p><b>Kein Konto. Keine Anmeldung. Kein Tracking. Keine Werbung.</b></p>
+   </div>
+
+   <div class="ob-step hidden" data-ob="2">
+    <h2>Technisch erzwungen, nicht nur versprochen</h2>
+    <p>Die App darf technisch nur mit ihrem eigenen Server sprechen, und das
+    setzt dein Browser durch. Selbst eingeschleuster Schadcode k├Ânnte keine
+    Daten an Dritte schicken.</p>
+    <div class="ob-funk">­ƒÅà <b>Note A+</b> beim unabh├ñngigen Test securityheaders.com</div>
+    <div class="ob-funk">­ƒº¬ <b>├£ber 350 automatische Tests</b> und ├╝ber 90
+     ÔÇ×Sabotage-Proben", bei denen wir jede Reparatur absichtlich kaputt machen,
+     um zu sehen, ob ein Test es bemerkt</div>
+    <div class="ob-funk">­ƒöì <b>Sicherheits-Scan mit OWASP ZAP:</b> 0 Fehler
+     (Stand 09.11.2026)</div>
+    <div class="ob-funk">­ƒöÆ <b>Familien-Sync Ende-zu-Ende verschl├╝sselt:</b>
+     Der Familien-Code verl├ñsst dein Handy nicht.</div>
+    <div class="ob-funk">­ƒÜ½ <b>Keine Werbe-, Analyse- oder Fremd-Bausteine</b></div>
+   </div>
+
+   <div class="ob-step hidden" data-ob="3">
+    <h2>Los geht's</h2>
+    <p class="gross"><b>Deine pers├Ânlichen Familiendaten bleiben auf deinem Handy,
+    und du kannst sie jederzeit sichern, mitnehmen oder mit einem Knopf
+    l├Âschen.</b></p>
+    <p class="muted"><i>Was f├╝r App-Funktionen technisch zwingend vom Handy
+    gesendet wird, steht unter ÔÇ×Was verl├ñsst mein Handy?".</i></p>
+    <p>Tippe auf ÔÇ×Weiter", um die App jetzt einzurichten.</p>
+   </div>
+
+   <div class="ob-step" data-ob="4">
+    <div class="ob-hero">­ƒæ¿ÔÇì­ƒæ®ÔÇì­ƒæºÔÇì­ƒæª</div>
+    <h2>Willkommen beim Familien-Assistenten!</h2>
+    <p class="ob-fuer-wen"><b>F├╝r wen?</b> F├╝r alle, bei denen der Kopf immer voll ist:
+    <i>Was kochen wir heute? Wer muss morgen wann wohin? Was fehlt
+    im Haus? Und blo├ƒ nichts mit Nuss f├╝r die KleineÔÇª</i></p>
+    <p><b>Was er euch abnimmt:</b> Diese App ist euer mitdenkender
+    Alltagshelfer ÔÇô ihr <b>sprecht einfach</b>, statt zu tippen. Sie
+    plant Mahlzeiten passend zu Allergien &amp; Ern├ñhrungsform, f├╝hrt
+    euch freih├ñndig durchs Kochen, schreibt die Einkaufsliste und
+    <b>erinnert von selbst</b> an Termine. Weniger Kopf-Chaos,
+    mehr Familienzeit. ÔØñ´©Å</p>
+    <div class="bam-box">
+     <p><b>Weil Familie keine Ware ist. ÔØñ´©Å</b></p>
+     <p>Alle eure Familiendaten ÔÇô Namen, Allergien, Termine, Listen ÔÇô
+     bleiben <b>ausschlie├ƒlich auf eurem Ger├ñt</b>. Kein Konto,
+     kein Tracking, keine Weitergabe. Unser Erinnerungs-Dienst
+     (Serverstandort Frankfurt, EU) kennt nur anonyme Zufallsnummern
+     und Uhrzeiten ÔÇô niemals Namen oder Inhalte.</p>
+     <p>­ƒöÆ <a class="bam-link" href="#" data-on-click="garantieModalOeffnen()">wie das garantiert wird ÔåÆ</a></p>
+    </div>
+   </div>
+
+   <div class="ob-step hidden" data-ob="5">
+    <h2>­ƒº░ Das kann eure App</h2>
+    <div class="ob-funk">­ƒì│ <b>Freih├ñndig kochen:</b> Jeder Schritt wird
+     vorgelesen ÔÇô mit Mengen. Sag ÔÇ×fertig", Timer laufen von allein.
+     <i>Typisch: H├ñnde im Teig, App sagt was zu tun ist.</i></div>
+    <div class="ob-funk">­ƒöì <b>Rezept-Ideen von der KI:</b> ÔÇ×Rezept ÔÇô
+     etwas mit K├╝rbis" ÔåÆ 3 Vorschl├ñge, frisch f├╝r euch entwickelt
+     (keine kopierten Rezepte aus dem Netz) und hart gepr├╝ft gegen eure
+     Allergien und Ern├ñhrungsformen (vegan, vegetarisch, low carb ÔÇª).</div>
+    <div class="ob-funk">­ƒøÆ <b>Einkaufsliste:</b> ÔÇ×Einkauf Milch" ruft ihr
+     durch die Wohnung ÔÇô steht drauf. Rezept-Zutaten in euren Mengen
+     per Satz: ÔÇ×Auf die Einkaufsliste". Im Laden: Einkaufs-Modus zum
+     Abhaken per Stimme.</div>
+    <div class="ob-funk">­ƒôà <b>Termine &amp; Erinnerungen:</b> ÔÇ×Termin: Zoe
+     Montag 14 Uhr Reiten" ÔÇô die App fragt nach (Abfahrt? Anfahrt?) und
+     erinnert sp├ñter von selbst, auch bei <b>geschlossener</b> App.</div>
+    <div class="ob-funk">­ƒº╗ <b>Verbrauchs-Planer:</b> denkt an Klopapier,
+     Zahnpasta &amp; Co, bevor sie ausgehen ÔÇô lernt euren Verbrauch.</div>
+    <div class="ob-funk">­ƒùô <b>Wochen-Matrix:</b> die ganze Familienwoche
+     auf einen Blick.</div>
+    <div class="ob-funk">­ƒÄñ <b>Sprachsteuerung ├╝berall:</b> ÔÇ×Hilfe" nennt
+     alle Befehle, ÔÇ×Weiter" ├╝berspringt, ÔÇ×Stopp" macht still.</div>
+   </div>
+
+   <div class="ob-step hidden" data-ob="6">
+    <div class="ob-hero">ÔÅ▒´©Å</div>
+    <h2>Einmalig einrichten ÔÇô max. 10 Minuten</h2>
+    <p>Damit die App <b>eure</b> App wird (richtige Mengen, sichere
+    Rezepte, Erinnerungen aufs richtige Ger├ñt), nehmt euch jetzt einmal
+    kurz Zeit. Ich f├╝hre euch Schritt f├╝r Schritt ÔÇô jeder Schritt wird
+    einzeln best├ñtigt, nichts geht verloren.</p>
+    <p class="muted">Tipp: Ihr k├Ânnt jederzeit ÔÇ×Weiter" sagen oder unten
+    tippen.</p>
+   </div>
+
+   <div class="ob-step hidden" data-ob="7">
+    <h2>­ƒæñ Schritt 1: Eure Familie</h2>
+    <p>Wer geh├Ârt dazu? Daraus berechne ich automatisch alle
+    Portionsmengen.</p>
+    <div class="ob-form">
+      <input type="text" id="obName" placeholder="Name (z.B. Zoe)">
+      <input type="number" id="obAlter" placeholder="Alter" min="0" max="120">
+      <select id="obGeschlecht">
+        <option value="w">ÔÖÇ weiblich</option>
+        <option value="m">ÔÖé m├ñnnlich</option>
+      </select>
+      <button class="btn" type="button" data-on-click="obMitgliedHinzu()">+ Hinzuf├╝gen</button>
+    </div>
+    <div id="obFamListe" class="muted"></div>
+    <p class="muted">Allergien &amp; Ern├ñhrungsform je Person k├Ânnt ihr
+    gleich danach unter <b>Rezepte ÔåÆ Eure Familie</b> verfeinern ÔÇô
+    wichtig f├╝r sichere Rezeptvorschl├ñge!</p>
+   </div>
+
+   <div class="ob-step hidden" data-ob="8">
+    <h2>­ƒÄñ Schritt 2: Mikrofon</h2>
+    <p>Das Herz der App: einfach sprechen. Erlaubt einmalig das
+    Mikrofon ÔÇô danach h├Ârt die App beim ├ûffnen automatisch zu.</p>
+    <button class="btn big" type="button" data-on-click="obMikro()">­ƒÄñ Mikrofon jetzt erlauben</button>
+    <p id="obMikroStatus" class="muted"></p>
+   </div>
+
+   <div class="ob-step hidden" data-ob="9">
+    <h2>­ƒöö Schritt 3: Erinnerungen</h2>
+    <p>Damit Termin-Erinnerungen auch bei <b>geschlossener App</b>
+    ankommen (datensparsam ÔÇô der Server kennt keine Inhalte).</p>
+    <button class="btn big" type="button" data-on-click="obPush()">­ƒöö Erinnerungen aktivieren</button>
+    <p id="obPushStatus" class="muted"></p>
+    <p class="muted">­ƒô▒ iPhone: erst ├╝ber ÔÇ×Teilen ÔåÆ Zum Home-Bildschirm"
+    installieren, dann von dort ├Âffnen und aktivieren.</p>
+   </div>
+
+   <div class="ob-step hidden" data-ob="10">
+    <h2>­ƒô▓ Schritt 4: Als App installieren</h2>
+    <p>Ein Fingertipp vom Startbildschirm ÔÇô wie eine echte App, und
+    eure Daten bleiben dauerhaft erhalten.</p>
+    <button class="btn big" type="button" data-on-click="obInstall()">­ƒô▓ Jetzt installieren</button>
+    <p id="obInstallStatus" class="muted"></p>
+   </div>
+
+   <div class="ob-step hidden" data-ob="11">
+    <div class="ob-hero">­ƒî▒</div>
+    <h2>Ein ehrliches Wort zum Schluss</h2>
+    <p><b>Diese App kann euch nur helfen, wenn ihr sie auch
+    benutzt.</b> Wie so vieles im Leben ist das ein Prozess: Die ersten
+    Tage hei├ƒt es dran denken ÔÇô ÔÇ×Einkauf Milch" rufen statt Zettel
+    suchen, den Termin der App sagen statt ihn im Kopf zu jonglieren.</p>
+    <p>Nach kurzer Zeit wird es selbstverst├ñndlich ÔÇô und dann spart
+    sie euch jeden Tag Denkarbeit, Zettelwirtschaft und das
+    ÔÇ×Ach-Mist-vergessen"-Gef├╝hl. <b>Es wird sich f├╝r euch lohnen. ­ƒÆø</b></p>
+    <div class="ob-funk">­ƒÆ¼ <b>Euer Draht zu uns ÔÇô der Feedback-Knopf:</b>
+    Unten in der App findet ihr ÔÇ×Feedback geben". Fehlt euch etwas,
+    klemmt ein Ablauf oder habt ihr eine Idee? <b>Bitte nutzt ihn!</b>
+    Jede R├╝ckmeldung flie├ƒt direkt in die Weiterentwicklung ÔÇô ihr
+    formt diese App mit.</div>
+   </div>
+
+  </div>
+  <div class="ob-fuss">
+    <button class="btn ghost" type="button" id="obZurueckBtn" data-on-click="obZurueck()">ÔÇ╣ Zur├╝ck</button>
+    <button class="btn ghost" type="button" data-on-click="obFertig(true)">├£berspringen</button>
+    <button class="btn" type="button" id="obWeiterBtn" data-on-click="obWeiter()">Weiter ÔÇ║</button>
+  </div>
+ </div>
+</div>
+<div id="lokalBanner" class="hidden">
+  ÔÜá´©Å <b>Lokale Datei ge├Âffnet.</b> Rezept-Recherche, Termin-├£bersetzung
+  und Push-Erinnerungen brauchen den Server und funktionieren hier nicht.
+  <a class="btn" href="https://familienassistent.net/"
+     style="margin-left:10px">­ƒîÉ Online-Version ├Âffnen</a>
+</div>
+<div id="byeOverlay" class="hidden">
+  <div>
+    <h2>­ƒæï Bis bald!</h2>
+    <p>Mikrofon und Stimme sind aus.<br>Ihr k├Ânnt diesen Tab jetzt schlie├ƒen.</p>
+    <button class="btn" data-on-click="byeSchliessen()">Ôå® Doch weitermachen</button>
+  </div>
+</div>
+<header>
+  <h1>Familien-Assistent</h1>
+  <p>Sprachgef├╝hrt kochen, planen, einkaufen ÔÇô H├ñnde frei f├╝r alles andere</p>
+</header>
+
+<main>
+  <!-- ============ TAB 0: HEUTE (F-024) ============ -->
+  <section id="tab-heute" class="hidden">
+    <div class="card">
+      <h2>­ƒôì Heute</h2>
+      <p id="heuteDatum" class="muted" style="margin:0 0 8px"></p>
+      <div id="heuteEssen"></div>
+      <div id="heuteTermine"></div>
+      <div id="heuteNaechster"></div>
+      <div id="heuteEinkauf"></div>
+    </div>
+  </section>
+  <!-- ============ TAB 1: FAMILIE ============ -->
+  <section id="tab-familie">
+    <div class="card" style="padding:0;overflow:hidden">
+      <svg viewBox="0 0 800 330" xmlns="http://www.w3.org/2000/svg"
+           role="img" aria-label="Helle Landhausk├╝che mit gedecktem Tisch"
+           style="display:block;width:100%">
+        <rect width="800" height="330" fill="#f6efe0"/>
+        <rect y="268" width="800" height="62" fill="#eadfc8"/>
+        <rect x="48" y="28" width="270" height="150" rx="10" fill="#d7e6ec"/>
+        <rect x="48" y="28" width="270" height="150" rx="10" fill="none"
+              stroke="#d9c7a4" stroke-width="10"/>
+        <line x1="183" y1="33" x2="183" y2="173" stroke="#d9c7a4" stroke-width="7"/>
+        <circle cx="120" cy="75" r="26" fill="#f4d489"/>
+        <path d="M210 140 q20 -28 45 0 q22 -20 40 0 l0 33 l-85 0 z" fill="#ffffff" opacity=".8"/>
+        <rect x="284" y="150" width="26" height="24" rx="4" fill="#c4704b"/>
+        <path d="M297 150 q-14 -22 -2 -34 M297 150 q12 -20 4 -32 M297 150 q0 -24 0 -30"
+              stroke="#7e9c6f" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <rect x="600" y="48" width="150" height="8" rx="4" fill="#d9c7a4"/>
+        <rect x="614" y="20" width="24" height="28" rx="4" fill="#e9b86b"/>
+        <rect x="648" y="14" width="24" height="34" rx="4" fill="#c98a5b"/>
+        <rect x="682" y="24" width="24" height="24" rx="4" fill="#7e9c6f"/>
+        <rect x="600" y="118" width="150" height="8" rx="4" fill="#d9c7a4"/>
+        <rect x="620" y="92" width="30" height="26" rx="5" fill="#e3d3b4"/>
+        <rect x="664" y="86" width="22" height="32" rx="5" fill="#b9cba8"/>
+        <rect x="170" y="218" width="460" height="20" rx="10" fill="#dcc294"/>
+        <rect x="196" y="238" width="16" height="60" rx="6" fill="#c8ab7c"/>
+        <rect x="588" y="238" width="16" height="60" rx="6" fill="#c8ab7c"/>
+        <rect x="360" y="180" width="80" height="40" rx="10" fill="#c4704b"/>
+        <rect x="348" y="176" width="104" height="10" rx="5" fill="#a85a38"/>
+        <path d="M385 165 q-8 -14 2 -26 M405 165 q8 -16 -2 -28 M420 168 q6 -10 0 -20"
+              stroke="#cbb89a" stroke-width="5" fill="none" stroke-linecap="round" opacity=".8"/>
+        <ellipse cx="260" cy="226" rx="30" ry="8" fill="#fffdf8"/>
+        <ellipse cx="540" cy="226" rx="30" ry="8" fill="#fffdf8"/>
+        <line x1="400" y1="0" x2="400" y2="58" stroke="#a8957a" stroke-width="3"/>
+        <path d="M376 58 q24 -20 48 0 l0 14 l-48 0 z" fill="#b3784f"/>
+        <circle cx="400" cy="80" r="5" fill="#f4d489"/>
+        <line x1="500" y1="0" x2="500" y2="42" stroke="#a8957a" stroke-width="3"/>
+        <path d="M480 42 q20 -17 40 0 l0 12 l-40 0 z" fill="#7e9c6f"/>
+        <circle cx="500" cy="62" r="4" fill="#f4d489"/>
+        <path d="M250 218 q-3 -26 5 -34 l14 0 q8 8 5 34 z" fill="#e3d3b4"/>
+        <path d="M262 184 q-10 -28 -24 -38 M262 184 q2 -30 14 -44 M262 184 q-2 -26 -2 -36"
+              stroke="#7e9c6f" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <circle cx="240" cy="150" r="5" fill="#9bb38c"/>
+        <circle cx="250" cy="158" r="4" fill="#9bb38c"/>
+        <circle cx="272" cy="146" r="5" fill="#9bb38c"/>
+        <circle cx="262" cy="156" r="4" fill="#9bb38c"/>
+        <ellipse cx="528" cy="216" rx="52" ry="10" fill="#c8a878"/>
+        <path d="M496 206 q32 -26 64 0 q-6 8 -32 8 q-26 0 -32 -8" fill="#d9a85e"/>
+        <path d="M512 196 q5 -5 10 0 M530 192 q5 -5 10 0 M547 197 q5 -5 10 0"
+              stroke="#b3784f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M236 226 l54 0 l-4 52 q-12 8 -22 0 q-10 8 -22 0 z" fill="#f3ecdc"/>
+        <path d="M250 238 l28 0 M248 254 l30 0" stroke="#ddd1b8" stroke-width="3"
+              stroke-linecap="round"/>
+        <path d="M310 216 q0 14 22 14 q22 0 22 -14 z" fill="#9bb38c"/>
+        <path d="M448 216 q0 12 18 12 q18 0 18 -12 z" fill="#c4704b"/>
+        <rect x="606" y="196 " width="26" height="22" rx="4" fill="#e3d3b4"/>
+        <path d="M619 196 q-9 -14 -2 -22 M619 196 q8 -12 3 -20 M619 196 q0 -16 0 -18"
+              stroke="#7e9c6f" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div style="padding:14px 18px 18px">
+        <h2 style="margin:0 0 4px">Willkommen zu Hause.</h2>
+        <p class="muted" style="margin:0">Plant euer Essen, kauft ohne
+        Zettel ein und kocht mit freien H├ñnden ÔÇô die App spricht mit euch.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h2>1. Eure Familie</h2>
+      <label>Erwachsene: <input type="number" id="adults" min="1" max="6" value="2"></label>
+      <label>Kinder: <input type="number" id="kids" min="0" max="8" value="2"></label>
+      <p class="muted" id="famAutoInfo">Daraus berechne ich automatisch
+      die Mengen f├╝r Rezepte und Einkaufsliste.</p>
+      <button class="btn ghost" type="button" data-on-click="onboardingOeffnen()">
+        ­ƒôû Einf├╝hrung &amp; Einrichtung erneut ansehen</button>
+      <div class="karte" style="margin-top:10px">
+        <b>­ƒæ¿ÔÇì­ƒæ®ÔÇì­ƒæº Familien-Sync</b> <span class="muted">(Plus)</span><br>
+        <span class="muted">Termine, Mitglieder &amp; Listen auf allen
+        Handys der Familie ÔÇô Ende-zu-Ende-verschl├╝sselt: Der Code ist
+        der Schl├╝ssel, unser Server sieht nur unlesbares Chiffrat.</span>
+        <div id="syncFormular" style="margin-top:8px">
+          <input type="text" id="syncCodeEingabe"
+                 placeholder="FAM-XXXXX-XXXXX" style="max-width:190px">
+          <button class="btn" type="button" data-on-click="syncVerbinden()">Verbinden</button>
+        </div>
+        <div id="syncVerbunden" class="hidden" style="margin-top:8px">
+          <button class="btn" type="button" data-on-click="syncEinladen()">­ƒô¿ Partner einladen</button>
+          <button class="btn ghost" type="button" data-on-click="syncTrennen()">Trennen</button>
+        </div>
+        <div id="syncStatus" class="muted" style="margin-top:6px"></div>
+        <div id="syncInfo" class="muted" style="margin-top:6px"></div>
+      <div class="karte" style="margin-top:10px">
+        <b>­ƒöè Vorlese-Stimme</b><br>
+        <span class="muted">Welche Stimme soll euch beim Kochen
+        begleiten? Antippen = H├Ârprobe.</span><br>
+        <select id="stimmeWahl" data-on-change="stimmeGewaehlt()"
+                style="margin-top:6px;max-width:230px"></select>
+        <button class="btn ghost" type="button"
+                data-on-click="stimmeProbe()">ÔûÂ Probe h├Âren</button>
+        <br><span class="muted">Klangfarbe:</span>
+        <select id="klangWahl" data-on-change="klangGewaehlt()"
+                style="margin-top:4px;max-width:230px"></select>
+        <br><label style="display:inline-flex;align-items:center;
+                     gap:6px;margin-top:8px;font-size:.9rem">
+          <input type="checkbox" id="ruheKochWahl"
+                 data-on-change="ruheKochGewaehlt()">
+          ­ƒöç Bereitton weiter reduzieren
+        </label>
+        <div class="muted" style="font-size:.8rem">
+          Der kurze Ton kommt vom Handy-System bei jedem Zuh├Âr-Start.
+          Mit dieser Option pausiert das Mikrofon beim Kochen nach
+          einer Minute Stille ÔÇô Mikrofon-Knopf weckt es wieder.
+        </div>
+      </div>
+      </div>
+      <div style="margin-top:12px">
+        <label style="display:block;margin-bottom:6px"><b>Euer
+        Familienprofil</b> ÔÇô Grundlage f├╝r Rezeptmengen, Ern├ñhrungsform,
+        Einkaufsplanung und Termine:</label>
+        <input type="text" id="memberName" placeholder="Name, z. B. Lena"
+               style="width:34%;padding:8px;border:1px solid #ddd;
+                      border-radius:8px;font-size:1rem">
+        <input type="number" id="memberAlter" placeholder="Alter" min="0"
+               max="99" style="width:70px;padding:8px;border:1px solid #ddd;
+                      border-radius:8px;font-size:1rem">
+        <select id="memberGeschlecht" style="padding:8px;border-radius:8px;
+                border:1px solid #ddd;font-size:1rem">
+          <option value="w">ÔÖÇ weiblich</option>
+          <option value="m">ÔÖé m├ñnnlich</option>
+        </select>
+        <details style="margin:8px 0">
+          <summary style="cursor:pointer;color:var(--accent);
+                   font-weight:600">Allergien/Unvertr├ñglichkeiten dieser
+                   Person (optional)</summary>
+          <div id="palgBox" style="margin-top:6px">
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="gluten"> Gluten</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="laktose"> Laktose</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="nuesse"> N├╝sse</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="ei"> Ei</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="erdnuss"> Erdn├╝sse</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="soja"> Soja</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="fisch"> Fisch</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="meerestiere"> Meerestiere</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="sellerie"> Sellerie</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="senf"> Senf</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="sesam"> Sesam</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="lupinen"> Lupinen</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="palg" value="sulfite"> Sulfite</label>
+          </div>
+        </details>
+        <details style="margin:8px 0">
+          <summary style="cursor:pointer;color:var(--accent);
+                   font-weight:600">Ern├ñhrungsform dieser Person (optional)</summary>
+          <div id="pdietBox" style="margin-top:6px">
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="pdiet" value="vegetarisch"> vegetarisch</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="pdiet" value="vegan"> vegan</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="pdiet" value="pescetarisch"> pescetarisch</label>
+            <label style="display:inline-flex;margin-right:10px"><input
+              type="checkbox" class="pdiet" value="lowcarb"> low carb</label>
+          </div>
+          <p class="muted" style="margin:4px 0 0">vegan z├ñhlt automatisch
+          auch als vegetarisch und pescetarisch ÔÇô das ber├╝cksichtigt die
+          App beim Filtern.</p>
+        </details>
+        <button class="btn" style="padding:9px 14px" type="button"
+                data-on-click="addMember()">+ Hinzuf├╝gen</button>
+        <div id="memberList" style="margin-top:8px"></div>
+        <p class="muted">Ein 13-j├ñhriger isst wie ein Erwachsener, eine
+        3-j├ñhrige die H├ñlfte ÔÇô mit dem Profil rechnet die App das
+        automatisch richtig.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h2>2. Unvertr├ñglichkeiten</h2>
+      <label><input type="checkbox" class="intol" value="gluten"> Gluten</label>
+      <label><input type="checkbox" class="intol" value="laktose"> Laktose</label>
+      <label><input type="checkbox" class="intol" value="nuesse"> N├╝sse (Schalenfr├╝chte)</label>
+      <label><input type="checkbox" class="intol" value="ei"> Ei</label>
+      <details style="margin-top:10px">
+        <summary style="cursor:pointer;color:var(--accent);font-weight:600">
+          Weitere Unvertr├ñglichkeiten anzeigen (EU-Allergenliste)</summary>
+        <label><input type="checkbox" class="intol" value="erdnuss"> Erdn├╝sse</label>
+        <label><input type="checkbox" class="intol" value="soja"> Soja</label>
+        <label><input type="checkbox" class="intol" value="fisch"> Fisch</label>
+        <label><input type="checkbox" class="intol" value="meerestiere"> Krebs- &amp; Weichtiere (Garnelen, Muscheln ÔÇª)</label>
+        <label><input type="checkbox" class="intol" value="sellerie"> Sellerie (auch in Br├╝hen!)</label>
+        <label><input type="checkbox" class="intol" value="senf"> Senf</label>
+        <label><input type="checkbox" class="intol" value="sesam"> Sesam</label>
+        <label><input type="checkbox" class="intol" value="lupinen"> Lupinen</label>
+        <label><input type="checkbox" class="intol" value="sulfite"> Sulfite (Wein, Trockenfr├╝chte ÔÇª)</label>
+      </details>
+      <div style="margin-top:14px">
+        <label for="ausschlussFeld" style="display:block;font-weight:600;
+               margin-bottom:4px">Zutaten, die nie vorkommen sollen</label>
+        <input type="text" id="ausschlussFeld" style="width:100%"
+               placeholder="z. B. Schweinefleisch, Alkohol, Koriander"
+               data-on-input="ausschlussSpeichern()">
+        <p class="muted" style="margin-top:4px">Mit Komma trennen. Gedacht f├╝r
+        Vorlieben und ├£berzeugungen (Religion, Geschmack, Verzicht). G├ñngige
+        Begriffe werden mitgedacht: ÔÇ×Schwein" schlie├ƒt auch Speck, Schinken und
+        Salami aus. <b>F├╝r echte Allergien bitte die Ankreuzfelder oben nutzen</b> ÔÇô
+        nur die sind vollst├ñndig abgesichert.</p>
+      </div>
+      <p class="muted">Rezepte mit diesen Zutaten werden <b>hart ausgeschlossen</b> ÔÇô
+      hier entscheidet niemals eine KI, sondern eine feste Zutatenliste.
+      Allergien gelten <b>immer f├╝r die ganze Familie</b>, unabh├ñngig vom
+      Koch-Modus.</p>
+      <p class="muted">ÔÜá´©Å <b>Wichtig:</b> Die App hilft beim Filtern, ersetzt aber
+      bei schweren Allergien keine eigene Kontrolle der Zutaten und keine
+      ├ñrztliche Beratung.</p>
     </div>
 
-    <header>
-        <div class="container nav">
-            <div class="logo">MeinOnepager</div>
-            <div class="nav-links">
-                <a href="#features">Vorteile</a>
-                <a href="#contact">Kontakt</a>
-                <a href="#imprint">Impressum</a>
-            </div>
-        </div>
-    </header>
+    <div class="card">
+      <h2>­ƒöÆ Eure Daten</h2>
+      <p class="muted">Profil, Termine und Verbrauch liegen auf diesem
+      Ger├ñt. Der Erinnerungs-Server kennt nur Weckzeiten und
+      Zufallsnummern ÔÇô keine Namen, keine Inhalte. Es gibt kein Konto,
+      keine Werbung, keinen Datenverkauf.</p>
+      <button class="btn" style="background:#d64545" type="button"
+              data-on-click="loescheAlles()">­ƒùæ Alle Daten unwiderruflich l├Âschen</button>
+    </div>
+    <button class="btn big" data-on-click="goTab('rezepte')">Weiter zu den Rezepten</button>
 
-    <section class="hero">
-        <div class="container">
-            <h1>Ihr Angebot. Direkt auf den Punkt.</h1>
-            <p>Ein moderner, rasend schneller Onepager. Komplett ohne Tracking-Dienste von Drittanbietern und somit 100% datenschutzkonform ausgelegt.</p>
-            <a href="#contact" class="btn">Jetzt starten</a>
-        </div>
-    </section>
+    <div class="card">
+      <h2>H├ñufige Fragen</h2>
+      <details>
+        <summary style="cursor:pointer;font-weight:600">Was kann der
+        Familien-Assistent?</summary>
+        <p class="muted">Er findet Rezepte passend zu eurer verf├╝gbaren Zeit,
+        euren Unvertr├ñglichkeiten und Ern├ñhrungsformen, erstellt automatisch
+        eine Einkaufsliste in Familienmengen und f├╝hrt euch beim Kochen
+        Schritt f├╝r Schritt per Sprache ÔÇô mit Timern und Garzeit-Ansagen,
+        ohne dass ihr das Display anfassen m├╝sst.</p>
+      </details>
+      <details>
+        <summary style="cursor:pointer;font-weight:600">Wie funktionieren
+        die Ern├ñhrungsformen?</summary>
+        <p class="muted">Pro Person speichert ihr im Profil eine
+        Ern├ñhrungsform (vegan, vegetarisch, pescetarisch, low carb). ├£ber
+        ÔÇ×F├╝r wen kochst du heute?" w├ñhlt ihr, ob f├╝r die ganze Familie oder
+        f├╝r eine bestimmte Person gefiltert wird. Im Familien-Modus zeigt
+        die App auch Gerichte mit passender Variante, z. B. ÔÇ×vegane Variante
+        f├╝r Lena m├Âglich".</p>
+      </details>
+      <details>
+        <summary style="cursor:pointer;font-weight:600">Brauche ich ein Konto?</summary>
+        <p class="muted">Nein ÔÇô die App l├ñuft direkt im
+        Browser auf Handy oder Tablet und braucht kein Konto. Favoriten und
+        Profile bleiben lokal auf eurem Ger├ñt gespeichert.</p>
+      </details>
+      <details>
+        <summary style="cursor:pointer;font-weight:600">Wie funktioniert das
+        Kochen per Sprache?</summary>
+        <p class="muted">Die App liest jeden Schritt laut vor und wartet auf
+        euer ÔÇ×fertig". Bei Wartezeiten l├ñuft automatisch ein Timer, und am
+        Ende sagt euch die App, was jetzt gar sein sollte ÔÇô z. B. ÔÇ×Die
+        M├Âhren sollten jetzt weich sein."</p>
+      </details>
+    </div>
+  </section>
 
-    <section id="features" class="features">
-        <div class="container">
-            <h2 style="text-align: center;">Unsere Leistungen</h2>
-            <div class="grid">
-                <div class="card">
-                    <!-- Lokaler DSGVO-konformer Foto-Platzhalter (Inline SVG statt externer URL) -->
-                    <div class="placeholder-img">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                    </div>
-                    <h3>Lokale Assets</h3>
-                    <p>Alle Bilder sind direkt im Quellcode verankert oder werden lokal geladen. Keine Google Fonts oder CDN-Server-Verbindungen.</p>
-                </div>
-                <div class="card">
-                    <div class="placeholder-img">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    </div>
-                    <h3>DSGVO-Sicherheit</h3>
-                    <p>Keine IP-Weiterleitung in Drittstaaten. Ein sauberes Fundament für Ihr Business im EU-Raum.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+  <!-- ============ TAB 2: REZEPTE ============ -->
+  <section id="tab-rezepte" class="hidden">
+    <div class="card">
+      <h2>F├╝r wen kochst du heute?</h2>
+      <select id="kochModusSel" data-on-change="setKochModus(this.value)"
+        style="width:100%;padding:11px;border-radius:8px;
+               border:1px solid #ddd;font-size:1rem">
+        <option value="familie">­ƒæ¿ÔÇì­ƒæ®ÔÇì­ƒæºÔÇì­ƒæª Ganze Familie</option>
+      </select>
+      <p class="muted">Allergien gelten <b>immer</b> f├╝r alle. Die
+      Ern├ñhrungsform richtet sich nach dieser Auswahl: ÔÇ×Ganze Familie" zeigt
+      Gerichte, die f├╝r alle passen ÔÇô inklusive Hinweis, wo sich f├╝r einzelne
+      Personen eine Variante anbietet. W├ñhle eine Person, um strikt f├╝r sie
+      zu filtern.</p>
+    </div>
+    <div class="card">
+      <h2>Wieviel Zeit hast du heute?</h2>
+      <div id="timeButtons">
+        <button class="btn ghost timebtn active-time" data-min="0" data-max="999"
+                data-on-click="setTimeGroup(this)">Alle</button>
+        <button class="btn ghost timebtn" data-min="15" data-max="20"
+                data-on-click="setTimeGroup(this)">15ÔÇô20 Min.</button>
+        <button class="btn ghost timebtn" data-min="20" data-max="30"
+                data-on-click="setTimeGroup(this)">20ÔÇô30 Min.</button>
+        <button class="btn ghost timebtn" data-min="30" data-max="40"
+                data-on-click="setTimeGroup(this)">30ÔÇô40 Min.</button>
+        <button class="btn ghost timebtn" data-min="40" data-max="999"
+                data-on-click="setTimeGroup(this)">ab 40 Min.</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Worauf habt ihr Lust?</h2>
+      <p class="muted">Optionaler Stil ÔÇô hebt passende Rezepte hervor und
+      flie├ƒt in die Recherche ein. Mehrfachauswahl m├Âglich, wird gespeichert.</p>
+      <div id="stilChips"></div>
+    </div>
+    <div class="card">
+      <h2>­ƒöì Neues Rezept recherchieren</h2>
+      <p class="muted">Sag uns, worauf ihr Lust habt ÔÇô Unvertr├ñglichkeiten,
+      Ern├ñhrungsform, deine Zeitauswahl und euer Stil werden automatisch
+      beachtet und sicherheitsgepr├╝ft.</p>
+      <input type="text" id="searchWish"
+        placeholder="z. B. etwas mit K├╝rbis, asiatisch, ohne Fleisch ÔÇª"
+        style="width:100%;padding:11px;border-radius:8px;
+               border:1px solid #ddd;font-size:1rem">
+      <p></p>
+      <button class="btn" id="searchBtn" data-on-click="rechercheRezept(false)">
+        Rezept recherchieren</button>
+      <button class="btn ghost" type="button" data-on-click="rezeptVoiceStart()">
+        ­ƒÄñ Wunsch sprechen</button>
+      <button class="btn ghost hidden" id="retryBtn"
+        data-on-click="rechercheRezept(true)">­ƒöä Andere Vorschl├ñge</button>
+      <p class="muted" id="searchStatus"></p>
+    </div>
+    <div id="searchResults"></div>
+    <div class="card">
+      <h2>­ƒôû Unsere Standard-Rezepte</h2>
+      <p class="muted" id="filterInfo"></p>
+    </div>
+    <button class="btn ghost" id="stdToggle" type="button"
+            data-on-click="toggleStdRezepte()">­ƒôû Standard-Rezepte anzeigen</button>
+    <div id="recipeList" class="hidden"></div>
+      <div class="muted" style="font-size:.8rem;margin-top:8px">
+        Ôä╣´©Å Jedes Rezept wird doppelt gegen eure Allergie- und
+        Ern├ñhrungsangaben gepr├╝ft. Laut geltender Rechtslage weisen
+        wir dennoch darauf hin: Werft bei Allergien beim Einkauf
+        bitte einen kurzen Blick auf die Zutatenliste der Produkte ÔÇô
+        unsere Vorschl├ñge ersetzen keine medizinische Beratung.
+      </div>
+    <p id="rezeptHinweis" class="muted hidden">Sagt <b>ÔÇ×Kochen"</b> zum
+    Loskochen ┬À <b>ÔÇ×Auf die Einkaufsliste"</b> zum Einkaufen ┬À oder w├ñhlt ein
+    anderes Rezept.</p>
+    <button class="btn big" id="toShopBtn" disabled
+            data-on-click="buildShoppingList();goTab('einkauf')">
+      Einkaufsliste erstellen</button>
+  </section>
 
-    <section id="contact" class="contact">
-        <div class="container">
-            <h2 style="text-align: center; margin-bottom: 30px;">Schreiben Sie uns</h2>
-            <form action="#" method="POST" onsubmit="alert('Demo: Formular abgesendet!'); return false;">
-                <div class="form-group">
-                    <label for="name">Name</label>
-                    <input type="text" id="name" required>
-                </div>
-                <div class="form-group">
-                    <label for="email">E-Mail-Adresse</label>
-                    <input type="email" id="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="message">Nachricht</label>
-                    <textarea id="message" rows="4" required></textarea>
-                </div>
-                <div class="form-group dsgvo-check">
-                    <input type="checkbox" id="dsgvo" required>
-                    <label for="dsgvo">Ich stimme zu, dass meine Angaben zur Kontaktaufnahme verarbeitet werden. (Hinweis: Sie können diese Einwilligung jederzeit widerrufen).</label>
-                </div>
-                <button type="submit" class="btn" style="width: 100%; border: none; cursor: pointer;">Absenden</button>
-            </form>
-        </div>
-    </section>
+  <!-- ============ TAB 3: EINKAUF ============ -->
+  <section id="tab-einkauf" class="hidden">
+    <div class="card">
+      <h2>Einkaufsliste <span class="muted" id="portionInfo"></span></h2>
+      <ul class="shop" id="shopList"></ul>
+      <br>
+      <button class="btn ghost" data-on-click="readShoppingList()">­ƒöè Liste vorlesen</button>
+      <button class="btn ghost" data-on-click="leereEinkaufslisteKnopf()">­ƒùæ Liste leeren</button>
+    </div>
+    <button class="btn big green" data-on-click="startCooking()">Jetzt kochen ­ƒì│</button>
 
-    <footer id="imprint">
-        <div class="container">
-            <p>&copy; 2026 MeinOnepager. Alle Rechte vorbehalten.</p>
-            <p style="margin-top: 15px;">
-                <a href="#imprint">Impressum</a> | <a href="#privacy" id="privacy">Datenschutzerklärung</a>
-            </p>
-            <div style="margin-top: 20px; font-size: 0.8rem; color: #64748b; max-width: 700px; margin-left: auto; margin-right: auto; text-align: left; border-top: 1px solid #334155; padding-top: 15px;">
-                <strong>Muster-Impressum:</strong> Max Mustermann, Musterstraße 1, 12345 Musterstadt.<br>
-                <strong>Muster-Datenschutz:</strong> Verantwortlicher für die Datenverarbeitung ist der Seitenbetreiber. Daten (Name, E-Mail) aus dem Kontaktformular werden ausschließlich zur Beantwortung der Anfrage verarbeitet und gelöscht, sobald der Zweck entfällt. Keine Weitergabe an Dritte.
-            </div>
-        </div>
-    </footer>
+    <div class="card">
+      <h2>­ƒº╗ Verbrauchsg├╝ter ÔÇô automatisch geplant</h2>
+      <p class="muted" id="vbInfo"></p>
+      <h3 style="margin:10px 0 4px">Wahrscheinlich bald leer:</h3>
+      <div id="vbEvtl"></div>
+      <h3 style="margin:16px 0 4px">­ƒøÆ Verbrauchs-Einkaufsliste:</h3>
+      <ul class="shop" id="vbListe"></ul>
+      <!-- NEU (Einkaufs-Voice): freih├ñndiges Abhaken beim Einkaufen -->
+      <button class="btn ghost" type="button" id="vbVoiceBtn"
+        data-on-click="vbVoiceCheckoffToggle()">
+        ­ƒøÆ Freih├ñndig abhaken (Einkaufs-Modus)</button>
+      <p class="muted" id="vbVoiceStatus" style="margin:4px 0 0"></p>
+      <p class="muted" style="margin:4px 0 10px">Im Einkaufs-Modus einfach
+      sagen, was im Wagen ist ÔÇô z. B. <b>ÔÇ×Milch okay"</b>. Die App best├ñtigt
+      per Stimme und lernt euren echten Verbrauch mit.</p>
+      <button class="btn ghost" type="button" data-on-click="vbVoiceAdd()">
+        ­ƒÄñ Artikel per Sprache hinzuf├╝gen</button>
+      <button class="btn ghost" type="button" id="bonScanBtn"
+        data-on-click="scanStarten('bonFoto')">­ƒº¥ Kassenbon scannen</button>
+      <input type="file" id="bonFoto" accept="image/*" capture="environment"
+        class="hidden" data-on-change="bonFotoGewaehlt(this)">
+      <p class="muted" style="margin:4px 0 0">Foto vom Bon: Die App erkennt
+      Verbrauchsg├╝ter und rechnet ihre Reichweite neu. ­ƒöÆ Das Foto wird
+      <b>nur auf diesem Ger├ñt</b> gelesen und nicht gespeichert.</p>
+      <div id="bonErgebnis" class="muted" style="margin-top:6px"></div>
+      <details style="margin-top:12px">
+        <summary style="cursor:pointer;color:var(--accent);font-weight:600">
+          Alle Artikel verwalten (Reichweiten ansehen)</summary>
+        <div id="vbAlle" style="margin-top:8px"></div>
+      </details>
+    </div>
+  </section>
 
+  <!-- ============ TAB 4: KOCHEN ============ -->
+  <section id="tab-kochen" class="hidden">
+    <div class="card">
+      <div class="progress"><div id="progressBar"></div></div>
+      <h2 id="recipeTitle"></h2>
+      <p id="stepText">ÔÇª</p>
+      <p id="stepZutaten" class="muted"></p>
+      <div id="timerBox" class="hidden"></div>
+      <button class="btn big green" id="doneBtn" data-on-click="confirmStep()">
+        Ô£ô Fertig / Erledigt</button>
+      <button class="btn ghost" data-on-click="repeatStep()">­ƒöü Wiederholen</button>
+      <button class="btn ghost" id="backBtn" data-on-click="prevStep()">ÔÇ╣ Zur├╝ck</button>
+      <div id="favoriteBox" class="hidden" style="margin-top:12px">
+        <button class="btn" id="favBtn" data-on-click="addFavorite()">
+          Ô¡É Das war lecker ÔÇô als Favorit speichern</button>
+      </div>
+      <div id="micStatus">Mikrofon: wird gepr├╝ftÔÇª</div>
+      <p class="muted">Sag einfach <b>ÔÇ×fertig"</b> oder <b>ÔÇ×erledigt"</b>,
+      wenn der Schritt geschafft ist. Ich erinnere dich, wenn du nichts sagst.</p>
+    </div>
+  </section>
+
+  <!-- ============ TAB 5: FAVORITEN ============ -->
+  <section id="tab-favoriten" class="hidden">
+    <div class="card">
+      <h2>Ô¡É Eure Lieblingsgerichte</h2>
+      <p class="muted" id="favInfo"></p>
+    </div>
+    <div id="favList"></div>
+  </section>
+
+  <!-- ============ TAB 6: TERMINE ============ -->
+  <section id="tab-termine" class="hidden">
+    <div class="card">
+      <h2>­ƒÄñ Termin per Sprache erfassen</h2>
+      <p class="muted">Sprich einfach, z. B.: ÔÇ×Donnerstag halb drei Zahnarzt
+      f├╝r Lena, dauert eine Stunde, Mama bringt hin, sehr wichtig"</p>
+      <button class="btn" id="terminVoiceBtn" type="button"
+              data-on-click="terminVoiceStart()">­ƒÄñ Jetzt sprechen</button>
+      <button class="btn ghost" id="zettelScanBtn" type="button"
+              data-on-click="scanStarten('zettelFoto')">­ƒôÀ Schulzettel scannen</button>
+      <input type="file" id="zettelFoto" accept="image/*" capture="environment"
+             class="hidden" data-on-change="zettelFotoGewaehlt(this)">
+      <p class="muted" id="terminVoiceStatus"></p>
+      <div id="zettelErgebnis" style="margin-top:6px"></div>
+      <button class="btn ghost" id="lauschToggleBtn"
+              data-on-click="lauschUmschalten()">­ƒôú Lausch-Modus: aus</button>
+      <p class="muted" id="lauschStatus">Lausch-Modus: Die App wartet
+        still auf den Zuruf ÔÇ×Termin" ÔÇô ganz ohne Dauergepiepe. Beim
+        Zuruf ert├Ânt ein Bereitton, dann den Termin einfach sprechen.
+        (App muss ge├Âffnet und der Bildschirm an sein.)</p>
+    </div>
+
+    <div class="card">
+      <h2>­ƒöö Erinnerungen bei geschlossener App</h2>
+      <p class="muted">Aktiviere Push, damit der Termin-W├ñchter dich auch
+      erreicht, wenn die App zu ist. <b>Datenschutz:</b> Der Server kennt
+      dabei nur Weckzeiten und Zufallsnummern ÔÇô die Klartexte deiner
+      Termine bleiben ausschlie├ƒlich auf diesem Ger├ñt.</p>
+      <button class="btn" type="button" data-on-click="aktivierePush()">
+        ­ƒöö Push-Erinnerungen aktivieren</button>
+      <p class="muted" id="pushStatus"></p>
+      <p class="muted">­ƒô▒ iPhone: Zuerst ├╝ber ÔÇ×Teilen ÔåÆ Zum Home-Bildschirm"
+      installieren, dann hier aktivieren. Android: direkt aktivierbar.</p>
+    </div>
+
+    <div class="card">
+      <h2>Termin pr├╝fen &amp; speichern</h2>
+      <label>Titel: <input type="text" id="tTitel" style="width:65%;
+        padding:8px;border:1px solid #ddd;border-radius:8px"></label>
+      <label>F├╝r wen: <select id="tPerson"></select></label>
+      <label>Wer ├╝bernimmt: <select id="tVerantwortlich"></select></label>
+      <label>Datum: <input type="date" id="tDatum"></label>
+      <label>Uhrzeit: <input type="time" id="tZeit"></label>
+      <label>Dauer (Min.): <input type="number" id="tDauer" min="5"
+        max="720" value="60" style="width:80px;padding:6px;
+        border:1px solid #ddd;border-radius:8px"></label>
+      <label>Wegzeit (Min.): <input type="number" id="tWegzeit" min="0"
+        max="240" value="0" style="width:80px;padding:6px;
+        border:1px solid #ddd;border-radius:8px"></label>
+      <label>Wichtigkeit:
+        <select id="tKategorie">
+          <option value="rot">­ƒö┤ Sehr wichtig</option>
+          <option value="orange" selected>­ƒƒá Wichtig</option>
+          <option value="gelb">­ƒƒí Flexibel</option>
+          <option value="gruen">­ƒƒó Locker / Me-Time</option>
+        </select>
+      </label>
+      <p id="tKollision" class="muted" style="color:#d64545"></p>
+      <button class="btn green" type="button" data-on-click="saveTermin()">
+        Ô£ô Termin speichern</button>
+    </div>
+
+    <div class="card">
+      <h2>­ƒôà Wochen-Matrix</h2>
+      <div style="margin-bottom:8px">
+        <button class="btn ghost" type="button"
+          data-on-click="wocheWechseln(-1)">ÔÇ╣ Woche</button>
+        <button class="btn ghost" type="button"
+          data-on-click="wocheWechseln(0)">Heute</button>
+        <button class="btn ghost" type="button"
+          data-on-click="wocheWechseln(1)">Woche ÔÇ║</button>
+        <span class="muted" id="matrixWoche"></span>
+        <button class="btn" type="button" style="margin-left:8px"
+                data-on-click="wpPlanen()">Ô£¿ Woche planen</button>
+        <div id="wpInfo" class="muted" style="margin-top:6px"></div>
+      </div>
+      <div style="overflow-x:auto">
+        <div id="matrixGrid"></div>
+      </div>
+      <p class="muted">Blassblau = Routine-Abwesenheit (Arbeit, Sport ÔÇª),
+      Farben = Termin-Wichtigkeit. ├£berlappungen = Kollision!</p>
+    </div>
+
+    <div class="card">
+      <h2>­ƒöü Routine-Abwesenheiten</h2>
+      <p class="muted">Feste w├Âchentliche Bl├Âcke wie Arbeit, Schule,
+      Training ÔÇô erscheinen blassblau in der Matrix und flie├ƒen in die
+      Kollisionspr├╝fung ein.</p>
+      <label>Wer: <select id="rPerson"></select></label>
+      <label>Was: <input type="text" id="rLabel" placeholder="z. B. Arbeit"
+        style="width:50%;padding:8px;border:1px solid #ddd;
+        border-radius:8px"></label>
+      <div id="rTage" style="margin:8px 0"></div>
+      <label>Von: <input type="time" id="rVon" value="08:00"></label>
+      <label>Bis: <input type="time" id="rBis" value="16:00"></label>
+      <button class="btn" type="button" data-on-click="addRoutine()">
+        + Routine anlegen</button>
+      <div id="routineList" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h2>ÔÅ░ Anstehende Termine</h2>
+      <div id="terminList"></div>
+    </div>
+  </section>
+
+  <!-- Schwebender Feedback-Knopf (Testphase, auf jeder Seite) -->
+  <button id="fbBtn" type="button" data-on-click="fbOeffnen()"
+    style="position:fixed;right:14px;bottom:150px;z-index:901;width:54px;
+           height:54px;border-radius:50%;border:none;cursor:pointer;
+           background:var(--accent2);color:#fff;font-size:1.5rem;
+           box-shadow:0 3px 10px rgba(0,0,0,.25)"
+    title="Fehler oder Wunsch melden">­ƒÆ¼</button>
+
+  <div id="fbPanel" class="hidden"
+       style="position:fixed;left:12px;right:12px;bottom:78px;z-index:45;
+              background:var(--card);border-radius:14px;padding:16px;
+              box-shadow:0 6px 24px rgba(0,0,0,.3);max-width:520px;
+              margin:0 auto">
+    <h2 style="margin:0 0 6px">­ƒÆ¼ Fehler entdeckt? Wunsch?</h2>
+    <p class="muted" style="margin:0 0 10px">Sprich einfach drauflos ÔÇô
+    oder tippe. Geht direkt an die Entwicklung. Danke dir!</p>
+    <button class="btn" type="button" data-on-click="fbSprechen()"
+            id="fbMicBtn">­ƒÄñ Sprechen</button>
+    <textarea id="fbText" rows="3" placeholder="ÔÇª oder hier tippen"
+      style="width:100%;margin-top:8px;padding:10px;border-radius:10px;
+             border:1px solid #ddd;font-size:1rem"></textarea>
+    <div style="margin-top:8px">
+      <button class="btn green" type="button" data-on-click="fbSenden()">
+        Ô£ô Absenden</button>
+      <button class="btn ghost" type="button" data-on-click="fbSchliessen()">
+        Abbrechen</button>
+    </div>
+    <p class="muted" id="fbStatus" style="margin:8px 0 0"></p>
+  </div>
+
+  <!-- Erinnerungs-Banner (erscheint ueber allem) -->
+  <div id="reminderBanner" class="hidden"
+       style="position:fixed;top:0;left:0;right:0;z-index:50;
+              background:#d64545;color:#fff;padding:14px 16px;
+              box-shadow:0 2px 10px rgba(0,0,0,.3)">
+    <b id="reminderText"></b>
+    <div style="margin-top:8px">
+      <button class="btn" style="background:#fff;color:#d64545"
+              type="button" data-on-click="reminderOk()">Ô£ô OK / Erledigt</button>
+    </div>
+  </div>
+</main>
+
+<nav>
+  <button id="nav-heute" data-on-click="goTab('heute')">­ƒôì Heute</button>
+  <button id="nav-familie" class="active" data-on-click="goTab('familie')">­ƒæ¿ÔÇì­ƒæ®ÔÇì­ƒæº Familie</button>
+  <button id="nav-rezepte" data-on-click="goTab('rezepte')">­ƒôû Rezepte</button>
+  <button id="nav-einkauf" data-on-click="goTab('einkauf')">­ƒøÆ Einkauf</button>
+  <button id="nav-kochen" data-on-click="goTab('kochen')">­ƒì│ Kochen</button>
+  <button id="nav-favoriten" data-on-click="goTab('favoriten')">Ô¡É Favoriten</button>
+  <button id="nav-termine" data-on-click="goTab('termine')">­ƒôà Termine</button>
+  <button id="nav-onboarding" data-on-click="onboardingOeffnen()">Ôä╣´©Å Einf├╝hrung</button>
+</nav>
+
+<script src="/app-1.js"></script>
+
+<script src="/app-2.js"></script>
+
+<script src="/app-3.js"></script>
+<script src="/erweiterungen.js"></script>
+<script src="/install.js" defer></script>
+<script src="/wakeword-adapter.js" defer></script>
+<script src="/termin-regel.js" defer></script>
+<script src="/scanner-lokal.js" defer></script>
+
+<!-- ÔòÉÔòÉÔòÉ Garantie-Modal ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ -->
+<div id="garantieModal" role="dialog" aria-modal="true" aria-label="Datenschutz-Garantien">
+ <div class="gm-box">
+  <button class="gm-close" data-on-click="garantieModalSchliessen()" aria-label="Schlie├ƒen">Ô£ò</button>
+  <h2 class="gm-titel">­ƒöÆ Wie wir das garantieren</h2>
+  <div class="gm-pfeiler">
+   <div class="gm-icon">­ƒÅø´©Å</div>
+   <div><b>Closed Shadow-DOM</b><br>Alle Komponenten leben in einem geschlossenen
+   Shadow-DOM ÔÇô externe Skripte und Browser-Erweiterungen kommen nicht
+   an eure Daten heran.</div>
+  </div>
+  <div class="gm-pfeiler">
+   <div class="gm-icon">­ƒº╣</div>
+   <div><b>Ephemeral Zeroing</b><br>Sensible Zwischenwerte (z.B. Namen,
+   Mengen) werden nach jeder Verwendung sofort aus dem Arbeitsspeicher
+   gel├Âscht ÔÇô kein Nachlesen m├Âglich.</div>
+  </div>
+  <div class="gm-pfeiler">
+   <div class="gm-icon">­ƒöÉ</div>
+   <div><b>AES-GCM Ende-zu-Ende</b><br>Jede Kommunikation mit unserem
+   Erinnerungs-Dienst ist mit AES-GCM verschl├╝sselt. Nur euer Ger├ñt
+   kennt den Schl├╝ssel.</div>
+  </div>
+  <div class="gm-pfeiler">
+   <div class="gm-icon">­ƒîÉ</div>
+   <div><b>100 % Offline-Inferenz via WebGPU</b><br>Die KI-Modelle laufen
+   lokal in eurem Browser per WebGPU ÔÇô kein Rezept-Wunsch verl├ñsst
+   euer Ger├ñt.</div>
+  </div>
+  <button class="btn" style="margin-top:14px;width:100%" data-on-click="garantieModalSchliessen()">Verstanden Ô£ô</button>
+ </div>
+</div>
+
+<!-- ÔòÉÔòÉÔòÉ Paywall-Overlay ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ -->
+<div id="paywall-overlay" role="dialog" aria-modal="true" aria-label="Zugang w├ñhlen">
+ <div class="pw-inner">
+  <div class="pw-logo">­ƒæ¿ÔÇì­ƒæ®ÔÇì­ƒæºÔÇì­ƒæª</div>
+  <h1 class="pw-titel">Familien-Assistent</h1>
+  <p class="pw-sub">Dein Test-Zeitraum ist abgelaufen.<br>
+  W├ñhle einen Plan und behalte vollen Zugang:</p>
+  <div class="pw-pl├ñne">
+   <div class="pw-plan">
+    <div class="pw-plan-name">Flex-Probe</div>
+    <div class="pw-plan-preis">4,99 Ôé¼<span>/Monat</span></div>
+    <ul class="pw-plan-liste">
+     <li>Ô£ö Voller Funktionsumfang</li>
+     <li>Ô£ö Monatlich k├╝ndbar</li>
+     <li>Ô£ö Alle Updates inklusive</li>
+    </ul>
+    <button class="btn pw-btn-monat" data-on-click="paywallMonat()">Jetzt starten</button>
+   </div>
+   <div class="pw-plan pw-plan-featured">
+    <div class="pw-plan-badge">Beliebt</div>
+    <div class="pw-plan-name">Jahres-Schutz</div>
+    <div class="pw-plan-preis">49,90 Ôé¼<span>/Jahr</span></div>
+    <ul class="pw-plan-liste">
+     <li>Ô£ö Voller Funktionsumfang</li>
+     <li>Ô£ö 2 Monate geschenkt</li>
+     <li>Ô£ö Alle Updates inklusive</li>
+    </ul>
+    <button class="btn pw-btn-jahr" data-on-click="paywallJahr()">Jetzt sichern</button>
+   </div>
+   <div class="pw-plan">
+    <div class="pw-plan-name">Premium Lifetime</div>
+    <div class="pw-plan-preis">89 Ôé¼<span> einmalig</span></div>
+    <ul class="pw-plan-liste">
+     <li>Ô£ö Einmalige Zahlung</li>
+     <li>Ô£ö Lebenslanger Zugang</li>
+     <li>Ô£ö Alle zuk├╝nftigen Updates</li>
+    </ul>
+    <button class="btn pw-btn-lifetime" data-on-click="paywallLifetime()">Jetzt kaufen</button>
+   </div>
+  </div>
+  <div class="pw-b2b">
+   <p>B2B-Lizenzcode eingeben:</p>
+   <div style="display:flex;gap:8px">
+    <input type="text" id="pw-code-input" placeholder="z.B. WEIHNACHTEN2026"
+     style="flex:1;padding:10px;border:1px solid var(--accent);border-radius:8px;font-size:1rem">
+    <button class="btn" data-on-click="b2bCodeEinloesen()">Einl├Âsen</button>
+   </div>
+   <p id="pw-code-fehler" style="color:#c0392b;font-size:.85rem;margin-top:4px;display:none">
+    Ung├╝ltiger Code. Bitte erneut versuchen.</p>
+  </div>
+ </div>
+</div>
+
+<footer id="rechtsFooter">
+  <a href="/impressum.html">Impressum</a> ┬À
+  <a href="/datenschutz.html">Datenschutz</a> ┬À
+  <a href="/plus.html">­ƒÆÄ Familien-Plus</a>
+  <div style="margin-top:4px"><span id="appVersion"></span> ┬À
+  <button type="button" data-on-click="updatePruefen()" style="background:none;border:0;padding:0;color:inherit;text-decoration:underline;font:inherit;cursor:pointer">Nach Update suchen</button></div>
+  <div id="updateStatus" role="status" aria-live="polite" style="margin-top:4px"></div>
+  <details style="margin-top:8px;text-align:left;max-width:420px;margin-left:auto;margin-right:auto" data-on-toggle="datenschutzToggle(this)">
+    <summary style="cursor:pointer">­ƒöÆ Was verl├ñsst mein Handy?</summary>
+    <div id="datenschutzSeite" style="margin-top:6px"></div>
+  </details>
+  <details style="margin-top:8px;text-align:left;max-width:420px;margin-left:auto;margin-right:auto">
+    <summary style="cursor:pointer">­ƒÆ¥ Datensicherung</summary>
+    <p style="margin:6px 0">Speichert Termine, Familie, Favoriten und Einstellungen als Datei auf deinem Ger├ñt. Nichts wird ins Internet geschickt.</p>
+    <label for="sicherungPw">Passwort (empfohlen):</label>
+    <input id="sicherungPw" type="password" autocomplete="new-password" style="width:100%;box-sizing:border-box;margin:4px 0">
+    <button type="button" data-on-click="sicherungSpeichern()">Sicherung speichern</button>
+    <p style="margin:10px 0 4px">Sicherung zur├╝ckholen: erst das Passwort eintragen, dann die Datei w├ñhlen.</p>
+    <input id="sicherungDatei" type="file" accept=".json,application/json" data-on-change="sicherungDateiGewaehlt(this)">
+    <button type="button" id="sicherungGoBtn" class="hidden" data-on-click="sicherungWiederherstellen()">Jetzt wiederherstellen</button>
+    <div id="sicherungStatus" role="status" aria-live="polite" style="margin-top:6px"></div>
+  </details>
+</footer>
 </body>
 </html>
