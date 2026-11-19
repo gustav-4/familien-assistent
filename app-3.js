@@ -202,9 +202,9 @@ function weckerPlan() {
       eintraege.push({ ref, fireAt: start - min * 60000,
         endAt: start, repeatMin: kat.wiederholMin });
       const wann = min >= 60 ? Math.round(min / 60) + " Std." : min + " Min.";
-      texte[ref] = `${kat.label}: ${t.titel} fÃ¼r ${t.person} in ${wann}` +
+      texte[ref] = `${kat.label}: ${t.titel} für ${t.person} in ${wann}` +
         (t.wegzeitMin ? ` (inkl. ${t.wegzeitMin} Min. Weg)` : "") +
-        (t.verantwortlich ? ` â€“ ${t.verantwortlich} Ã¼bernimmt` : "");
+        (t.verantwortlich ? ` – ${t.verantwortlich} übernimmt` : "");
     });
   });
   return { eintraege, texte };
@@ -234,8 +234,8 @@ async function aktivierePush() {
   const status = document.getElementById("pushStatus");
   try {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      status.textContent = "Dieses GerÃ¤t/Browser unterstÃ¼tzt kein Push " +
-        "(iPhone: erst zum Home-Bildschirm hinzufÃ¼gen).";
+      status.textContent = "Dieses Gerät/Browser unterstützt kein Push " +
+        "(iPhone: erst zum Home-Bildschirm hinzufügen).";
       return;
     }
     const perm = await Notification.requestPermission();
@@ -256,8 +256,8 @@ async function aktivierePush() {
       body: JSON.stringify({ device: deviceId(), subscription: sub }),
     });
     serverSync();
-    status.textContent = "âœ… Aktiv! Der WÃ¤chter erreicht dich jetzt auch " +
-      "bei geschlossener App (PrÃ¼ftakt: alle 5 Minuten).";
+    status.textContent = "✅ Aktiv! Der Wächter erreicht dich jetzt auch " +
+      "bei geschlossener App (Prüftakt: alle 5 Minuten).";
   } catch (e) {
     status.textContent = "Aktivierung fehlgeschlagen: " +
       String(e.message || e).slice(0, 80);
@@ -325,7 +325,7 @@ async function pruefePushAbo() {
       serverSync(); // Weckplan zur neuen Anmeldung hochladen
       const status = document.getElementById("pushStatus");
       if (status) status.textContent =
-        "âœ… Aktiv! Anmeldung wurde automatisch erneuert.";
+        "✅ Aktiv! Anmeldung wurde automatisch erneuert.";
     }
   } catch (e) {}
 }
@@ -345,18 +345,18 @@ function fbSchliessen() {
 function fbSprechen() {
   // laeuft jetzt ueber den globalen Controller
   const status = document.getElementById("fbStatus");
-  status.textContent = "ðŸŽ¤ Ich hÃ¶re zu â€¦";
+  status.textContent = "🎤 Ich höre zu …";
   gvOneShot(null, (text) => {
     const alt = document.getElementById("fbText").value;
     document.getElementById("fbText").value = (alt ? alt + " " : "") + text;
-    status.textContent = "Passt das so? Dann âœ“ Absenden.";
+    status.textContent = "Passt das so? Dann ✓ Absenden.";
   });
 }
 async function fbSenden() {
   const text = document.getElementById("fbText").value.trim();
   const status = document.getElementById("fbStatus");
   if (text.length < 3) { status.textContent = "Bitte erst etwas sagen/tippen."; return; }
-  status.textContent = "Sende â€¦";
+  status.textContent = "Sende …";
   try {
     const r = await fetch("/api/feedback", {
       method: "POST",
@@ -366,11 +366,11 @@ async function fbSenden() {
     const data = await r.json();
     if (data.success) {
       document.getElementById("fbText").value = "";
-      status.textContent = "ðŸ’š Danke! Ist angekommen.";
-      speak("Danke fÃ¼r dein Feedback!", true);
+      status.textContent = "💚 Danke! Ist angekommen.";
+      speak("Danke für dein Feedback!", true);
       setTimeout(fbSchliessen, 1500);
     } else {
-      status.textContent = "Senden fehlgeschlagen â€“ " + (data.error || "");
+      status.textContent = "Senden fehlgeschlagen – " + (data.error || "");
     }
   } catch (e) {
     status.textContent =
@@ -380,8 +380,8 @@ async function fbSenden() {
 
 // ---------- Alles loeschen (Datenschutz) ----------
 async function loescheAlles() {
-  if (!confirm("Wirklich ALLE Daten lÃ¶schen?\n\nProfil, Termine, " +
-      "Routinen, Verbrauch und Favoriten werden auf diesem GerÃ¤t UND " +
+  if (!confirm("Wirklich ALLE Daten löschen?\n\nProfil, Termine, " +
+      "Routinen, Verbrauch und Favoriten werden auf diesem Gerät UND " +
       "auf dem Erinnerungs-Server unwiderruflich entfernt.")) return;
   try {
     await fetch("/api/wecker", {
@@ -392,7 +392,7 @@ async function loescheAlles() {
   } catch (e) {}
   try { localStorage.clear(); } catch (e) {}
   try { indexedDB.deleteDatabase("ka"); } catch (e) {}
-  alert("Alles gelÃ¶scht. Die App startet jetzt frisch.");
+  alert("Alles gelöscht. Die App startet jetzt frisch.");
   location.reload();
 }
 
@@ -452,12 +452,12 @@ function renderMembers() {
     chip.className = "tag";
     chip.style.cssText = "font-size:.95rem;padding:6px 10px;cursor:pointer";
     const alg = (m.allergien && m.allergien.length)
-      ? " âš " + m.allergien.join(",") : "";
+      ? " ⚠" + m.allergien.join(",") : "";
     const ern = (m.ernaehrung && m.ernaehrung.length)
-      ? " ðŸ¥—" + m.ernaehrung.map((d) => DIET_LABELS[d] || d).join(",") : "";
+      ? " 🥗" + m.ernaehrung.map((d) => DIET_LABELS[d] || d).join(",") : "";
     chip.textContent =
-      `${m.name} (${m.alter}, ${m.geschlecht === "w" ? "â™€" : "â™‚"})` +
-      `${alg}${ern} âœ•`;
+      `${m.name} (${m.alter}, ${m.geschlecht === "w" ? "♀" : "♂"})` +
+      `${alg}${ern} ✕`;
     chip.title = "Antippen zum Entfernen";
     chip.onclick = () => { mitglieder.splice(i, 1); tSaveAll(); renderMembers(); };
     box.appendChild(chip);
@@ -476,7 +476,7 @@ function syncFamilieAnzeige() {
   const info = document.getElementById("famAutoInfo");
   if (!mitglieder.length) {
     if (info) info.textContent = "Daraus berechne ich automatisch die " +
-      "Mengen fÃ¼r Rezepte und Einkaufsliste.";
+      "Mengen für Rezepte und Einkaufsliste.";
     return;
   }
   const erw = mitglieder.filter((m) => (m.alter || 0) >= 14).length;
@@ -487,8 +487,8 @@ function syncFamilieAnzeige() {
   if (k) k.value = Math.max(kin, 0);
   if (info) info.textContent = `Nach eurem Familienprofil: ${erw} ` +
     `Erwachsene und ${kin} ${kin === 1 ? "Kind" : "Kinder"} ` +
-    `(${summePE().toFixed(1)} Essens-Ã„quivalente) â€“ das Profil ist ` +
-    `die Grundlage fÃ¼r alle Mengen.`;
+    `(${summePE().toFixed(1)} Essens-Äquivalente) – das Profil ist ` +
+    `die Grundlage für alle Mengen.`;
 }
 function fuellePersonenSelects() {
   ["tPerson", "tVerantwortlich", "rPerson"].forEach((id) => {
@@ -500,7 +500,7 @@ function fuellePersonenSelects() {
       ? [""].concat(mitgliederNamen()) : mitgliederNamen().concat(["Familie"]);
     namen.forEach((n) => {
       const o = document.createElement("option");
-      o.value = n; o.textContent = n === "" ? "â€“ offen â€“" : n;
+      o.value = n; o.textContent = n === "" ? "– offen –" : n;
       sel.appendChild(o);
     });
     if (namen.includes(alt)) sel.value = alt;
@@ -517,7 +517,7 @@ function fuellePersonenSelects() {
 function parseJaNein(text) {
   const t = String(text).toLowerCase();
   if (/\b(ja|jawohl|genau|richtig|passt|klar|speichern|mach|gerne)\b/.test(t)) return "ja";
-  if (/\b(nein|nÃ¶|nicht|abbrechen|verwerfen|stopp|stop|falsch)\b/.test(t)) return "nein";
+  if (/\b(nein|nö|nicht|abbrechen|verwerfen|stopp|stop|falsch)\b/.test(t)) return "nein";
   return null;
 }
 
@@ -534,8 +534,8 @@ function parseMinutenAngabe(text) {
     if (/stunde/.test(t) && n <= 12) n = n * 60;
     return Math.min(n, 480);
   }
-  const woerter = { eine: 60, ein: 60, fÃ¼nf: 5, zehn: 10, fÃ¼nfzehn: 15,
-    zwanzig: 20, dreiÃŸig: 30, vierzig: 40, sechzig: 60 };
+  const woerter = { eine: 60, ein: 60, fünf: 5, zehn: 10, fünfzehn: 15,
+    zwanzig: 20, dreißig: 30, vierzig: 40, sechzig: 60 };
   for (const [w, n] of Object.entries(woerter)) {
     if (new RegExp("\\b" + w + "\\b").test(t)) {
       return /stunde/.test(t) && n < 13 ? n * 60 : n;
@@ -559,7 +559,7 @@ function terminZusammenfassung(t, abfahrt) {
     ds = new Date(t.datum + "T12:00").toLocaleDateString("de-DE",
       { weekday: "long", day: "numeric", month: "long" });
   } catch (e) {}
-  let s = `Also: ${t.titel} fÃ¼r ${t.person}, ${ds}, Beginn ${t.zeit} Uhr vor Ort`;
+  let s = `Also: ${t.titel} für ${t.person}, ${ds}, Beginn ${t.zeit} Uhr vor Ort`;
   if (t.wegzeit_min > 0) {
     s += `, Abfahrt ${addMinuten(t.zeit, -t.wegzeit_min)} Uhr`;
   }
@@ -568,14 +568,14 @@ function terminZusammenfassung(t, abfahrt) {
 
 // ---------- Namens-Abgleich (pur & testbar) ----------
 // BUGFIX: Die Spracherkennung verhunzt Namen gern ("Zoe" wird
-// "ZoÃ©", "So" oder "Zoll"). Deshalb wird die verstandene Person
+// "Zoé", "So" oder "Zoll"). Deshalb wird die verstandene Person
 // unscharf gegen die Familienmitglieder abgeglichen; passt nichts,
 // fragt der Dialog gezielt nach.
 function normalisiereName(s) {
   return String(s || "").toLowerCase()
-    .replace(/Ã¤/g, "ae").replace(/Ã¶/g, "oe")
-    .replace(/Ã¼/g, "ue").replace(/ÃŸ/g, "ss")
-    .replace(/Ã©|Ã¨|Ãª/g, "e").replace(/[^a-z]/g, "");
+    .replace(/ä/g, "ae").replace(/ö/g, "oe")
+    .replace(/ü/g, "ue").replace(/ß/g, "ss")
+    .replace(/é|è|ê/g, "e").replace(/[^a-z]/g, "");
 }
 
 function editierDistanz(a, b) {
@@ -608,7 +608,7 @@ function findeMitglied(gehoert, mitglieder) {
   return best;
 }
 
-// Auch ganze Saetze verstehen ("fÃ¼r Zoe natÃ¼rlich"):
+// Auch ganze Saetze verstehen ("für Zoe natürlich"):
 // erst der komplette Text, dann jedes einzelne Wort.
 // Fuellwoerter werden uebersprungen (sonst matcht "den"
 // unscharf auf "Ben"), exakte Treffer schlagen unscharfe.
@@ -649,10 +649,10 @@ function terminDialogNext(state, ev) {
     /\b(abbrechen|abbruch|vergiss es|stopp|stop)\b/.test(ev.text.toLowerCase());
   if (abbruch) return { state: s, fertig: true, sage: "Okay, abgebrochen." };
 
-  // Ãœberspringen: Frage mit sinnvollem Standard auslassen
+  // Überspringen: Frage mit sinnvollem Standard auslassen
   if (ev.typ === "text" && istUeberspringen(ev.text)) {
     if (s.phase === "warte_diktat") {
-      return { state: s, fertig: true, sage: "Okay, Ã¼bersprungen." };
+      return { state: s, fertig: true, sage: "Okay, übersprungen." };
     }
     if (s.phase === "frage_person") {
       s.phase = "frage_abfahrt"; s.wdh = 0;
@@ -667,14 +667,14 @@ function terminDialogNext(state, ev) {
     }
     if (s.phase === "frage_speichern") {
       return { state: s, fertig: true,
-        sage: "Okay â€“ der Termin steht im Formular, speichern per Knopf." };
+        sage: "Okay – der Termin steht im Formular, speichern per Knopf." };
     }
   }
 
   if (s.phase === "warte_diktat" && ev.typ === "text") {
     s.phase = "warte_parse";
     return { state: s, aktion: "parse", text: ev.text,
-      sage: "Einen Moment, ich Ã¼bersetze." };
+      sage: "Einen Moment, ich übersetze." };
   }
 
   if (s.phase === "warte_parse") {
@@ -691,17 +691,17 @@ function terminDialogNext(state, ev) {
       if (!pTreffer && mit.length && t.person !== "Familie") {
         s.phase = "frage_person";
         return { state: s, aktion: "formular",
-          sage: `Ich habe als Person â€ž${t.person}â€œ verstanden. ` +
-            `FÃ¼r wen ist der Termin? Ich kenne: ${mit.join(", ")}.` };
+          sage: `Ich habe als Person „${t.person}“ verstanden. ` +
+            `Für wen ist der Termin? Ich kenne: ${mit.join(", ")}.` };
       }
       s.phase = "frage_abfahrt";
       return { state: s, aktion: "formular",
-        sage: `${t.titel} fÃ¼r ${t.person}. ` + frageAbfahrt(t) };
+        sage: `${t.titel} für ${t.person}. ` + frageAbfahrt(t) };
     }
     if (ev.typ === "parsefehler") {
       s.wdh = (s.wdh || 0) + 1;
       if (s.wdh >= 2) return { state: s, fertig: true,
-        sage: "Das klappt gerade nicht â€“ nutzt bitte das Formular." };
+        sage: "Das klappt gerade nicht – nutzt bitte das Formular." };
       s.phase = "warte_diktat";
       return { state: s,
         sage: ev.msg + " Sag den Termin bitte noch einmal." };
@@ -724,8 +724,8 @@ function terminDialogNext(state, ev) {
     s.wdh = (s.wdh || 0) + 1;
     if (s.wdh >= 2) { // nicht festbeissen: gehoerten Namen behalten
       s.phase = "frage_abfahrt"; s.wdh = 0;
-      return { state: s, sage: `Ich lasse â€ž${s.termin.person}â€œ stehen â€“ ` +
-        `ihr kÃ¶nnt es im Formular Ã¤ndern. ` + frageAbfahrt(s.termin) };
+      return { state: s, sage: `Ich lasse „${s.termin.person}“ stehen – ` +
+        `ihr könnt es im Formular ändern. ` + frageAbfahrt(s.termin) };
     }
     return { state: s, sage: "Wen meinst du? Ich kenne: " +
       (s.mitglieder || []).join(", ") + ". Oder sag: passt." };
@@ -764,7 +764,7 @@ function terminDialogNext(state, ev) {
         sage: "Ich nehme die Zeit als Beginn vor Ort. " +
           terminZusammenfassung(s.termin, false) };
     }
-    return { state: s, sage: "Sag bitte: vor Ort â€“ oder: losfahren." };
+    return { state: s, sage: "Sag bitte: vor Ort – oder: losfahren." };
   }
 
   if (s.phase === "frage_wegzeit" && ev.typ === "text") {
@@ -790,12 +790,12 @@ function terminDialogNext(state, ev) {
     const jn = parseJaNein(ev.text);
     if (jn === "ja") return { state: s, aktion: "speichern", fertig: true };
     if (jn === "nein") return { state: s, fertig: true,
-      sage: "Okay, nicht gespeichert. Das Formular ist ausgefÃ¼llt â€“ " +
-        "ihr kÃ¶nnt es anpassen." };
+      sage: "Okay, nicht gespeichert. Das Formular ist ausgefüllt – " +
+        "ihr könnt es anpassen." };
     s.wdh = (s.wdh || 0) + 1;
     if (s.wdh >= 3) return { state: s, fertig: true,
-      sage: "Ich lasse den Termin im Formular â€“ speichern kÃ¶nnt ihr per Knopf." };
-    return { state: s, sage: "Ja zum Speichern â€“ oder Nein zum Verwerfen?" };
+      sage: "Ich lasse den Termin im Formular – speichern könnt ihr per Knopf." };
+    return { state: s, sage: "Ja zum Speichern – oder Nein zum Verwerfen?" };
   }
 
   return { state: s };
@@ -821,7 +821,7 @@ function terminLokalVerstehen(text, heuteIso, namen, regel) {
     ? (typeof window !== "undefined" ? window.TerminRegel : null) : regel;
   if (!leser || typeof leser.parse !== "function" || typeof leser.pruefen !== "function") {
     return { success: false, error: "Der Termin-Leser ist nicht geladen. " +
-      "Bitte die App schlieÃŸen und neu Ã¶ffnen." };
+      "Bitte die App schließen und neu öffnen." };
   }
   try {
     return leser.pruefen(leser.parse(text, heuteIso, namen));
@@ -836,7 +836,7 @@ function startTerminDialog(diktat) {
 
   // F-025b: LOKAL verstehen (termin-regel.js), ohne Server und ohne KI-Dienst.
   function parseLokal(text) {
-    melde("Verstanden: â€ž" + text + "â€œ â€“ Ã¼bersetze â€¦");
+    melde("Verstanden: „" + text + "“ – übersetze …");
     const namen = mitgliederNamen();
     const data = terminLokalVerstehen(text, isoTag(new Date()), namen);
     if (!data.success) schritt({ typ: "parsefehler", msg: data.error });
@@ -871,9 +871,9 @@ function startTerminDialog(diktat) {
   if (diktat) {
     schritt({ typ: "text", text: diktat });
   } else {
-    // Frueher sagte die App "Ich hÃ¶re. Sprich deinen Termin." - und
+    // Frueher sagte die App "Ich höre. Sprich deinen Termin." - und
     // hoerte sich dabei selbst zu. Jetzt: sichtbarer Hinweis + ein Ton.
-    melde("ðŸŽ¤ Ich hÃ¶re â€¦ sprich deinen Termin");
+    melde("🎤 Ich höre … sprich deinen Termin");
     tonBereit();
   }
 }
@@ -913,7 +913,7 @@ function findeKollisionen(neu) {
         || andere.includes("Familie"))) return;
     const [von, bis] = terminFenster(t);
     if (nVon < bis && von < nBis)
-      treffer.push(`Termin â€ž${t.titel}â€œ (${t.zeit}, ${t.person})`);
+      treffer.push(`Termin „${t.titel}“ (${t.zeit}, ${t.person})`);
   });
 
   const wt = (new Date(neu.datum + "T12:00").getDay() + 6) % 7;
@@ -921,7 +921,7 @@ function findeKollisionen(neu) {
     if (!r.tage.includes(wt)) return;
     if (!beteiligt.includes(r.person)) return;
     if (nVon < minuten(r.bis) && minuten(r.von) < nBis)
-      treffer.push(`Routine â€ž${r.label}â€œ von ${r.person} (${r.von}â€“${r.bis})`);
+      treffer.push(`Routine „${r.label}“ von ${r.person} (${r.von}–${r.bis})`);
   });
   return treffer;
 }
@@ -931,7 +931,7 @@ function pruefeKollisionLive() {
   if (!neu) { box.textContent = ""; return; }
   const k = findeKollisionen(neu);
   box.textContent = k.length
-    ? "âš ï¸ Kollision mit: " + k.join(" und ") : "";
+    ? "⚠️ Kollision mit: " + k.join(" und ") : "";
   if (k.length) speak("Achtung, Kollision mit " + k[0], true);
 }
 
@@ -962,7 +962,7 @@ function saveTermin() {
     return;
   }
   const k = findeKollisionen(neu);
-  if (k.length && !confirm("âš ï¸ Kollision mit:\n" + k.join("\n") +
+  if (k.length && !confirm("⚠️ Kollision mit:\n" + k.join("\n") +
       "\n\nTrotzdem speichern?")) return;
   termine.push(neu);
   termine.sort((a, b) => (a.datum + a.zeit).localeCompare(b.datum + b.zeit));
@@ -992,11 +992,11 @@ function scanStatusText(status, anteil) {
   const s = String(status || "");
   const was = /load|initializ/.test(s) ? "Texterkennung wird vorbereitet"
     : /recogniz/.test(s) ? "Lese Text" : "Arbeite";
-  return "ðŸ” " + was + " â€“ direkt auf diesem GerÃ¤t â€¦ " +
+  return "🔍 " + was + " – direkt auf diesem Gerät … " +
     Math.round((Number(anteil) || 0) * 100) + " %";
 }
 function scanFehlerText(e) {
-  return "âŒ Das Foto konnte nicht gelesen werden" +
+  return "❌ Das Foto konnte nicht gelesen werden" +
     (e && e.message ? " (" + String(e.message).slice(0, 80) + ")" : "") +
     ". Tipp: gerade von oben, gutes Licht, ganzes Blatt im Bild.";
 }
@@ -1026,7 +1026,7 @@ async function bonFotoGewaehlt(input) {
   const box = document.getElementById("bonErgebnis");
   if (!datei || !box) return;
   if (!window.ScannerLokal) {
-    box.textContent = "âŒ Der Scanner ist noch nicht geladen â€“ bitte kurz warten.";
+    box.textContent = "❌ Der Scanner ist noch nicht geladen – bitte kurz warten.";
     return;
   }
   box.textContent = scanStatusText("load", 0);
@@ -1043,12 +1043,12 @@ async function bonFotoGewaehlt(input) {
 function bonVorschau(funde, text, box) {
   box.innerHTML = "";
   if (!funde.length) {
-    box.appendChild(elMit("p", "Auf dem Bon habe ich keine VerbrauchsgÃ¼ter " +
+    box.appendChild(elMit("p", "Auf dem Bon habe ich keine Verbrauchsgüter " +
       "aus eurem Planer erkannt."));
     box.appendChild(rohtextDetails(text));
     return;
   }
-  box.appendChild(elMit("p", "ðŸ§¾ Erkannt â€“ bitte kurz prÃ¼fen:", "font-weight:600;margin:4px 0"));
+  box.appendChild(elMit("p", "🧾 Erkannt – bitte kurz prüfen:", "font-weight:600;margin:4px 0"));
   const zeilen = [];
   funde.forEach((f) => {
     const item = VERBRAUCH.find((v) => v.id === f.id);
@@ -1068,18 +1068,18 @@ function bonVorschau(funde, text, box) {
     box.appendChild(div);
     zeilen.push({ id: f.id, cb, anz });
   });
-  const ok = elMit("button", "âœ“ Als gekauft Ã¼bernehmen");
+  const ok = elMit("button", "✓ Als gekauft übernehmen");
   ok.className = "btn green"; ok.type = "button";
   ok.onclick = () => {
     const gebucht = bonUebernehmen(zeilen.filter((z) => z.cb.checked)
       .map((z) => ({ id: z.id, menge: parseInt(z.anz.value, 10) || 1 })));
     box.innerHTML = "";
     box.appendChild(elMit("p", gebucht.length
-      ? "âœ… Ãœbernommen. Neue Reichweite: " + gebucht.join(" Â· ")
-      : "Nichts Ã¼bernommen."));
+      ? "✅ Übernommen. Neue Reichweite: " + gebucht.join(" · ")
+      : "Nichts übernommen."));
     if (gebucht.length) speak(gebucht.length === 1
-      ? "Ein Artikel vom Bon Ã¼bernommen."
-      : gebucht.length + " Artikel vom Bon Ã¼bernommen.", true);
+      ? "Ein Artikel vom Bon übernommen."
+      : gebucht.length + " Artikel vom Bon übernommen.", true);
   };
   box.appendChild(ok);
   box.appendChild(rohtextDetails(text));
@@ -1107,7 +1107,7 @@ async function zettelFotoGewaehlt(input) {
   const box = document.getElementById("zettelErgebnis");
   if (!datei || !box) return;
   if (!window.ScannerLokal || !window.TerminRegel) {
-    box.textContent = "âŒ Der Scanner ist noch nicht geladen â€“ bitte kurz warten.";
+    box.textContent = "❌ Der Scanner ist noch nicht geladen – bitte kurz warten.";
     return;
   }
   box.textContent = scanStatusText("load", 0);
@@ -1123,10 +1123,10 @@ async function zettelFotoGewaehlt(input) {
 
 /** Vorschlag fuer die Wegzeit: zuletzt genutzte Wegzeit bei gleichem Titel. */
 function wegzeitVorschlag(titel) {
-  const t = String(titel || "").toLowerCase().split(" â€“ ")[0];
+  const t = String(titel || "").toLowerCase().split(" – ")[0];
   for (let i = termine.length - 1; i >= 0; i--) {
     const x = termine[i];
-    if (x.wegzeitMin > 0 && String(x.titel || "").toLowerCase().split(" â€“ ")[0] === t)
+    if (x.wegzeitMin > 0 && String(x.titel || "").toLowerCase().split(" – ")[0] === t)
       return x.wegzeitMin;
   }
   return 0;
@@ -1160,12 +1160,12 @@ function zettelVorschau(funde, text, box) {
   box.innerHTML = "";
   if (!funde.length) {
     box.appendChild(elMit("p", "Auf dem Zettel habe ich kein Datum gefunden. " +
-      "Ihr kÃ¶nnt den Termin unten von Hand eintragen.", "margin:4px 0"));
+      "Ihr könnt den Termin unten von Hand eintragen.", "margin:4px 0"));
     box.appendChild(rohtextDetails(text));
     return;
   }
-  box.appendChild(elMit("p", "ðŸ“„ " + funde.length + (funde.length === 1
-    ? " Termin" : " Termine") + " erkannt â€“ bitte prÃ¼fen und eintragen:",
+  box.appendChild(elMit("p", "📄 " + funde.length + (funde.length === 1
+    ? " Termin" : " Termine") + " erkannt – bitte prüfen und eintragen:",
     "font-weight:600;margin:4px 0"));
   const basis = Date.now();
   funde.forEach((r, idx) => {
@@ -1186,7 +1186,7 @@ function zettelVorschau(funde, text, box) {
     zeit.type = "time"; zeit.value = r.zeit;
     feld("Uhrzeit:", zeit);
     if (r.zeitGeschaetzt) karte.appendChild(elMit("p",
-      "âš ï¸ Auf dem Zettel stand keine Uhrzeit â€“ bitte ergÃ¤nzen.",
+      "⚠️ Auf dem Zettel stand keine Uhrzeit – bitte ergänzen.",
       "color:#b86e00;margin:2px 0"));
     const person = document.createElement("select");
     ["Familie"].concat(mitgliederNamen()).forEach((n) => {
@@ -1194,14 +1194,14 @@ function zettelVorschau(funde, text, box) {
       person.appendChild(o);
     });
     if ([...person.options].some((o) => o.value === r.person)) person.value = r.person;
-    feld("FÃ¼r wen:", person);
+    feld("Für wen:", person);
     const wer = document.createElement("select");
     [""].concat(mitgliederNamen()).forEach((n) => {
       const o = document.createElement("option"); o.value = n;
-      o.textContent = n || "â€“ niemand â€“"; wer.appendChild(o);
+      o.textContent = n || "– niemand –"; wer.appendChild(o);
     });
     if (r.verantwortlich) wer.value = r.verantwortlich;
-    feld("Wer Ã¼bernimmt:", wer);
+    feld("Wer übernimmt:", wer);
     const dauer = document.createElement("input");
     dauer.type = "number"; dauer.min = "5"; dauer.max = "720";
     dauer.value = String(r.dauer_min || 60); dauer.style.width = "80px";
@@ -1213,7 +1213,7 @@ function zettelVorschau(funde, text, box) {
     weg.type = "number"; weg.min = "0"; weg.max = "240";
     weg.value = String(r.wegzeit_min || wegzeitVorschlag(r.titel) || 0);
     weg.style.cssText = "width:80px;outline:2px solid #f0b400;border-radius:6px";
-    feld("ðŸš— Wie lange ist der Weg dorthin? (Min.)", weg);
+    feld("🚗 Wie lange ist der Weg dorthin? (Min.)", weg);
     const warn = elMit("p", "", "color:#d64545;margin:4px 0");
     karte.appendChild(warn);
     const id = "z" + basis + "_" + idx;
@@ -1224,7 +1224,7 @@ function zettelVorschau(funde, text, box) {
     const pruefe = () => {
       const t = aktuell();
       const w = t.titel && t.datum && t.zeit ? terminWarnungen(t) : [];
-      warn.textContent = w.length ? "âš ï¸ " + w.join(" Â· ") : "";
+      warn.textContent = w.length ? "⚠️ " + w.join(" · ") : "";
       return w;
     };
     [titel, datum, zeit, person, wer, dauer, weg].forEach((el) => {
@@ -1232,7 +1232,7 @@ function zettelVorschau(funde, text, box) {
       el.addEventListener("input", pruefe);
     });
     pruefe();
-    const ein = elMit("button", "ðŸ“… In die Wochen-Matrix eintragen");
+    const ein = elMit("button", "📅 In die Wochen-Matrix eintragen");
     ein.className = "btn green"; ein.type = "button";
     ein.onclick = () => {
       const t = aktuell();
@@ -1241,11 +1241,11 @@ function zettelVorschau(funde, text, box) {
         return;
       }
       const w = pruefe();
-      if (w.length && !confirm("âš ï¸ " + w.join("\n") + "\n\nTrotzdem eintragen?"))
+      if (w.length && !confirm("⚠️ " + w.join("\n") + "\n\nTrotzdem eintragen?"))
         return;
       zettelTerminEintragen(t);
       karte.innerHTML = "";
-      karte.appendChild(elMit("p", "âœ… â€ž" + t.titel + "â€œ am " +
+      karte.appendChild(elMit("p", "✅ „" + t.titel + "“ am " +
         t.datum.split("-").reverse().join(".") + " um " + t.zeit +
         " eingetragen.", "margin:0"));
     };
@@ -1256,7 +1256,7 @@ function zettelVorschau(funde, text, box) {
   box.appendChild(rohtextDetails(text));
 }
 
-/** In die Wochen-Matrix eintragen â€“ gleicher Weg wie saveTermin(). */
+/** In die Wochen-Matrix eintragen – gleicher Weg wie saveTermin(). */
 function zettelTerminEintragen(t) {
   if (termine.some((x) => x.id === t.id)) return false;
   termine.push(t);
@@ -1302,10 +1302,10 @@ function renderRoutinen() {
     const div = document.createElement("div");
     div.className = "entry";
     const span = document.createElement("span");
-    span.textContent = `${r.person}: ${r.label} â€“ ` +
-      r.tage.map((t) => TAGE_KURZ[t]).join(",") + ` ${r.von}â€“${r.bis}`;
+    span.textContent = `${r.person}: ${r.label} – ` +
+      r.tage.map((t) => TAGE_KURZ[t]).join(",") + ` ${r.von}–${r.bis}`;
     const del = document.createElement("button");
-    del.className = "btn ghost"; del.textContent = "âœ•";
+    del.className = "btn ghost"; del.textContent = "✕";
     del.onclick = () => { routinen.splice(i, 1); tSaveAll(); renderTermineTab(); };
     div.appendChild(span); div.appendChild(del);
     box.appendChild(div);
@@ -1426,10 +1426,10 @@ function renderTerminListe() {
     span.style.flex = "1";
     const dat = new Date(t.datum + "T" + t.zeit).toLocaleDateString("de-DE",
       { weekday: "short", day: "2-digit", month: "2-digit" });
-    span.textContent = `${dat} ${t.zeit} â€“ ${t.titel} (${t.person}` +
-      (t.verantwortlich ? `, Ã¼bernimmt: ${t.verantwortlich}` : "") + ")";
+    span.textContent = `${dat} ${t.zeit} – ${t.titel} (${t.person}` +
+      (t.verantwortlich ? `, übernimmt: ${t.verantwortlich}` : "") + ")";
     const del = document.createElement("button");
-    del.className = "btn ghost"; del.textContent = "âœ•";
+    del.className = "btn ghost"; del.textContent = "✕";
     del.onclick = () => { termine.splice(idx, 1); tSaveAll(); renderTermineTab(); };
     div.appendChild(dot); div.appendChild(span); div.appendChild(del);
     box.appendChild(div);
@@ -1472,12 +1472,12 @@ function zeigeErinnerung(t, stage, min) {
   const wann = min >= 60
     ? Math.round(min / 60) + " Stunden" : min + " Minuten";
   const weg = t.wegzeitMin ? ` (inkl. ${t.wegzeitMin} Min. Wegzeit)` : "";
-  const text = `${katVon(t).label}: ${t.titel} fÃ¼r ${t.person} ` +
+  const text = `${katVon(t).label}: ${t.titel} für ${t.person} ` +
     `in ${wann}${weg}` +
-    (t.verantwortlich ? ` â€“ ${t.verantwortlich} Ã¼bernimmt` : "");
-  document.getElementById("reminderText").textContent = "â° " + text;
+    (t.verantwortlich ? ` – ${t.verantwortlich} übernimmt` : "");
+  document.getElementById("reminderText").textContent = "⏰ " + text;
   document.getElementById("reminderBanner").classList.remove("hidden");
-  speak("Erinnerung! " + text + ". Bitte mit OK bestÃ¤tigen.", true);
+  speak("Erinnerung! " + text + ". Bitte mit OK bestätigen.", true);
   // BUGFIX: Auf Android-Chrome ist "new Notification()" verboten
   // (wirft immer) - dort geht es nur ueber den Service Worker.
   if ("Notification" in window && Notification.permission === "granted") {
@@ -1522,7 +1522,7 @@ function istDatenObjekt(x) {
 }
 function ladeListe(key, istGueltig) {
   const w = tLoad(key, []);
-  return Array.isArray(w) ? w.filter(istGueltig) : []; // NOSONAR - istGueltig prueft nur 1 Argument
+  return Array.isArray(w) ? w.filter(istGueltig) : [];
 }
 function termineLaden() {
   mitglieder = ladeListe("ka_mitglieder",
@@ -1541,7 +1541,7 @@ function termineLaden() {
   familienStile = tLoad("ka_stile", []); // weiche Stil-Vorlieben laden
 }
 // F-024: "Heute"-Seite. Reine Auswertung aus Terminen und Einkaufsliste.
-// Wochenplan-Abendessen sind Termine, deren Titel mit "ðŸ½" beginnt.
+// Wochenplan-Abendessen sind Termine, deren Titel mit "🍽" beginnt.
 function heuteUebersicht(termineListe, einkaufAnzahl, jetzt) {
   const tag = isoTag(jetzt);
   const hh = String(jetzt.getHours()).padStart(2, "0") + ":" +
@@ -1550,7 +1550,7 @@ function heuteUebersicht(termineListe, einkaufAnzahl, jetzt) {
     istDatenObjekt(t) && typeof t.datum === "string" && typeof t.zeit === "string");
   const heute = gueltig.filter((t) => t.datum === tag)
     .sort((a, b) => a.zeit.localeCompare(b.zeit));
-  const istEssen = (t) => String(t.titel || "").startsWith("ðŸ½");
+  const istEssen = (t) => String(t.titel || "").startsWith("🍽");
   const kuenftig = gueltig.filter((t) => t.datum > tag)
     .sort((a, b) => (a.datum + a.zeit).localeCompare(b.datum + b.zeit));
   return {
@@ -1587,57 +1587,57 @@ function renderHeute() {
   const datumEl = document.getElementById("heuteDatum");
   if (datumEl) datumEl.textContent = jetzt.toLocaleDateString("de-DE",
     { weekday: "long", day: "numeric", month: "long" });
-  setze("heuteEssen", [kopf("ðŸ½ Heute essen"),
+  setze("heuteEssen", [kopf("🍽 Heute essen"),
     ...(u.essen.length
-      ? u.essen.map((t) => zeile(t.zeit + " â€“ " + String(t.titel).replace(/^ðŸ½\s*/, "")))
-      : [zeile("Noch nichts geplant. Der Wochenplan steht im Reiter â€žTermineâ€œ.", "color:var(--muted)")])]);
-  setze("heuteTermine", [kopf("ðŸ“… Termine heute"),
+      ? u.essen.map((t) => zeile(t.zeit + " – " + String(t.titel).replace(/^🍽\s*/, "")))
+      : [zeile("Noch nichts geplant. Der Wochenplan steht im Reiter „Termine“.", "color:var(--muted)")])]);
+  setze("heuteTermine", [kopf("📅 Termine heute"),
     ...(u.termine.length
-      ? u.termine.map((t) => zeile(t.zeit + " â€“ " + t.titel + " (" + (t.person || "?") + ")",
+      ? u.termine.map((t) => zeile(t.zeit + " – " + t.titel + " (" + (t.person || "?") + ")",
           t.vorbei ? "opacity:.55" : ""))
       : [zeile("Heute stehen keine Termine an.", "color:var(--muted)")])]);
-  setze("heuteNaechster", u.naechster ? [kopf("âž¡ï¸ Als NÃ¤chstes"),
+  setze("heuteNaechster", u.naechster ? [kopf("➡️ Als Nächstes"),
     zeile(new Date(u.naechster.datum + "T12:00:00").toLocaleDateString("de-DE",
       { weekday: "short", day: "2-digit", month: "2-digit" }) + " " + u.naechster.zeit +
-      " â€“ " + u.naechster.titel)] : []);
+      " – " + u.naechster.titel)] : []);
   const knopf = document.createElement("button");
   knopf.className = "btn";
   knopf.type = "button";
-  knopf.textContent = "ðŸ›’ Einkaufsliste Ã¶ffnen";
+  knopf.textContent = "🛒 Einkaufsliste öffnen";
   knopf.onclick = () => goTab("einkauf");
-  setze("heuteEinkauf", [kopf("ðŸ›’ Einkauf"),
+  setze("heuteEinkauf", [kopf("🛒 Einkauf"),
     zeile(u.einkaufAnzahl ? u.einkaufAnzahl + " Artikel auf der Liste." : "Die Liste ist leer."),
     knopf]);
 }
 
-// F-023: "Was verlÃ¤sst mein Handy?" - EHRLICHE Uebersicht. Die Texte stehen
+// F-023: "Was verlässt mein Handy?" - EHRLICHE Uebersicht. Die Texte stehen
 // hier in einer Liste; ein Test stellt sicher, dass jede /api/-Adresse im
 // Code hier erklaert ist. Wer eine neue Server-Verbindung einbaut, MUSS hier
 // einen Eintrag ergaenzen (sonst wird die Pipeline rot).
 function datenschutzZeilen() {
   return [
     { gruppe: "lokal", titel: "Familie, Allergien, Termine, Einkauf",
-      text: "Namen, Alter, Allergien und ErnÃ¤hrungsform deiner Familie, deine Termine, Routinen, Einkaufsliste, Favoriten und Einstellungen werden nur im Speicher dieses Handys abgelegt. Es gibt kein Konto und keine Anmeldung. Wann einzelne Angaben fÃ¼r eine Funktion trotzdem Ã¼bertragen werden, steht unter â€žDas verlÃ¤sst dein Handyâ€œ." },
-    { gruppe: "lokal", titel: "Scanner fÃ¼r Kassenbon und Schulzettel",
+      text: "Namen, Alter, Allergien und Ernährungsform deiner Familie, deine Termine, Routinen, Einkaufsliste, Favoriten und Einstellungen werden nur im Speicher dieses Handys abgelegt. Es gibt kein Konto und keine Anmeldung. Wann einzelne Angaben für eine Funktion trotzdem übertragen werden, steht unter „Das verlässt dein Handy“." },
+    { gruppe: "lokal", titel: "Scanner für Kassenbon und Schulzettel",
       text: "Das Foto wird auf dem Handy per Texterkennung gelesen. Weder das Foto noch der Text werden an einen Server geschickt." },
     { gruppe: "lokal", titel: "Termine per Sprache",
-      text: "Das stille Lauschen auf das Stichwort â€žTerminâ€œ und das Verstehen deines gesprochenen Termins (Datum, Uhrzeit, Person) laufen auf dem Handy nach festen Regeln. Dein Satz wird dafÃ¼r nicht an einen KI-Dienst geschickt." },
+      text: "Das stille Lauschen auf das Stichwort „Termin“ und das Verstehen deines gesprochenen Termins (Datum, Uhrzeit, Person) laufen auf dem Handy nach festen Regeln. Dein Satz wird dafür nicht an einen KI-Dienst geschickt." },
     { gruppe: "lokal", titel: "Datensicherung",
-      text: "Die Sicherung entsteht auf dem Handy und wird von dir selbst als Datei abgelegt. Mit Passwort ist sie verschlÃ¼sselt. Sync-Code und GerÃ¤te-Kennung sind nicht enthalten." },
+      text: "Die Sicherung entsteht auf dem Handy und wird von dir selbst als Datei abgelegt. Mit Passwort ist sie verschlüsselt. Sync-Code und Geräte-Kennung sind nicht enthalten." },
     { gruppe: "server", route: "rezept", titel: "Rezeptsuche, Kochschritte, Wochenplan",
-      text: "Gesendet werden dein Essenswunsch, die UnvertrÃ¤glichkeiten und ErnÃ¤hrungsformen, der Zeitrahmen, bei Kochschritten Gerichtname und Zutaten, die GerÃ¤te-Kennung und â€“ falls vorhanden â€“ eine aus deinem Familien-Code berechnete Kennung (nicht der Code selbst). Ein KI-Dienst erstellt daraus die Rezepte. Namen deiner Familienmitglieder werden dafÃ¼r nicht gesendet." },
+      text: "Gesendet werden dein Essenswunsch, die Unverträglichkeiten und Ernährungsformen, der Zeitrahmen, bei Kochschritten Gerichtname und Zutaten, die Geräte-Kennung und – falls vorhanden – eine aus deinem Familien-Code berechnete Kennung (nicht der Code selbst). Ein KI-Dienst erstellt daraus die Rezepte. Namen deiner Familienmitglieder werden dafür nicht gesendet." },
     { gruppe: "server", route: "wecker", titel: "Erinnerungen",
-      text: "Gesendet werden anonyme Nummern mit den Zeitpunkten und die GerÃ¤te-Kennung. Titel, Personen und Orte deiner Termine bleiben auf dem Handy; die Benachrichtigung wird erst auf dem Handy zusammengesetzt." },
+      text: "Gesendet werden anonyme Nummern mit den Zeitpunkten und die Geräte-Kennung. Titel, Personen und Orte deiner Termine bleiben auf dem Handy; die Benachrichtigung wird erst auf dem Handy zusammengesetzt." },
     { gruppe: "server", route: "push-anmelden", titel: "Benachrichtigungen einschalten",
-      text: "Gesendet wird die Adresse, unter der dein Browser Benachrichtigungen empfÃ¤ngt, zusammen mit der GerÃ¤te-Kennung." },
-    { gruppe: "server", route: "vapid", titel: "Ã–ffentlicher SchlÃ¼ssel fÃ¼r Benachrichtigungen",
-      text: "Die App holt einen Ã¶ffentlichen SchlÃ¼ssel ab. Es werden keine Angaben von dir gesendet." },
+      text: "Gesendet wird die Adresse, unter der dein Browser Benachrichtigungen empfängt, zusammen mit der Geräte-Kennung." },
+    { gruppe: "server", route: "vapid", titel: "Öffentlicher Schlüssel für Benachrichtigungen",
+      text: "Die App holt einen öffentlichen Schlüssel ab. Es werden keine Angaben von dir gesendet." },
     { gruppe: "server", route: "termine", titel: "Familien-Abgleich (Plus)",
-      text: "Eure Termine, Routinen und Familienangaben werden auf dem Handy mit dem Familien-Code verschlÃ¼sselt und nur verschlÃ¼sselt abgelegt. Der Code selbst wird nicht an den Server gesendet, nur eine daraus berechnete Kennung. Ehrlich dazu: Wer sehr viel Rechenaufwand betreibt, kÃ¶nnte aus der Kennung den Code erraten. Gib den Code nur an Familienmitglieder weiter." },
-    { gruppe: "server", route: "feedback", titel: "RÃ¼ckmeldung senden",
-      text: "Nur wenn du auf â€žSendenâ€œ tippst: dein Text, der aktuelle Reiter und die GerÃ¤te-Kennung." },
+      text: "Eure Termine, Routinen und Familienangaben werden auf dem Handy mit dem Familien-Code verschlüsselt und nur verschlüsselt abgelegt. Der Code selbst wird nicht an den Server gesendet, nur eine daraus berechnete Kennung. Ehrlich dazu: Wer sehr viel Rechenaufwand betreibt, könnte aus der Kennung den Code erraten. Gib den Code nur an Familienmitglieder weiter." },
+    { gruppe: "server", route: "feedback", titel: "Rückmeldung senden",
+      text: "Nur wenn du auf „Senden“ tippst: dein Text, der aktuelle Reiter und die Geräte-Kennung." },
     { gruppe: "hinweis", titel: "Spracherkennung durch den Browser",
-      text: "Wenn du mit der App sprichst, erledigt die Spracherkennung dein Browser, nicht die App. Bei Chrome auf Android werden Sprachaufnahmen dafÃ¼r Ã¼blicherweise an einen Server des Browser-Herstellers geschickt. Darauf hat die App keinen Einfluss. Wer das nicht mÃ¶chte, tippt statt zu sprechen." },
+      text: "Wenn du mit der App sprichst, erledigt die Spracherkennung dein Browser, nicht die App. Bei Chrome auf Android werden Sprachaufnahmen dafür üblicherweise an einen Server des Browser-Herstellers geschickt. Darauf hat die App keinen Einfluss. Wer das nicht möchte, tippt statt zu sprechen." },
   ];
 }
 function datenschutzRendern() {
@@ -1645,7 +1645,7 @@ function datenschutzRendern() {
   if (!box) return;
   const gruppen = [
     ["lokal", "Das bleibt auf deinem Handy"],
-    ["server", "Das verlÃ¤sst dein Handy"],
+    ["server", "Das verlässt dein Handy"],
     ["hinweis", "Gut zu wissen"],
   ];
   box.textContent = "";
@@ -1775,7 +1775,7 @@ function sicherungMelde(t) {
 async function sicherungSpeichern() {
   const pwEl = document.getElementById("sicherungPw");
   const pw = pwEl ? pwEl.value : "";
-  sicherungMelde("Sicherung wird erstellt â€¦");
+  sicherungMelde("Sicherung wird erstellt …");
   try {
     const text = await sicherungErstellen(pw);
     const name = "familien-assistent-sicherung-" + isoTag(new Date()) + ".json";
@@ -1785,8 +1785,8 @@ async function sicherungSpeichern() {
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
     sicherungMelde("Gespeichert als " + name + ". " + (pw
-      ? "Die Datei ist mit deinem Passwort verschlÃ¼sselt. Merke dir das Passwort gut, ohne es lÃ¤sst sich die Datei nicht Ã¶ffnen."
-      : "Achtung: Ohne Passwort ist die Datei NICHT verschlÃ¼sselt. Bewahre sie sicher auf."));
+      ? "Die Datei ist mit deinem Passwort verschlüsselt. Merke dir das Passwort gut, ohne es lässt sich die Datei nicht öffnen."
+      : "Achtung: Ohne Passwort ist die Datei NICHT verschlüsselt. Bewahre sie sicher auf."));
   } catch (e) {
     sicherungMelde("Das Sichern hat nicht geklappt. Bitte noch einmal versuchen.");
   }
@@ -1803,23 +1803,23 @@ async function sicherungDateiGewaehlt(input) {
   const r = await sicherungPruefen(text, pwEl ? pwEl.value : "");
   if (!r.ok) {
     sicherungMelde({
-      passwort: "Das Passwort fehlt oder ist falsch. Bitte oben das Passwort eintragen und die Datei noch einmal wÃ¤hlen.",
+      passwort: "Das Passwort fehlt oder ist falsch. Bitte oben das Passwort eintragen und die Datei noch einmal wählen.",
       keinBackup: "Das ist keine Sicherung des Familien-Assistenten.",
-      defekt: "Die Sicherung ist beschÃ¤digt und kann nicht verwendet werden.",
+      defekt: "Die Sicherung ist beschädigt und kann nicht verwendet werden.",
     }[r.grund] || "Die Sicherung kann nicht verwendet werden.");
     return;
   }
   sicherungBereit = r;
   sicherungMelde("Sicherung gefunden (" + r.anzahl + " Datenbereiche, erstellt " +
-    String(r.erstellt || "").slice(0, 10) + "). Mit â€žJetzt wiederherstellenâ€œ ersetzt du die Daten auf diesem GerÃ¤t durch diese Sicherung.");
+    String(r.erstellt || "").slice(0, 10) + "). Mit „Jetzt wiederherstellen“ ersetzt du die Daten auf diesem Gerät durch diese Sicherung.");
   if (go) go.classList.remove("hidden");
 }
 function sicherungWiederherstellen() {
   if (!sicherungBereit) return;
   const ok = sicherungEinspielen(sicherungBereit.daten);
-  if (!ok) { sicherungMelde("Wiederherstellen ging nicht (Speicher voll?). Deine bisherigen Daten sind unverÃ¤ndert."); return; }
+  if (!ok) { sicherungMelde("Wiederherstellen ging nicht (Speicher voll?). Deine bisherigen Daten sind unverändert."); return; }
   sicherungBereit = null;
-  sicherungMelde("Wiederhergestellt. Die App lÃ¤dt neu â€¦");
+  sicherungMelde("Wiederhergestellt. Die App lädt neu …");
   setTimeout(() => { try { location.reload(); } catch (e) {} }, 800);
 }
 
@@ -1843,11 +1843,11 @@ function updateZustand(reg, online) {
 }
 function updateText(zustand) {
   const t = {
-    neu: "Neue Version gefunden. Die App lÃ¤dt gleich neu.",
+    neu: "Neue Version gefunden. Die App lädt gleich neu.",
     aktuell: "Du hast die neueste Version (" + APP_VERSION + ").",
-    offline: "Keine Internetverbindung. Bitte spÃ¤ter noch einmal versuchen.",
+    offline: "Keine Internetverbindung. Bitte später noch einmal versuchen.",
     nichtUnterstuetzt: "Dieser Browser kann sich nicht selbst aktualisieren. " +
-      "Bitte die App schlieÃŸen und neu Ã¶ffnen.",
+      "Bitte die App schließen und neu öffnen.",
   };
   return t[zustand] || t.nichtUnterstuetzt;
 }
@@ -1889,7 +1889,7 @@ function updateSwVersionFragen(reg) {
 }
 async function updatePruefen() {
   const el = document.getElementById("updateStatus");
-  if (el) el.textContent = "Suche nach Updates â€¦";
+  if (el) el.textContent = "Suche nach Updates …";
   let reg = null;
   const online = !(typeof navigator !== "undefined" && navigator.onLine === false);
   try {
@@ -1976,7 +1976,7 @@ document.addEventListener("visibilitychange", () => {
 
   // Lokal geoeffnet (Doppelklick auf die Datei)? Dann klar sagen,
   // was hier nicht geht, statt kryptischer Einzel-Fehlermeldungen.
-  // GefÃ¼hrte Ersteinrichtung beim allerersten Start (v11)
+  // Geführte Ersteinrichtung beim allerersten Start (v11)
   try {
     if (!localStorage.getItem(OB_FLAG)) onboardingOeffnen();
   } catch (e) {}
@@ -2031,9 +2031,9 @@ const VERBRAUCH = [
   // --- Drogerie ---
   { id:"klopapier", name:"Toilettenpapier (10er)", laden:"Drogerie",
     rate:{ typ:"linear", basis:0, proPerson:0.1 } },
-  { id:"kuechenrolle", name:"KÃ¼chenrolle (4er)", laden:"Drogerie",
+  { id:"kuechenrolle", name:"Küchenrolle (4er)", laden:"Drogerie",
     rate:{ typ:"linear", basis:0.18, proPerson:0.02 } },
-  { id:"taschentuecher", name:"TaschentÃ¼cher (GroÃŸpack)", laden:"Drogerie",
+  { id:"taschentuecher", name:"Taschentücher (Großpack)", laden:"Drogerie",
     rate:{ typ:"linear", basis:0.04, proPerson:0.025 } },
   { id:"seife", name:"Handseife", laden:"Drogerie",
     rate:{ typ:"linear", basis:0.1, proPerson:0.05 } },
@@ -2043,15 +2043,15 @@ const VERBRAUCH = [
     rate:{ typ:"gruppe", proKopf:0.13, minAlter:2 } },
   { id:"zahnpasta", name:"Zahnpasta", laden:"Drogerie",
     rate:{ typ:"linear", basis:0, proPerson:0.11 } },
-  { id:"zahnbuersten", name:"ZahnbÃ¼rsten (4er)", laden:"Drogerie",
+  { id:"zahnbuersten", name:"Zahnbürsten (4er)", laden:"Drogerie",
     rate:{ typ:"linear", basis:0, proPerson:0.031 } },
   { id:"waschmittel", name:"Waschmittel (20 WL)", laden:"Drogerie",
     rate:{ typ:"linear", basis:0.1, proPerson:0.05 } },
-  { id:"spuelmittel", name:"SpÃ¼lmittel", laden:"Drogerie",
+  { id:"spuelmittel", name:"Spülmittel", laden:"Drogerie",
     rate:{ typ:"linear", basis:0.2, proPerson:0.03 } },
-  { id:"spuelmaschinentabs", name:"SpÃ¼lmaschinen-Tabs (40er)",
+  { id:"spuelmaschinentabs", name:"Spülmaschinen-Tabs (40er)",
     laden:"Drogerie", rate:{ typ:"linear", basis:0.06, proPerson:0.025 } },
-  { id:"muellbeutel", name:"MÃ¼llbeutel (20er)", laden:"Drogerie",
+  { id:"muellbeutel", name:"Müllbeutel (20er)", laden:"Drogerie",
     rate:{ typ:"linear", basis:0.1, proPerson:0.025 } },
   { id:"allzweck", name:"Allzweckreiniger", laden:"Drogerie",
     rate:{ typ:"linear", basis:0.12, proPerson:0.01 } },
@@ -2062,9 +2062,9 @@ const VERBRAUCH = [
            geschlecht:"w" } },
   { id:"windeln", name:"Windeln (50er)", laden:"Drogerie",
     rate:{ typ:"gruppe", proKopf:0.7, maxAlter:3 } },
-  { id:"feuchttuecher", name:"FeuchttÃ¼cher", laden:"Drogerie",
+  { id:"feuchttuecher", name:"Feuchttücher", laden:"Drogerie",
     rate:{ typ:"gruppe", proKopf:0.7, maxAlter:3 } },
-  { id:"milch", name:"Milch (4Ã—1 L)", laden:"Supermarkt",
+  { id:"milch", name:"Milch (4×1 L)", laden:"Supermarkt",
     rate:{ typ:"pe", proPE:0.25 } },
   { id:"butter", name:"Butter (250 g)", laden:"Supermarkt",
     rate:{ typ:"pe", proPE:0.5 } },
@@ -2074,11 +2074,11 @@ const VERBRAUCH = [
     rate:{ typ:"pe", proPE:0.5 } },
   { id:"toast", name:"Toastbrot", laden:"Supermarkt",
     rate:{ typ:"pe", proPE:0.3 } },
-  { id:"kaese", name:"KÃ¤se (200 g)", laden:"Supermarkt",
+  { id:"kaese", name:"Käse (200 g)", laden:"Supermarkt",
     rate:{ typ:"pe", proPE:0.7 } },
   { id:"joghurt", name:"Joghurt (4er)", laden:"Supermarkt",
     rate:{ typ:"pe", proPE:0.6 } },
-  { id:"muesli", name:"MÃ¼sli/Flocken", laden:"Supermarkt",
+  { id:"muesli", name:"Müsli/Flocken", laden:"Supermarkt",
     rate:{ typ:"pe", proPE:0.2 } },
   { id:"nudeln", name:"Nudeln (500 g)", laden:"Supermarkt",
     rate:{ typ:"pe", proPE:0.4 } },
@@ -2090,7 +2090,7 @@ const VERBRAUCH = [
     rate:{ typ:"linear", basis:0.12, proPerson:0.01 } },
   { id:"kaffee", name:"Kaffee (500 g)", laden:"Supermarkt",
     rate:{ typ:"gruppe", proKopf:0.25, minAlter:18 } },
-  { id:"oel", name:"SpeiseÃ¶l", laden:"Supermarkt",
+  { id:"oel", name:"Speiseöl", laden:"Supermarkt",
     rate:{ typ:"linear", basis:0.12, proPerson:0.015 } },
 ];
 
@@ -2193,10 +2193,10 @@ function renderVerbrauch() {
   const info = document.getElementById("vbInfo");
   if (!info) return;
   info.textContent = mitglieder.length
-    ? `Berechnet fÃ¼r euer Profil: ${mitglieder.length} Personen ` +
-      `(${summePE().toFixed(1)} Essens-Ã„quivalente). Die App lernt euren ` +
+    ? `Berechnet für euer Profil: ${mitglieder.length} Personen ` +
+      `(${summePE().toFixed(1)} Essens-Äquivalente). Die App lernt euren ` +
       `echten Verbrauch mit jedem Einkauf dazu.`
-    : "Lege zuerst euer Familienprofil an (Reiter Familie) â€“ dann plane " +
+    : "Lege zuerst euer Familienprofil an (Reiter Familie) – dann plane " +
       "ich Mengen und Zeitpunkte automatisch.";
 
   const evtl = document.getElementById("vbEvtl");
@@ -2220,28 +2220,28 @@ function renderVerbrauch() {
       ja.onclick = () => vbInListe(item.id);
       const nein = document.createElement("button");
       nein.className = "btn ghost"; nein.style.padding = "7px 10px";
-      nein.textContent = "ZurÃ¼ckstellen";
+      nein.textContent = "Zurückstellen";
       nein.onclick = () => vbZurueckstellen(item.id);
       div.appendChild(span); div.appendChild(ja); div.appendChild(nein);
       evtl.appendChild(div);
     });
   }
   if (!evtlCount)
-    evtl.innerHTML = '<p class="muted">Gerade nichts fÃ¤llig â€“ ich melde ' +
-      'mich, wenn etwas zur Neige gehen mÃ¼sste.</p>';
+    evtl.innerHTML = '<p class="muted">Gerade nichts fällig – ich melde ' +
+      'mich, wenn etwas zur Neige gehen müsste.</p>';
 
   const ul = document.getElementById("vbListe");
   ul.innerHTML = "";
   if (!vState.liste.length)
-    ul.innerHTML = '<p class="muted">Leer. Artikel kommen aus â€žbald ' +
-      'leerâ€œ, per Sprache oder aus â€žAlle Artikelâ€œ.</p>';
+    ul.innerHTML = '<p class="muted">Leer. Artikel kommen aus „bald ' +
+      'leer“, per Sprache oder aus „Alle Artikel“.</p>';
   vState.liste.forEach((e, idx) => {
     const li = document.createElement("li");
     const cb = document.createElement("input");
     cb.type = "checkbox";
     cb.onchange = () => vbGekauft(idx);
     const span = document.createElement("span");
-    span.textContent = e.name + (e.laden ? " â€“ " + e.laden : "");
+    span.textContent = e.name + (e.laden ? " – " + e.laden : "");
     li.appendChild(cb); li.appendChild(span);
     ul.appendChild(li);
   });
@@ -2257,11 +2257,11 @@ function renderVerbrauch() {
       div.className = "entry";
       const span = document.createElement("span");
       span.style.flex = "1";
-      span.textContent = item.name + " â€“ reicht noch ca. " +
-        (tage > 0 ? tage + " Tage" : "ist fÃ¤llig");
+      span.textContent = item.name + " – reicht noch ca. " +
+        (tage > 0 ? tage + " Tage" : "ist fällig");
       const leer = document.createElement("button");
       leer.className = "btn ghost"; leer.style.padding = "6px 10px";
-      leer.textContent = s.inListe ? "auf Liste âœ“" : "Jetzt leer";
+      leer.textContent = s.inListe ? "auf Liste ✓" : "Jetzt leer";
       leer.disabled = s.inListe;
       leer.onclick = () => vbInListe(item.id);
       div.appendChild(span); div.appendChild(leer);
@@ -2277,10 +2277,10 @@ function renderVerbrauch() {
 })();
 
 // =====================================================
-// NEU: EINKAUFS-MODUS â€“ freihÃ¤ndig per Sprache abhaken
+// NEU: EINKAUFS-MODUS – freihändig per Sprache abhaken
 // Hakt Artikel der Verbrauchs-Einkaufsliste per Stimme ab und
 // nutzt dafuer die bestehende Lernfunktion vbGekauft() (Zyklus
-// passt sich an). VollstÃ¤ndig eigenstÃ¤ndig, eigener Erkenner â€“
+// passt sich an). Vollständig eigenständig, eigener Erkenner –
 // veraendert KEINE vorhandene Logik.
 // =====================================================
 let vbVoiceRec = null;
@@ -2293,16 +2293,16 @@ const VB_FUELLWORTER =
 function vbNorm(s) {
   let x = " " + String(s).toLowerCase()
     .replace(/\([^)]*\)/g, " ")
-    .replace(/[^a-zÃ¤Ã¶Ã¼ÃŸ ]/g, " ")
+    .replace(/[^a-zäöüß ]/g, " ")
     .replace(VB_FUELLWORTER, " ")
     .replace(/\s+/g, " ").trim() + " ";
   const syn = {
     " klopapier ": " toilettenpapier ", " klo papier ": " toilettenpapier ",
-    " kÃ¼chenpapier ": " kÃ¼chenrolle ", " zewa ": " kÃ¼chenrolle ",
-    " tempo ": " taschentÃ¼cher ", " tempos ": " taschentÃ¼cher ",
-    " zahncreme ": " zahnpasta ", " spÃ¼li ": " spÃ¼lmittel ",
-    " geschirrspÃ¼lmittel ": " spÃ¼lmittel ", " mÃ¼llsÃ¤cke ": " mÃ¼llbeutel ",
-    " mÃ¼lltÃ¼ten ": " mÃ¼llbeutel ", " kaffeebohnen ": " kaffee ",
+    " küchenpapier ": " küchenrolle ", " zewa ": " küchenrolle ",
+    " tempo ": " taschentücher ", " tempos ": " taschentücher ",
+    " zahncreme ": " zahnpasta ", " spüli ": " spülmittel ",
+    " geschirrspülmittel ": " spülmittel ", " müllsäcke ": " müllbeutel ",
+    " mülltüten ": " müllbeutel ", " kaffeebohnen ": " kaffee ",
     " kaffeepulver ": " kaffee "
   };
   for (const k in syn) x = (" " + x + " ").split(k).join(syn[k]).trim();
@@ -2337,8 +2337,8 @@ function vbVoiceCheckoffButton() {
   const btn = document.getElementById("vbVoiceBtn");
   if (!btn) return;
   btn.textContent = vbVoiceActive
-    ? "â¹ Einkaufs-Modus beenden"
-    : "ðŸ›’ FreihÃ¤ndig abhaken (Einkaufs-Modus)";
+    ? "⏹ Einkaufs-Modus beenden"
+    : "🛒 Freihändig abhaken (Einkaufs-Modus)";
 }
 
 function vbVoiceHandle(said) {
@@ -2351,7 +2351,7 @@ function vbVoiceHandle(said) {
     .map((e, idx) => ({ idx, name: e.name, score: vbMatchScore(said, e.name) }))
     .filter((x) => x.score > 0)
     .sort((a, b) => b.score - a.score);
-  if (!scored.length) return; // nichts Passendes -> still ignorieren (LÃ¤rmschutz)
+  if (!scored.length) return; // nichts Passendes -> still ignorieren (Lärmschutz)
   if (scored.length > 1 && scored[0].score === scored[1].score) {
     vbVoiceSay("Mehrere passen: " +
       scored.slice(0, 3).map((s) => vbKurzName(s.name)).join(", ") +
@@ -2375,17 +2375,17 @@ function vbVoiceCheckoffStart() {
   GlobalVoice.aktiv = false;
   GlobalVoice.dialog = null;
   if (recognition) { try { recognition.abort(); } catch (e) {} }
-  gvChip("ðŸŽ¤ Einkaufs-Modus aktiv", "an");
+  gvChip("🎤 Einkaufs-Modus aktiv", "an");
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const status = document.getElementById("vbVoiceStatus");
   if (!SR) {
     if (status) status.textContent =
-      "Spracherkennung wird von diesem Browser nicht unterstÃ¼tzt.";
+      "Spracherkennung wird von diesem Browser nicht unterstützt.";
     return;
   }
   if (!vState.liste.length) {
     if (status) status.textContent =
-      "Die Einkaufsliste ist leer â€“ erst Artikel aufnehmen.";
+      "Die Einkaufsliste ist leer – erst Artikel aufnehmen.";
     return;
   }
   vbVoiceRec = new SR();
@@ -2403,7 +2403,7 @@ function vbVoiceCheckoffStart() {
       vbVoiceActive = false;
       vbVoiceCheckoffButton();
       if (status) status.textContent =
-        "Mikrofon nicht erlaubt â€“ hake Artikel per HÃ¤kchen ab.";
+        "Mikrofon nicht erlaubt – hake Artikel per Häkchen ab.";
     }
   };
   vbVoiceRec.onend = () => {
@@ -2413,7 +2413,7 @@ function vbVoiceCheckoffStart() {
   try { vbVoiceRec.start(); } catch (e) {}
   vbVoiceCheckoffButton();
   if (status) status.textContent =
-    "ðŸŽ¤ HÃ¶rt zu â€¦ sag z. B. â€žMilch okayâ€œ. Zum Beenden den Knopf drÃ¼cken.";
+    "🎤 Hört zu … sag z. B. „Milch okay“. Zum Beenden den Knopf drücken.";
   vbVoiceSay("Einkaufs-Modus an. Sag mir, was im Wagen ist.");
 }
 
@@ -2435,4 +2435,3 @@ function vbVoiceCheckoffToggle() {
   if (vbVoiceActive) vbVoiceCheckoffStop();
   else vbVoiceCheckoffStart();
 }
-
