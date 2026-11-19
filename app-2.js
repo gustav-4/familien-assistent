@@ -641,6 +641,9 @@ function ttsSaeubern(text) {
   // Satzzeichen-Hygiene nach den Ersetzungen
   t = t.replace(/\s+,/g, ",").replace(/,{2,}/g, ",");
   t = t.replace(/,\s*([.!?])/g, "$1");
+  // Zeilenumbrueche -> natuerliche Sprechpausen
+  t = t.replace(/\n{2,}/g, ". ");
+  t = t.replace(/\n/g, ", ");
   t = t.replace(/\s{2,}/g, " ").trim();
   t = t.replace(/^,\s*/, "").replace(/,\s*$/, ".");
   return t;
@@ -2235,6 +2238,8 @@ function onboardingOeffnen() {
 }
 
 function obWeiter() {
+  try { window.speechSynthesis.cancel(); } catch (e) {}
+  gvSprechblaseAus();
   if (obIndex >= OB_SCHRITTE - 1) { obFertig(false); return; }
   obIndex++;
   obZeige();
@@ -2243,6 +2248,8 @@ function obZurueck() {
   if (obIndex > 0) { obIndex--; obZeige(); }
 }
 function obFertig(uebersprungen) {
+  try { window.speechSynthesis.cancel(); } catch (e) {}
+  gvSprechblaseAus();
   obOffen = false;
   try { localStorage.setItem(OB_FLAG, "1"); } catch (e) {}
   const o = document.getElementById("onboarding");

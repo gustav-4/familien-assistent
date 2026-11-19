@@ -1652,11 +1652,11 @@ function datenschutzRendern() {
   gruppen.forEach(([g, kopf]) => {
     const h = document.createElement("h3");
     h.textContent = kopf;
-    h.style.cssText = "margin:10px 0 4px;font-size:1rem";
+    h.style.cssText = "margin:10px 0 4px;font-size:1rem;color:#333";
     box.appendChild(h);
     datenschutzZeilen().filter((z) => z.gruppe === g).forEach((z) => {
       const p = document.createElement("p");
-      p.style.cssText = "margin:4px 0";
+      p.style.cssText = "margin:4px 0;color:#333";
       const b = document.createElement("b");
       b.textContent = z.titel + ": ";
       p.appendChild(b);
