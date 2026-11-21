@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Familien-Plus – Tarife</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,sans-serif;background:#f7f1e6;color:#3e3832;
+       min-height:100vh;padding:24px 16px 48px}
+  h1{text-align:center;color:#7e9c6f;font-size:1.8rem;margin:24px 0 6px}
+  .sub{text-align:center;color:#94897a;margin-bottom:32px}
+  .pläne{display:flex;flex-direction:column;gap:16px;max-width:400px;margin:0 auto}
+  @media(min-width:720px){.pläne{flex-direction:row;max-width:900px;align-items:flex-start}}
+  .plan{background:#fffdf8;border-radius:16px;padding:24px 20px;
+        box-shadow:0 2px 12px rgba(0,0,0,.09);flex:1}
+  .plan.featured{border:2px solid #7e9c6f;position:relative}
+  .badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+         background:#7e9c6f;color:#fff;border-radius:20px;padding:3px 14px;
+         font-size:.8rem;font-weight:700;white-space:nowrap}
+  .plan-name{font-weight:700;font-size:1.1rem;color:#3e3832;margin-bottom:4px}
+  .preis{font-size:1.6rem;font-weight:700;color:#7e9c6f;margin:8px 0 12px}
+  .preis span{font-size:.95rem;color:#94897a;font-weight:400}
+  ul{list-style:none;margin-bottom:20px}
+  ul li{padding:3px 0;font-size:.95rem}
+  .btn{display:block;width:100%;background:#7e9c6f;color:#fff;border:none;
+       border-radius:10px;padding:13px;font-size:1rem;font-weight:700;
+       text-align:center;text-decoration:none;cursor:pointer}
+  .btn:hover{opacity:.88}
+  .back{display:block;text-align:center;margin-top:28px;color:#94897a;
+        font-size:.9rem;text-decoration:none}
+  .back:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<h1>&#128156; Familien-Plus</h1>
+<p class="sub">W&auml;hle deinen Plan und behalte vollen Zugang</p>
+<div class="pl&auml;ne">
+
+  <div class="plan">
+    <div class="plan-name">Flex-Probe</div>
+    <div class="preis">4,99&thinsp;&euro;<span> / Monat</span></div>
+    <ul>
+      <li>&#10004; Voller Funktionsumfang</li>
+      <li>&#10004; Monatlich k&uuml;ndbar</li>
+      <li>&#10004; Alle Updates inklusive</li>
+    </ul>
+    <a class="btn" href="https://buy.stripe.com/9B6eVdadD3Vbevc6wEdEs00">Jetzt starten</a>
+  </div>
+
+  <div class="plan featured">
+    <div class="badge">Beliebt</div>
+    <div class="plan-name">Jahres-Schutz</div>
+    <div class="preis">49,90&thinsp;&euro;<span> / Jahr</span></div>
+    <ul>
+      <li>&#10004; Voller Funktionsumfang</li>
+      <li>&#10004; 2 Monate geschenkt</li>
+      <li>&#10004; Alle Updates inklusive</li>
+    </ul>
+    <a class="btn" href="https://buy.stripe.com/00w7sLetT0IZ4UCcV2dEs01">Jetzt sichern</a>
+  </div>
+
+  <div class="plan">
+    <div class="plan-name">Premium Lifetime</div>
+    <div class="preis">89&thinsp;&euro;<span> einmalig</span></div>
+    <ul>
+      <li>&#10004; Einmalige Zahlung</li>
+      <li>&#10004; Lebenslanger Zugang</li>
+      <li>&#10004; Alle zuk&uuml;nftigen Updates</li>
+    </ul>
+    <a class="btn" href="https://buy.stripe.com/9B6eVd5Xn4Zf3Qy8EMdEs02">Jetzt kaufen</a>
+  </div>
+
+</div>
+<a class="back" href="/">&larr; Zur&uuml;ck zur App</a>
+</body>
+</html>
