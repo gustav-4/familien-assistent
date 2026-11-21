@@ -1994,7 +1994,18 @@ document.addEventListener("visibilitychange", () => {
   try { ausschlussLaden(); } catch (e) {}
   // Globale Sprachsteuerung: sofort zuhoeren, wenn die
   // Mikrofon-Berechtigung schon erteilt ist
-  gvAutoStart();
+  try {
+    if (sessionStorage.getItem("ka_beendet")) {
+      sessionStorage.removeItem("ka_beendet");
+      const o2 = document.getElementById("byeOverlay");
+      if (o2) o2.classList.remove("hidden");
+      gvChip("🎤 aus", "aus");
+    } else if (localStorage.getItem(OB_FLAG)) {
+      gvAutoStart();
+    } else {
+      gvChip("🎤 tippen zum Einschalten", "aus");
+    }
+  } catch (e) { gvAutoStart(); }
   // Service Worker fuer installierbare App + Push registrieren
   // (FUSION v10: inkl. deiner Update-Logik - neue sw.js laedt die
   //  Seite genau einmal frisch, plus dauerhafte Speichererlaubnis)

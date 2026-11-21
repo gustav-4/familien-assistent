@@ -2225,7 +2225,7 @@ function obZeige() {
     // Zusammenfassung). Knoepfe/Navigation bleiben stumm.
     const el = document.querySelector(
       '.ob-step[data-ob="' + obIndex + '"]');
-    let volltext = el ? el.innerText.replace(/\s+/g, " ").trim() : "";
+    let volltext = el ? el.innerText.replace(/[ \t\r]+/g, " ").trim() : "";
     if (volltext.length > 1200) volltext = volltext.slice(0, 1200);
     speak(volltext || (OB_SAG[obIndex] || ""), true);
   }
