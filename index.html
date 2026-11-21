@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Familien-Assistent – Sprachgesteuerter Kochassistent &amp; Essensplaner für Familien</title>
 <meta name="description" content="Familien-App: Rezepte passend zu Zeit, Unverträglichkeiten (alle 14 EU-Allergene) und Ernährungsform finden, Einkaufsliste automatisch in Familienmengen erstellen und freihändig mit Sprachführung kochen – inkl. Timer und Garzeit-Ansagen. Ohne Konto, direkt im Browser.">
-<link rel="canonical" href="https://familienassistent.netlify.app/">
+<link rel="canonical" href="https://familienassistent.net/">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#c4704b">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -13,22 +13,31 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="Familien-Assistent – Kochen mit freien Händen">
 <meta property="og:description" content="Rezepte nach Zeit, Unverträglichkeiten &amp; Ernährungsform, automatische Einkaufsliste, sprachgeführtes Kochen mit Timern. Direkt im Browser.">
-<meta property="og:url" content="https://familienassistent.netlify.app/">
+<meta property="og:url" content="https://familienassistent.net/">
+<meta property="og:image" content="https://familienassistent.net/apple-touch-icon.png">
 <meta property="og:locale" content="de_DE">
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://familienassistent.net/apple-touch-icon.png">
 <meta name="twitter:title" content="Familien-Assistent – Kochen mit freien Händen">
 <meta name="twitter:description" content="Sprachgesteuerter Koch- und Essensplaner für Familien. Direkt im Browser, ohne Konto.">
+<meta name="keywords" content="Kochassistent Familie, Rezepte Allergien Kinder, sprachgesteuertes Kochen, Einkaufsliste Familien-App, Essensplaner ohne Konto, freinhändig kochen, Terminplaner Familie">
+<meta name="robots" content="index, follow">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": "Familien-Assistent",
-  "url": "https://familienassistent.netlify.app/",
+  "url": "https://familienassistent.net/",
   "description": "Sprachgesteuerter Kochassistent und Essensplaner für Familien: Rezepte nach verfügbarer Zeit, Unverträglichkeiten und Ernährungsform, automatisch skalierte Einkaufslisten und Schritt-für-Schritt-Sprachführung beim Kochen.",
-  "applicationCategory": "LifestyleApplication",
+  "applicationCategory": "FoodAndDrink",
   "operatingSystem": "Web Browser",
   "inLanguage": "de",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+  "offers": [
+    { "@type": "Offer", "name": "Kostenlose Testphase", "price": "0", "priceCurrency": "EUR" },
+    { "@type": "Offer", "name": "Monatlich", "price": "4.99", "priceCurrency": "EUR" },
+    { "@type": "Offer", "name": "Jahresplan", "price": "49.90", "priceCurrency": "EUR" },
+    { "@type": "Offer", "name": "Einmalig Lifetime", "price": "89.00", "priceCurrency": "EUR" }
+  ],
   "featureList": [
     "Sprachgeführtes Kochen mit Bestätigung per Stimme",
     "Rezeptsuche nach Zubereitungszeit (15-20, 20-30, 30-40, 40+ Minuten)",
@@ -37,6 +46,20 @@
     "Automatische Einkaufsliste in Familienmengen",
     "Timer mit Garzeit-Ansagen",
     "Favoriten-Sammlung"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "Allergiesicher kochen mit dem Familien-Assistenten",
+  "description": "Rezept finden, Einkaufsliste erstellen und freinhändig kochen – abgesichert gegen alle Allergien eurer Familie.",
+  "step": [
+    { "@type": "HowToStep", "name": "Familie einrichten", "text": "Allergien und Ernährungsformen der Familienmitglieder einmalig eintragen – alle 14 EU-Hauptallergene werden unterstützt." },
+    { "@type": "HowToStep", "name": "Rezept finden", "text": "Zeit angeben und sprechen oder tippen – die App zeigt nur Rezepte, die zu euren Allergien passen." },
+    { "@type": "HowToStep", "name": "Einkaufen", "text": "Die Einkaufsliste wird automatisch in Familienmengen erstellt und kann per Sprache abgehakt werden." },
+    { "@type": "HowToStep", "name": "Freinhändig kochen", "text": "Die App liest jeden Schritt vor. Timer laufen automatisch. Per Sprachbefehl weiterschalten – die Hände bleiben frei." }
   ]
 }
 </script>
@@ -64,6 +87,26 @@
       "@type": "Question",
       "name": "Brauche ich ein Konto?",
       "acceptedAnswer": { "@type": "Answer", "text": "Nein. Die App läuft direkt im Browser auf Handy oder Tablet. Ein Konto ist nicht nötig – Favoriten und Profile werden lokal auf dem Gerät gespeichert." }
+    },
+    {
+      "@type": "Question",
+      "name": "Was kostet der Familien-Assistent?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Nach 14 Tagen kostenlosem Test gibt es drei Pläne: Monatlich 4,99 €/Monat (jederzeit kündbar), Jahresplan 49,90 €/Jahr (nur 4,16 €/Monat) oder Einmalig 89 € (lebenslanger Zugang). Alle Pläne umfassen den vollen Funktionsumfang." }
+    },
+    {
+      "@type": "Question",
+      "name": "Was passiert mit meinen Daten beim Testen?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Alle Familiendaten – Namen, Allergien, Termine, Einkaufslisten – bleiben ausschließlich auf deinem Gerät. Kein Konto, kein Tracking. Der KI-Dienst für neue Rezepte nutzt anonymisierte Anfragen. Serverstandort: Frankfurt, EU." }
+    },
+    {
+      "@type": "Question",
+      "name": "Funktioniert die App auch offline?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Gespeicherte Rezepte, die Einkaufsliste, das Familienprofil und alle Termine funktionieren offline. Für neue KI-Rezeptrecherchen und Push-Erinnerungen bei geschlossener App wird Internet benötigt." }
+    },
+    {
+      "@type": "Question",
+      "name": "Wie funktioniert die Sprachsteuerung?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Die Spracheingabe nutzt die eingebaute Spracherkennung des Browsers. Du kannst Zutaten zur Einkaufsliste hinzufügen, Kochschritte vor- und zurückschalten, Timer starten sowie Termine erfassen – alles freinhändig." }
     }
   ]
 }
@@ -342,7 +385,7 @@
     <h2>Technisch erzwungen, nicht nur versprochen</h2>
     <p>Die App darf technisch nur mit ihrem eigenen Server sprechen, und das
     setzt dein Browser durch. Selbst eingeschleuster Schadcode kann
-    über das Netzwerk keine Daten an Dritte schicken – das erzwingt die strikte Content Security Policy.</p>
+    über das Netzwerk keine Daten an fremde Server schicken – das erzwingt die strikte Content Security Policy.</p>
     <div class="ob-ratings">
       <div class="ob-rating-badge"><span class="ob-rating-note">A+</span><span class="ob-rating-name">Mozilla<br>Observatory</span></div>
       <div class="ob-rating-badge"><span class="ob-rating-note">A+</span><span class="ob-rating-name">SSL<br>Labs</span></div>
@@ -1156,11 +1199,12 @@
  <div class="pw-inner">
   <div class="pw-logo">👨‍👩‍👧‍👦</div>
   <h1 class="pw-titel">Familien-Assistent</h1>
-  <p class="pw-sub">Dein Test-Zeitraum ist abgelaufen.<br>
+  <p class="pw-sub">Deine 14-tägige Testphase ist abgelaufen.<br>
   Wähle einen Plan und behalte vollen Zugang:</p>
+  <p style="font-size:.8rem;color:var(--muted);margin:0 0 12px">Kein versteckter Vertrag · Kein Konto · Deine Daten bleiben auf dem Gerät.</p>
   <div class="pw-pläne">
    <div class="pw-plan">
-    <div class="pw-plan-name">Flex-Probe</div>
+    <div class="pw-plan-name">Monatlich</div>
     <div class="pw-plan-preis">4,99 €<span>/Monat</span></div>
     <ul class="pw-plan-liste">
      <li>✔ Voller Funktionsumfang</li>
@@ -1171,8 +1215,9 @@
    </div>
    <div class="pw-plan pw-plan-featured">
     <div class="pw-plan-badge">Beliebt</div>
-    <div class="pw-plan-name">Jahres-Schutz</div>
+    <div class="pw-plan-name">Jahresplan</div>
     <div class="pw-plan-preis">49,90 €<span>/Jahr</span></div>
+    <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px">= 4,16 €/Monat · 2 Monate gratis</div>
     <ul class="pw-plan-liste">
      <li>✔ Voller Funktionsumfang</li>
      <li>✔ 2 Monate geschenkt</li>
@@ -1181,8 +1226,9 @@
     <button class="btn pw-btn-jahr" data-on-click="paywallJahr()">Jetzt sichern</button>
    </div>
    <div class="pw-plan">
-    <div class="pw-plan-name">Premium Lifetime</div>
+    <div class="pw-plan-name">Einmalig</div>
     <div class="pw-plan-preis">89 €<span> einmalig</span></div>
+    <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px">entspricht ca. 1,8 Jahren</div>
     <ul class="pw-plan-liste">
      <li>✔ Einmalige Zahlung</li>
      <li>✔ Lebenslanger Zugang</li>
@@ -1194,7 +1240,7 @@
   <div class="pw-b2b">
    <p>B2B-Lizenzcode eingeben:</p>
    <div style="display:flex;gap:8px">
-    <input type="text" id="pw-code-input" aria-label="Gutscheincode" placeholder="z.B. WEIHNACHTEN2026"
+    <input type="text" id="pw-code-input" aria-label="Gutscheincode" placeholder="Firmencode eingeben"
      style="flex:1;padding:10px;border:1px solid var(--accent);border-radius:8px;font-size:1rem">
     <button class="btn" data-on-click="b2bCodeEinloesen()">Einlösen</button>
    </div>
