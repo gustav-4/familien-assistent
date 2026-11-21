@@ -165,7 +165,7 @@ const MUTATIONEN = [
   {
     name: "Zeitlimit des Servers wieder ueber der Plattformgrenze",
     datei: "netlify/functions/rezept.mjs",
-    suchen: "    const timeout = setTimeout(() => ctrl.abort(), 8500);",
+    suchen: "    const timeout = setTimeout(() => ctrl.abort(), 20000);",
     ersetzen: "    const timeout = setTimeout(() => ctrl.abort(), 45000);",
     erwarteRot: [],
     servertest: "tests/server/ausschluss.test.mjs",
