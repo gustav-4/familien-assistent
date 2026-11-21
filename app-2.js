@@ -862,7 +862,7 @@ function stimmeProbe() {
 }
 
 
-function speak(text, interrupt, danach) {
+function speak(text, interrupt, danach, klangUeberschreib) {
   try {
     gvSprechblase(text); // Sprechblase zeigt ORIGINAL
     text = ttsSaeubern(text); // gesprochen wird die Saubere Fassung
@@ -922,7 +922,7 @@ function speak(text, interrupt, danach) {
       const u = new SpeechSynthesisUtterance(stueck);
       const sv = stimmeAktuelle();
       if (sv) u.voice = sv;
-      const kf = klangAktuell();
+      const kf = klangUeberschreib || klangAktuell();
       u.pitch = kf.pitch;
       u.rate = kf.rate;
       u.lang = "de-DE";
@@ -2227,7 +2227,7 @@ function obZeige() {
       '.ob-step[data-ob="' + obIndex + '"]');
     let volltext = el ? el.innerText.replace(/[ \t\r]+/g, " ").trim() : "";
     if (volltext.length > 1200) volltext = volltext.slice(0, 1200);
-    speak(volltext || (OB_SAG[obIndex] || ""), true);
+    speak(volltext || (OB_SAG[obIndex] || ""), true, null, KLANGFARBEN.freundlich);
   }
 }
 
@@ -2267,7 +2267,7 @@ function obFertig(uebersprungen) {
   } catch (e) {}
   if (!uebersprungen) {
     speak("Fertig eingerichtet! Sagt zum Beispiel: Rezept – und euren " +
-      "Wunsch. Oder: Hilfe.", true);
+      "Wunsch. Oder: Hilfe.", true, null, KLANGFARBEN.freundlich);
   }
 }
 
