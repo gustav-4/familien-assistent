@@ -1118,27 +1118,23 @@
  <div class="gm-box">
   <button class="gm-close" data-on-click="garantieModalSchliessen()" aria-label="Schließen">✕</button>
   <h2 class="gm-titel">🔒 Wie wir das garantieren</h2>
-  <div class="gm-pfeiler">
+    <div class="gm-pfeiler">
    <div class="gm-icon">🏛️</div>
-   <div><b>Closed Shadow-DOM</b><br>Alle Komponenten leben in einem geschlossenen
-   Shadow-DOM – externe Skripte und Browser-Erweiterungen kommen nicht
-   an eure Daten heran.</div>
+   <div><b>Strikte Content Security Policy</b><br>Euer Browser erzwingt technisch, dass die App nur mit ihrem eigenen Server sprechen darf – kein Skript kann Daten an Dritte schicken. Unabhängig geprüft: Note A+ bei securityheaders.com.</div>
   </div>
   <div class="gm-pfeiler">
    <div class="gm-icon">🧹</div>
-   <div><b>Ephemeral Zeroing</b><br>Sensible Zwischenwerte (z.B. Namen,
-   Mengen) werden nach jeder Verwendung sofort aus dem Arbeitsspeicher
-   gelöscht – kein Nachlesen möglich.</div>
+   <div><b>Minimale Datenhaltung</b><br>Sensible Zwischenwerte werden nach der Verwendung nicht weiter gespeichert oder an den Server übertragen.</div>
   </div>
   <div class="gm-pfeiler">
    <div class="gm-icon">🔐</div>
-   <div><b>AES-GCM Ende-zu-Ende</b><br>Jede Kommunikation mit unserem
-   Erinnerungs-Dienst ist mit AES-GCM verschlüsselt. Nur euer Gerät
-   kennt den Schlüssel.</div>
+   <div><b>AES-GCM Verschlüsselung</b><br>Familien-Sync ist Ende-zu-Ende verschlüsselt – nur eure Geräte kennen den Schlüssel. Weckzeiten für Erinnerungen werden verschlüsselt übertragen; der Server kennt nur Zeitpunkte, keine Inhalte.</div>
   </div>
   <div class="gm-pfeiler">
    <div class="gm-icon">🌐</div>
-   <div><b>100 % Offline-Inferenz via WebGPU</b><br>Die KI-Modelle laufen
+   <div><b>Lokale Verarbeitung, klare Trennung</b><br>Standard-Rezepte, Termine und Listen laufen vollständig auf eurem Gerät. KI-Recherche und Termin-Übersetzung nutzen unseren Server – was gesendet wird, steht unter „Was verlässt mein Handy?“.</div>
+  </div>
+  <div><b>100 % Offline-Inferenz via WebGPU</b><br>Die KI-Modelle laufen
    lokal in eurem Browser per WebGPU – kein Rezept-Wunsch verlässt
    euer Gerät.</div>
   </div>
