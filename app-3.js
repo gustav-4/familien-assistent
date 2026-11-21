@@ -1944,7 +1944,7 @@ async function updateStillPruefen(jetzt) {
   } catch (e) { return "fehler"; }
 }
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") void updateStillPruefen();
+  if (document.visibilityState === "visible") updateStillPruefen();
 });
 (function initTermine() {
   termineLaden();
@@ -2020,7 +2020,7 @@ document.addEventListener("visibilitychange", () => {
       window.location.reload();
     });
     navigator.serviceWorker.register("/sw.js").catch(() => {});
-    setTimeout(() => { void updateStillPruefen(); }, 2500); // F-037: still beim Oeffnen
+    setTimeout(() => { updateStillPruefen(); }, 2500); // F-037: still beim Oeffnen
     if (navigator.storage && navigator.storage.persist) {
       navigator.storage.persist().catch(() => {});
     }
