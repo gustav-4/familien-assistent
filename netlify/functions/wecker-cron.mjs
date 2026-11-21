@@ -63,7 +63,7 @@ async function redisPipeline(commands) {
 
 function b64u(buf) {
   return Buffer.from(buf).toString("base64")
-    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    .replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
 }
 
 function vapidAuthHeader(endpoint, keys) {

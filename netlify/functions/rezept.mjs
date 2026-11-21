@@ -499,7 +499,7 @@ function normalizeRecipe(raw, ohneSchritte) {
   const name = String(raw.name || "").trim().slice(0, 80);
   if (!name) return null;
 
-  let timeMin = parseInt(raw.timeMin, 10);
+  let timeMin = Number.parseInt(raw.timeMin, 10);
   if (!Number.isFinite(timeMin) || timeMin <= 0) timeMin = 30;
   timeMin = Math.min(Math.max(timeMin, 5), 240);
 
@@ -521,7 +521,7 @@ function normalizeRecipe(raw, ohneSchritte) {
     .map((s) => {
       if (!s || !s.text) return null;
       const step = { text: String(s.text).trim().slice(0, 600) };
-      const timer = parseInt(s.timer, 10);
+      const timer = Number.parseInt(s.timer, 10);
       if (Number.isFinite(timer) && timer > 0)
         step.timer = Math.min(timer, 7200);
       if (s.announce) step.announce = String(s.announce).trim().slice(0, 400);
@@ -628,7 +628,7 @@ const handler = async (event) => {
     const steps = rohSteps.map((st) => {
       if (!st || !st.text) return null;
       const schritt = { text: String(st.text).trim().slice(0, 600) };
-      const timer = parseInt(st.timer, 10);
+      const timer = Number.parseInt(st.timer, 10);
       if (Number.isFinite(timer) && timer > 0)
         schritt.timer = Math.min(timer, 7200);
       if (st.announce) schritt.announce = String(st.announce).trim().slice(0, 400);
@@ -709,8 +709,8 @@ const handler = async (event) => {
   }
 
 
-  let minMin = parseInt(body.minuten_min, 10);
-  let minMax = parseInt(body.minuten_max, 10);
+  let minMin = Number.parseInt(body.minuten_min, 10);
+  let minMax = Number.parseInt(body.minuten_max, 10);
   if (!Number.isFinite(minMin) || minMin < 0) minMin = 0;
   if (!Number.isFinite(minMax) || minMax <= 0) minMax = 999;
   if (minMin > minMax) { const t = minMin; minMin = minMax; minMax = t; }

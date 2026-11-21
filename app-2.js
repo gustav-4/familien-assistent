@@ -490,7 +490,7 @@ async function wakeLockAnfordern() {
   try {
     const h = await navigator.wakeLock.request("screen");
     // Waehrend der Anfrage beendet? Dann sofort wieder freigeben.
-    if (!wakeLockGruende.size) { try { h.release(); } catch (e) {} return; }
+    if (!wakeLockGruende.size) { h.release().catch(() => {}); return; }
     wakeLockHandle = h;
     h.addEventListener("release", () => {
       if (wakeLockHandle === h) wakeLockHandle = null;
@@ -519,7 +519,7 @@ function wakeLockAktiv() { return Boolean(wakeLockHandle); }
 let kochAktiv = false;
 function kochSitzungStart() {
   kochAktiv = true;
-  wakeLockAn("koch");
+  void wakeLockAn("koch");
 }
 function kochSitzungEnde() {
   kochAktiv = false;
@@ -536,7 +536,7 @@ function kochSitzungEnde() {
 // geoeffnet (auch wenn es vorher in der Ruhepause war).
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) return;
-  wakeLockAnfordern();
+  void wakeLockAnfordern();
   if (kochAktiv && cookingVisible() && typeof GlobalVoice !== "undefined"
       && !GlobalVoice.aktiv && !micMuted) {
     try { gvStart(); } catch (e) {}
@@ -637,13 +637,13 @@ function ttsSaeubern(text) {
   // Emojis, Piktogramme, Dingbats, Pfeile, Varianten-Selektoren
   t = t.replace(/[\u{1F000}-\u{1FAFF}\u{2300}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}\u{2049}\u{203C}]/gu, " ");
   // Zier-/Steuerzeichen, die Stimmen vorlesen oder verschlucken
-  t = t.replace(/[«»‹›„“”·•▪◦✓✔✗♀♂👍]/g, " ");
+  t = t.replace(/[«»‹›„“”·•▪◦✓✔✗♀♂👍]/gu, " ");
   // Satzzeichen-Hygiene nach den Ersetzungen
   t = t.replace(/\s+,/g, ",").replace(/,{2,}/g, ",");
   t = t.replace(/,\s*([.!?])/g, "$1");
   // Zeilenumbrueche -> natuerliche Sprechpausen
   t = t.replace(/\n{2,}/g, ". ");
-  t = t.replace(/\n/g, ", ");
+  t = t.replaceAll("\n", ", ");
   t = t.replace(/\s{2,}/g, " ").trim();
   t = t.replace(/^,\s*/, "").replace(/,\s*$/, ".");
   return t;
@@ -1111,7 +1111,7 @@ function lauschStart() {
     return false;
   }
   LAUSCH.status = "lauscht";
-  wakeLockAn("lausch"); // Web-Grenze: nur bei wachem Bildschirm hoert das Mikro
+  void wakeLockAn("lausch"); // Web-Grenze: nur bei wachem Bildschirm hoert das Mikro
   lauschAnzeige("Ich lausche still auf \u201eTermin\u201c - der " +
     "Bildschirm bleibt dafuer an. Beim Zuruf ertoent der Bereitton, " +
     "dann einfach den Termin sprechen.");
@@ -1668,7 +1668,7 @@ function gvRoute(said) {
   const k = erkenneKommando(said);
   if (!k) return; // Alltagsgespraech ignorieren
   if (k.typ === "still") { window.speechSynthesis.cancel(); return; }
-  if (k.typ === "wochenplan") { wpPlanen(); return; }
+  if (k.typ === "wochenplan") { void wpPlanen(); return; }
   if (k.typ === "version") {
     speak("Es läuft Version " + APP_VERSION + ".", true);
     return;
@@ -1695,7 +1695,7 @@ function gvRoute(said) {
     return;
   }
   if (k.typ === "kochen") {
-    if (selectedRecipe) { startCooking(); }
+    if (selectedRecipe) { void startCooking(); }
     else { speak("Wählt zuerst ein Rezept aus.", true); goTab("rezepte"); }
     return;
   }
@@ -2128,7 +2128,7 @@ function syncTrennen(wegenPlus) {
 // Poll: jede Minute + sofort beim Zurueckkehren in die App
 setInterval(syncAbholen, 60000);
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) syncAbholen();
+  if (!document.hidden) void syncAbholen();
 });
 
 
@@ -2284,7 +2284,7 @@ function obMitgliedHinzu() {
   const nameEl = document.getElementById("obName");
   const alterEl = document.getElementById("obAlter");
   const name = String((nameEl && nameEl.value) || "").trim().slice(0, 30);
-  const alter = parseInt((alterEl && alterEl.value) || "", 10);
+  const alter = Number.parseInt((alterEl && alterEl.value) || "", 10);
   if (!name) return;
   const gEl = document.getElementById("obGeschlecht");
   const geschlecht = (gEl && gEl.value) === "m" ? "m" : "w";
@@ -2311,7 +2311,7 @@ function obMikro() {
 }
 
 function obPush() {
-  try { aktivierePush(); } catch (e) {}
+  aktivierePush().catch(() => {})
   const s = document.getElementById("obPushStatus");
   setTimeout(() => {
     if (!s) return;
@@ -2342,7 +2342,7 @@ function rezeptSucheMitText(text) {
   const feld = document.getElementById("searchWish");
   if (feld) feld.value = wunsch;
   speak("Ich suche: " + wunsch + ".", true);
-  rechercheRezept(false);
+  void rechercheRezept(false);
 }
 function rezeptVoiceStart() {
   goTab("rezepte");
@@ -2432,7 +2432,7 @@ function goTab(name) {
   // Rueckkehr in ein laufendes Rezept wird die Sperre neu angefordert.
   if (typeof kochAktiv !== "undefined") {
     if (name !== "kochen") wakeLockAus("koch");
-    else if (kochAktiv) wakeLockAn("koch");
+    else if (kochAktiv) void wakeLockAn("koch");
   }
   // NEU (Einkaufs-Voice): Freihändig-Modus beenden, wenn man Einkauf verlässt
   // (verhindert Mikrofon-Konflikt mit der Koch-Spracherkennung)
@@ -2702,8 +2702,8 @@ function selectedIntolerances() {
 let timeMinSel = 0, timeMaxSel = 999;
 
 function setTimeGroup(btn) {
-  timeMinSel = parseInt(btn.dataset.min);
-  timeMaxSel = parseInt(btn.dataset.max);
+  timeMinSel = Number.parseInt(btn.dataset.min);
+  timeMaxSel = Number.parseInt(btn.dataset.max);
   document.querySelectorAll(".timebtn")
     .forEach(b => b.classList.toggle("active-time", b === btn));
   selectedRecipe = null;
@@ -2768,8 +2768,8 @@ function rezeptVorstellen(r) {
    Test: Szenario S-06. */
 function entschaerfeHtml(text) {
   return String(text == null ? "" : text)
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 }
 
 let stdRezepteOffen = false;

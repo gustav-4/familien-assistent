@@ -213,8 +213,8 @@ function weckerPlan() {
 function serverSync() {
   try {
     const plan = weckerPlan();
-    idbSet("device", deviceId());
-    idbSet("refs", plan.texte);
+    void idbSet("device", deviceId());
+    void idbSet("refs", plan.texte);
     fetch("/api/wecker", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -227,7 +227,7 @@ function serverSync() {
 // ---------- Push aktivieren ----------
 function b64ToUint8(b64) {
   const pad = "=".repeat((4 - (b64.length % 4)) % 4);
-  const raw = atob((b64 + pad).replace(/-/g, "+").replace(/_/g, "/"));
+  const raw = atob((b64 + pad).replaceAll("-", "+").replaceAll("_", "/"));
   return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
 }
 async function aktivierePush() {
@@ -297,7 +297,7 @@ async function pruefePushAbo() {
         if (alt) {
           const altB64 = btoa(String.fromCharCode(
             ...new Uint8Array(alt)))
-            .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+            .replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
           passt = (altB64 === publicKey);
         }
       } catch (e) {}
@@ -419,15 +419,15 @@ function mitgliederNamen() { return mitglieder.map((m) => m.name); }
 function portionFactor() {
   if (mitglieder.length)
     return Math.max(summePE() / 3.2, 0.3);
-  const a = parseInt(document.getElementById("adults").value || 2);
-  const k = parseInt(document.getElementById("kids").value || 0);
+  const a = Number.parseInt(document.getElementById("adults").value || 2);
+  const k = Number.parseInt(document.getElementById("kids").value || 0);
   return (a * 1.0 + k * 0.6) / 3.2;
 }
 
 function addMember() {
   const name = (document.getElementById("memberName").value || "")
     .trim().slice(0, 30);
-  const alter = Math.min(Math.max(parseInt(
+  const alter = Math.min(Math.max(Number.parseInt(
     document.getElementById("memberAlter").value) || 0, 0), 99);
   const geschlecht = document.getElementById("memberGeschlecht").value;
   if (!name) return;
@@ -530,7 +530,7 @@ function parseMinutenAngabe(text) {
   if (/halbe?\s*stunde/.test(t)) return 30;
   const m = t.match(/(\d+)/);
   if (m) {
-    let n = parseInt(m[1], 10);
+    let n = Number.parseInt(m[1], 10);
     if (/stunde/.test(t) && n <= 12) n = n * 60;
     return Math.min(n, 480);
   }
@@ -573,15 +573,15 @@ function terminZusammenfassung(t, abfahrt) {
 // fragt der Dialog gezielt nach.
 function normalisiereName(s) {
   return String(s || "").toLowerCase()
-    .replace(/ä/g, "ae").replace(/ö/g, "oe")
-    .replace(/ü/g, "ue").replace(/ß/g, "ss")
+    .replaceAll("ä", "ae").replaceAll("ö", "oe")
+    .replaceAll("ü", "ue").replaceAll("ß", "ss")
     .replace(/é|è|ê/g, "e").replace(/[^a-z]/g, "");
 }
 
 function editierDistanz(a, b) {
   a = a.slice(0, 20); b = b.slice(0, 20);
   const d = Array.from({ length: a.length + 1 },
-    (_, i) => [i, ...Array(b.length).fill(0)]);
+    (_, i) => [i, ...new Array(b.length).fill(0)]);
   for (let j = 0; j <= b.length; j++) d[0][j] = j;
   for (let i = 1; i <= a.length; i++)
     for (let j = 1; j <= b.length; j++)
@@ -948,8 +948,8 @@ function formularTermin() {
     verantwortlich: document.getElementById("tVerantwortlich").value || "",
     datum: datum,
     zeit: zeit,
-    dauerMin: Math.max(5, parseInt(document.getElementById("tDauer").value) || 60),
-    wegzeitMin: Math.max(0, parseInt(document.getElementById("tWegzeit").value) || 0),
+    dauerMin: Math.max(5, Number.parseInt(document.getElementById("tDauer").value) || 60),
+    wegzeitMin: Math.max(0, Number.parseInt(document.getElementById("tWegzeit").value) || 0),
     kategorie: document.getElementById("tKategorie").value,
     bestaetigt: {},
     zuletztErinnert: {},
@@ -1072,7 +1072,7 @@ function bonVorschau(funde, text, box) {
   ok.className = "btn green"; ok.type = "button";
   ok.onclick = () => {
     const gebucht = bonUebernehmen(zeilen.filter((z) => z.cb.checked)
-      .map((z) => ({ id: z.id, menge: parseInt(z.anz.value, 10) || 1 })));
+      .map((z) => ({ id: z.id, menge: Number.parseInt(z.anz.value, 10) || 1 })));
     box.innerHTML = "";
     box.appendChild(elMit("p", gebucht.length
       ? "✅ Übernommen. Neue Reichweite: " + gebucht.join(" · ")
@@ -1219,8 +1219,8 @@ function zettelVorschau(funde, text, box) {
     const id = "z" + basis + "_" + idx;
     const aktuell = () => terminAusRegel({
       titel: titel.value.trim(), person: person.value, verantwortlich: wer.value,
-      datum: datum.value, zeit: zeit.value, dauer_min: parseInt(dauer.value, 10),
-      wegzeit_min: parseInt(weg.value, 10), kategorie: r.kategorie }, id);
+      datum: datum.value, zeit: zeit.value, dauer_min: Number.parseInt(dauer.value, 10),
+      wegzeit_min: Number.parseInt(weg.value, 10), kategorie: r.kategorie }, id);
     const pruefe = () => {
       const t = aktuell();
       const w = t.titel && t.datum && t.zeit ? terminWarnungen(t) : [];
@@ -1285,7 +1285,7 @@ function addRoutine() {
   const person = document.getElementById("rPerson").value;
   const label = document.getElementById("rLabel").value.trim() || "Abwesend";
   const tage = [...document.querySelectorAll(".rtag:checked")]
-    .map((c) => parseInt(c.value));
+    .map((c) => Number.parseInt(c.value));
   const von = document.getElementById("rVon").value;
   const bis = document.getElementById("rBis").value;
   if (!person || !tage.length || !von || !bis) return;
@@ -1944,13 +1944,13 @@ async function updateStillPruefen(jetzt) {
   } catch (e) { return "fehler"; }
 }
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") updateStillPruefen();
+  if (document.visibilityState === "visible") void updateStillPruefen();
 });
 (function initTermine() {
   termineLaden();
   renderMembers();
   if ("Notification" in window && Notification.permission === "default") {
-    setTimeout(() => { try { Notification.requestPermission(); } catch (e) {} },
+    setTimeout(() => { Notification.requestPermission().catch(() => {}); },
       4000);
   }
   ["tDatum", "tZeit", "tDauer", "tWegzeit", "tPerson", "tVerantwortlich"]
@@ -1961,7 +1961,7 @@ document.addEventListener("visibilitychange", () => {
   setInterval(checkErinnerungen, 30000);
   setTimeout(checkErinnerungen, 3000);
   try { stimmenAuswahlFuellen(); klangAuswahlFuellen(); ruheKochFuellen(); } catch (e) {}
-  try { syncAnzeige(); syncAbholen(); } catch (e) {}
+  try { syncAnzeige(); void syncAbholen(); } catch (e) {}
   try {
     const m = location.hash.match(/sync=([A-Za-z2-9-]+)/);
     if (m && !syncCode) {
@@ -1969,7 +1969,7 @@ document.addEventListener("visibilitychange", () => {
       if (feld) feld.value = decodeURIComponent(m[1]);
       history.replaceState(null, "", location.pathname); // Code aus Adresszeile
       goTab("familie");
-      syncVerbinden();
+      void syncVerbinden();
     }
   } catch (e) {}
   versionAnzeigen(); // Feld steht in der Fusszeile NACH diesem Skript: siehe DOMContentLoaded
@@ -2020,12 +2020,12 @@ document.addEventListener("visibilitychange", () => {
       window.location.reload();
     });
     navigator.serviceWorker.register("/sw.js").catch(() => {});
-    setTimeout(() => { updateStillPruefen(); }, 2500); // F-037: still beim Oeffnen
+    setTimeout(() => { void updateStillPruefen(); }, 2500); // F-037: still beim Oeffnen
     if (navigator.storage && navigator.storage.persist) {
       navigator.storage.persist().catch(() => {});
     }
     // Push-Anmeldung pruefen und ggf. automatisch erneuern
-    setTimeout(() => { try { pruefePushAbo(); } catch (e) {} }, 6000);
+    setTimeout(() => { pruefePushAbo().catch(() => {}); }, 6000);
   }
 })();
 

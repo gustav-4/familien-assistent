@@ -120,7 +120,7 @@ Datum nie in der Vergangenheit - im Zweifel der naechste passende Tag.`;
 
     // Vergangenheits-Check
     const dt = new Date(t.datum + "T" + t.zeit);
-    if (isNaN(dt.getTime()))
+    if (Number.isNaN(dt.getTime()))
       return antwort(200, { success: false, error: "Datum unklar" });
 
     return antwort(200, { success: true, termin: t });

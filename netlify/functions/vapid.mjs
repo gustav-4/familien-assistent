@@ -37,7 +37,7 @@ async function redis(command) {
 
 function b64u(buf) {
   return Buffer.from(buf).toString("base64")
-    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    .replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
 }
 
 export async function ensureVapid() {
@@ -47,7 +47,7 @@ export async function ensureVapid() {
   if (envPub && envPem) {
     // \n-Ersatz erlauben (Netlify-Eingabefeld ist einzeilig)
     return { publicKey: envPub.trim(),
-      privatePem: envPem.replace(/\\n/g, "\n") };
+      privatePem: envPem.replaceAll("\\n", "\n") };
   }
 
   // 2) Bestehenden Speicher-Eintrag weiterverwenden

@@ -420,9 +420,9 @@
     <p>Wer gehört dazu? Daraus berechne ich automatisch alle
     Portionsmengen.</p>
     <div class="ob-form">
-      <input type="text" id="obName" placeholder="Name (z.B. Zoe)">
-      <input type="number" id="obAlter" placeholder="Alter" min="0" max="120">
-      <select id="obGeschlecht">
+      <input type="text" id="obName" aria-label="Name eingeben" placeholder="Name (z.B. Zoe)">
+      <input type="number" id="obAlter" aria-label="Alter eingeben" placeholder="Alter" min="0" max="120">
+      <select id="obGeschlecht" aria-label="Geschlecht auswählen">
         <option value="w">♀ weiblich</option>
         <option value="m">♂ männlich</option>
       </select>
@@ -594,7 +594,7 @@
         Handys der Familie – Ende-zu-Ende-verschlüsselt: Der Code ist
         der Schlüssel, unser Server sieht nur unlesbares Chiffrat.</span>
         <div id="syncFormular" style="margin-top:8px">
-          <input type="text" id="syncCodeEingabe"
+          <input type="text" id="syncCodeEingabe" aria-label="Familien-Code eingeben"
                  placeholder="FAM-XXXXX-XXXXX" style="max-width:190px">
           <button class="btn" type="button" data-on-click="syncVerbinden()">Verbinden</button>
         </div>
@@ -608,12 +608,12 @@
         <b>🔊 Vorlese-Stimme</b><br>
         <span class="muted">Welche Stimme soll euch beim Kochen
         begleiten? Antippen = Hörprobe.</span><br>
-        <select id="stimmeWahl" data-on-change="stimmeGewaehlt()"
+        <select id="stimmeWahl" aria-label="Stimme auswählen" data-on-change="stimmeGewaehlt()"
                 style="margin-top:6px;max-width:230px"></select>
         <button class="btn ghost" type="button"
                 data-on-click="stimmeProbe()">▶ Probe hören</button>
         <br><span class="muted">Klangfarbe:</span>
-        <select id="klangWahl" data-on-change="klangGewaehlt()"
+        <select id="klangWahl" aria-label="Klangfarbe auswählen" data-on-change="klangGewaehlt()"
                 style="margin-top:4px;max-width:230px"></select>
         <br><label style="display:inline-flex;align-items:center;
                      gap:6px;margin-top:8px;font-size:.9rem">
@@ -629,16 +629,16 @@
       </div>
       </div>
       <div style="margin-top:12px">
-        <label style="display:block;margin-bottom:6px"><b>Euer
+        <label for="memberName" style="display:block;margin-bottom:6px"><b>Euer
         Familienprofil</b> – Grundlage für Rezeptmengen, Ernährungsform,
         Einkaufsplanung und Termine:</label>
-        <input type="text" id="memberName" placeholder="Name, z. B. Lena"
+        <input type="text" id="memberName" aria-label="Name des Familienmitglieds" placeholder="Name, z. B. Lena"
                style="width:34%;padding:8px;border:1px solid #ddd;
                       border-radius:8px;font-size:1rem">
-        <input type="number" id="memberAlter" placeholder="Alter" min="0"
+        <input type="number" id="memberAlter" aria-label="Alter des Familienmitglieds" placeholder="Alter" min="0"
                max="99" style="width:70px;padding:8px;border:1px solid #ddd;
                       border-radius:8px;font-size:1rem">
-        <select id="memberGeschlecht" style="padding:8px;border-radius:8px;
+        <select id="memberGeschlecht" aria-label="Geschlecht des Familienmitglieds" style="padding:8px;border-radius:8px;
                 border:1px solid #ddd;font-size:1rem">
           <option value="w">♀ weiblich</option>
           <option value="m">♂ männlich</option>
@@ -794,7 +794,7 @@
   <section id="tab-rezepte" class="hidden">
     <div class="card">
       <h2>Für wen kochst du heute?</h2>
-      <select id="kochModusSel" data-on-change="setKochModus(this.value)"
+      <select id="kochModusSel" aria-label="Kochmodus auswählen" data-on-change="setKochModus(this.value)"
         style="width:100%;padding:11px;border-radius:8px;
                border:1px solid #ddd;font-size:1rem">
         <option value="familie">👨‍👩‍👧‍👦 Ganze Familie</option>
@@ -831,7 +831,7 @@
       <p class="muted">Sag uns, worauf ihr Lust habt – Unverträglichkeiten,
       Ernährungsform, deine Zeitauswahl und euer Stil werden automatisch
       beachtet und sicherheitsgeprüft.</p>
-      <input type="text" id="searchWish"
+      <input type="text" id="searchWish" aria-label="Rezeptwunsch eingeben"
         placeholder="z. B. etwas mit Kürbis, asiatisch, ohne Fleisch …"
         style="width:100%;padding:11px;border-radius:8px;
                border:1px solid #ddd;font-size:1rem">
@@ -897,7 +897,7 @@
         🎤 Artikel per Sprache hinzufügen</button>
       <button class="btn ghost" type="button" id="bonScanBtn"
         data-on-click="scanStarten('bonFoto')">🧾 Kassenbon scannen</button>
-      <input type="file" id="bonFoto" accept="image/*" capture="environment"
+      <input type="file" id="bonFoto" aria-label="Kassenbon-Foto aufnehmen" accept="image/*" capture="environment"
         class="hidden" data-on-change="bonFotoGewaehlt(this)">
       <p class="muted" style="margin:4px 0 0">Foto vom Bon: Die App erkennt
       Verbrauchsgüter und rechnet ihre Reichweite neu. 🔒 Das Foto wird
@@ -915,7 +915,7 @@
   <section id="tab-kochen" class="hidden">
     <div class="card">
       <div class="progress"><div id="progressBar"></div></div>
-      <h2 id="recipeTitle"></h2>
+      <h2 id="recipeTitle" aria-label="Rezeptname"></h2>
       <p id="stepText">…</p>
       <p id="stepZutaten" class="muted"></p>
       <div id="timerBox" class="hidden"></div>
@@ -952,7 +952,7 @@
               data-on-click="terminVoiceStart()">🎤 Jetzt sprechen</button>
       <button class="btn ghost" id="zettelScanBtn" type="button"
               data-on-click="scanStarten('zettelFoto')">📷 Schulzettel scannen</button>
-      <input type="file" id="zettelFoto" accept="image/*" capture="environment"
+      <input type="file" id="zettelFoto" aria-label="Schulzettel-Foto aufnehmen" accept="image/*" capture="environment"
              class="hidden" data-on-change="zettelFotoGewaehlt(this)">
       <p class="muted" id="terminVoiceStatus"></p>
       <div id="zettelErgebnis" style="margin-top:6px"></div>
@@ -1066,7 +1066,7 @@
     oder tippe. Geht direkt an die Entwicklung. Danke dir!</p>
     <button class="btn" type="button" data-on-click="fbSprechen()"
             id="fbMicBtn">🎤 Sprechen</button>
-    <textarea id="fbText" rows="3" placeholder="… oder hier tippen"
+    <textarea id="fbText" aria-label="Feedback-Text" rows="3" placeholder="… oder hier tippen"
       style="width:100%;margin-top:8px;padding:10px;border-radius:10px;
              border:1px solid #ddd;font-size:1rem"></textarea>
     <div style="margin-top:8px">
@@ -1181,7 +1181,7 @@
   <div class="pw-b2b">
    <p>B2B-Lizenzcode eingeben:</p>
    <div style="display:flex;gap:8px">
-    <input type="text" id="pw-code-input" placeholder="z.B. WEIHNACHTEN2026"
+    <input type="text" id="pw-code-input" aria-label="Gutscheincode" placeholder="z.B. WEIHNACHTEN2026"
      style="flex:1;padding:10px;border:1px solid var(--accent);border-radius:8px;font-size:1rem">
     <button class="btn" data-on-click="b2bCodeEinloesen()">Einlösen</button>
    </div>
@@ -1209,7 +1209,7 @@
     <input id="sicherungPw" type="password" autocomplete="new-password" style="width:100%;box-sizing:border-box;margin:4px 0">
     <button type="button" data-on-click="sicherungSpeichern()">Sicherung speichern</button>
     <p style="margin:10px 0 4px">Sicherung zurückholen: erst das Passwort eintragen, dann die Datei wählen.</p>
-    <input id="sicherungDatei" type="file" accept=".json,application/json" data-on-change="sicherungDateiGewaehlt(this)">
+    <input id="sicherungDatei" aria-label="Sicherungsdatei auswählen" type="file" accept=".json,application/json" data-on-change="sicherungDateiGewaehlt(this)">
     <button type="button" id="sicherungGoBtn" class="hidden" data-on-click="sicherungWiederherstellen()">Jetzt wiederherstellen</button>
     <div id="sicherungStatus" role="status" aria-live="polite" style="margin-top:6px"></div>
   </details>
