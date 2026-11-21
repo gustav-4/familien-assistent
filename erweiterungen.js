@@ -70,7 +70,7 @@ function b2bCodeEinloesen() {
   var fehler = document.getElementById('pw-code-fehler');
   if (!input) return;
   var code = (input.value || '').trim().toUpperCase();
-  if (code === 'WEIHNACHTEN2026') {
+  if (code === '4UOLT-3OX15-OJGZN-0Q6X9') {
     localStorage.setItem('lizenz_aktiv',  'true');
     localStorage.setItem('lizenz_ablauf', String(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000));
     window.location.reload();
