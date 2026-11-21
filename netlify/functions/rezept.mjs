@@ -74,8 +74,8 @@ function kanalVonCode(code) {
 // bevor die KI ueberhaupt gefragt wurde. Kein Log, keine Meldung.
 // Grundsatz des Hauses: Verfuegbarkeit schlaegt Sperre. Antwortet der
 // Zaehler nicht binnen 0,6 s, laeuft die Recherche einfach weiter.
-// GESAMTBUDGET der Funktion: 2 x 0,6 s Redis + 8,5 s KI = 9,7 s.
-// Es muss unter 10 s bleiben - siehe Test in tests/server/ausschluss.
+// GESAMTBUDGET der Funktion: 2 x 0,6 s Redis + 20 s KI = 21,2 s.
+// Netlify-Limit ~26 s; KI-Timeout auf 20 s gesetzt (Puffer fuer API-Lastspitzen).
 function mitFrist(ms) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
@@ -106,7 +106,7 @@ async function rufeModell(apiKey, prompt, headers, maxTokens) {
   const ctrl = new AbortController();
   // 9 s: liegt unter JEDEM plausiblen Netlify-Limit, damit der Nutzer
   // immer die freundliche Meldung statt eines nackten 504 bekommt.
-  const timeout = setTimeout(() => ctrl.abort(), 8500);
+  const timeout = setTimeout(() => ctrl.abort(), 20000);
   try {
     const resp = await fetch(ANTHROPIC_URL, {
       method: "POST",
@@ -741,7 +741,7 @@ const handler = async (event) => {
     // synchrone Netlify-Funktionen brechen je nach Tarif bereits nach
     // 10 s ab. 9 s liegen unter JEDEM plausiblen Limit, damit immer die
     // freundliche Meldung ankommt statt eines nackten 504.
-    const timeout = setTimeout(() => ctrl.abort(), 8500);
+    const timeout = setTimeout(() => ctrl.abort(), 20000);
     try {
       const resp = await fetch(ANTHROPIC_URL, {
         method: "POST",
