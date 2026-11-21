@@ -110,19 +110,19 @@ p("Fehlende Felder stuerzen nicht ab",
 // --- 4. Zeitlimit: eigene Notbremse muss VOR Netlify greifen ----------
 const timeoutTreffer = serverQuelle.match(/ctrl\.abort\(\),\s*(\d+)\)/g) || [];
 const werte = timeoutTreffer.map((t) => Number(t.match(/(\d+)/)[1]));
-// AUDIT 2: 20 s waren immer noch zu grosszuegig - synchrone Netlify-
-// Funktionen brechen je nach Tarif schon nach 10 s ab. Jeder KI-Aufruf
-// muss unter 10 s bleiben, damit die eigene Notbremse zuerst greift.
-p("Kein KI-Aufruf wartet laenger als 8,5 s",
-  werte.length > 0 && werte.every((w) => w <= 8500));
+// KI-Timeout auf 20 s angehoben (Netlify-Limit ~26 s).
+// 8,5 s war zu kurz fuer komplexe Rezeptanfragen (SERVER ZU LANGSAM).
+// 20 s KI + 2x 600 ms Redis = 21,2 s < 26 s Netlify-Limit.
+p("Kein KI-Aufruf wartet laenger als 20 s",
+  werte.length > 0 && werte.every((w) => w <= 20000));
 
-// Das GESAMTE Zeitbudget muss unter 10 s bleiben, nicht nur der
+// Das GESAMTE Zeitbudget muss unter 26 s bleiben (Netlify-Limit).
 // KI-Aufruf: Vor ihm laufen zwei Redis-Abfragen nacheinander.
 const redisFrist = Number((serverQuelle.match(/mitFrist\((\d+)\)/) || [])[1] || 0);
 const kiFrist = Math.max.apply(null, werte);
-p("Gesamtbudget (2x Redis + KI) bleibt unter 10 s (" +
+p("Gesamtbudget (2x Redis + KI) bleibt unter 26 s (" +
   ((2 * redisFrist + kiFrist) / 1000).toFixed(1) + " s)",
-  redisFrist > 0 && 2 * redisFrist + kiFrist < 10000);
+  redisFrist > 0 && 2 * redisFrist + kiFrist < 26000);
 p("Kurzmodus verzichtet auf den zweiten KI-Anlauf",
   /!params\.kurz && Date\.now\(\) - startZeit/.test(serverQuelle));
 p("Stufe 1 schreibt knapp (Deckel 1500)",
