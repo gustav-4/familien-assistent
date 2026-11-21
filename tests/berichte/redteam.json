@@ -1,8 +1,8 @@
 {
-  "zeitpunkt": "2026-11-20T08:29:59.761Z",
+  "zeitpunkt": "2026-11-21T07:52:50.276Z",
   "modell": "claude-sonnet-4-6",
-  "erzeugteTestfaelle": 8,
-  "bestanden": 377,
+  "erzeugteTestfaelle": 16,
+  "bestanden": 385,
   "verdachtsfaelle": [],
   "bestandsfehler": [],
   "stoerung": ""
