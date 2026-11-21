@@ -132,6 +132,13 @@
   .ob-funk { background:#f7f1e6; border-radius:10px; padding:9px 12px;
     margin:7px 0; font-size:.92rem; }
   .ob-funk i { color:var(--muted); }
+  .ob-ratings { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 6px; }
+  .ob-rating-badge { display:flex; flex-direction:column; align-items:center;
+    background:#e8f2e4; border:2px solid #7e9c6f; border-radius:10px;
+    padding:7px 12px; min-width:76px; }
+  .ob-rating-note { font-size:1.5rem; font-weight:900; color:#3d5a47; line-height:1.1; }
+  .ob-rating-name { font-size:.67rem; color:#5a7a52; text-align:center;
+    margin-top:3px; line-height:1.3; }
   .ob-privacy { background:#e8f2e4; border:1px solid #b9d3ae;
     border-radius:10px; padding:10px 12px; margin-top:10px;
     font-size:.9rem; }
@@ -336,7 +343,12 @@
     <p>Die App darf technisch nur mit ihrem eigenen Server sprechen, und das
     setzt dein Browser durch. Selbst eingeschleuster Schadcode kann
     über das Netzwerk keine Daten an Dritte schicken – das erzwingt die strikte Content Security Policy.</p>
-    <div class="ob-funk">🏅 <b>Note A+</b> beim unabhängigen Test securityheaders.com</div>
+    <div class="ob-ratings">
+      <div class="ob-rating-badge"><span class="ob-rating-note">A+</span><span class="ob-rating-name">Mozilla<br>Observatory</span></div>
+      <div class="ob-rating-badge"><span class="ob-rating-note">A+</span>      <div class="ob-rating-badge"><span class="ob-rating-note">A+</span><span class="ob-rating-name">Security<br>Headers</span></div>
+<div class="ob-rating-badge"><span class="ob-rating-note">A</span><span class="ob-rating-name">SonarCloud<br>Reliability</span></div>
+    </div>
+    <div class="ob-funk" style="font-size:.8rem">🏅 Unabhängig geprüfte Sicherheits-Bewertungen</div>
     <div class="ob-funk">🧪 <b>Über 350 automatische Tests</b> und über 90
      „Sabotage-Proben", bei denen wir jede Reparatur absichtlich kaputt machen,
      um zu sehen, ob ein Test es bemerkt</div>
