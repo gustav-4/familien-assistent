@@ -996,7 +996,7 @@ document.addEventListener("click", function ttsUnlock() {
 // Versionsstempel: bei JEDEM Release hochzaehlen (Anzeige im
 // Footer + Sprachbefehl "Version" beantworten "Welche Version
 // laeuft?" kuenftig in 2 Sekunden statt per Detektivarbeit).
-const APP_VERSION = "FUSION55";
+const APP_VERSION = "FUSION56";
 
 const GlobalVoice = { aktiv: false, dialog: null, gestartet: false };
 // Ruhepause gegen den Android-Aktivierungston: Der Ton kommt vom
@@ -2145,7 +2145,10 @@ function appBeenden() {
   speak("Bis bald!", true);
   const o = document.getElementById("byeOverlay");
   if (o) o.classList.remove("hidden");
-  setTimeout(() => { try { window.close(); } catch (e) {} }, 1800);
+  setTimeout(() => {
+    try { sessionStorage.setItem("ka_beendet", "1"); } catch (e) {}
+    try { window.close(); } catch (e) {}
+  }, 1800);
 }
 
 // =====================================================
