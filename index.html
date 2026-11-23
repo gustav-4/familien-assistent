@@ -1272,16 +1272,5 @@
     <div id="sicherungStatus" role="status" aria-live="polite" style="margin-top:6px"></div>
   </details>
 </footer>
-<script>
-(function(){
-  try {
-    var t=JSON.parse(localStorage.getItem('familienapp_termine')||'[]').length;
-    if(t>0){
-      var el=document.getElementById('pw-rueckblick');
-      if(el){el.textContent='✓ '+t+' Termin'+(t===1?'':'e')+' habt ihr schon eingetragen – die bleiben euch erhalten.';el.style.display='block';}
-    }
-  }catch(e){}
-})();
-</script>
 </body>
 </html>

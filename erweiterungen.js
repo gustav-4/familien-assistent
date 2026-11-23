@@ -270,5 +270,17 @@ window.addEventListener('load', function() {
     if (typeof window.init === 'function')               window.init               = function() {};
     if (typeof window.onboardingAutostart === 'function') window.onboardingAutostart = function() {};
   }
+
+  /* Rückblick: Termine-Hinweis in Paywall */
+  try {
+    var rueckblickT = JSON.parse(localStorage.getItem('familienapp_termine') || '[]').length;
+    if (rueckblickT > 0) {
+      var rueckblickEl = document.getElementById('pw-rueckblick');
+      if (rueckblickEl) {
+        rueckblickEl.textContent = '✓ ' + rueckblickT + ' Termin' + (rueckblickT === 1 ? '' : 'e') + ' habt ihr schon eingetragen – die bleiben euch erhalten.';
+        rueckblickEl.style.display = 'block';
+      }
+    }
+  } catch(e) {}
 }); /* end load */
 } /* end window.addEventListener guard */
