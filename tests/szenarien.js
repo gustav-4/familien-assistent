@@ -2090,7 +2090,7 @@ warte(async () => {
     neu[0] && /^Deine Familie ist keine Ware/.test(neu[0].text));
   pruefe("F-039 Bildschirm 1: gehoert ausschliesslich dir, nicht Werbefirmen/Datenhaendlern",
     neu[0] && /ausschließlich dir/.test(neu[0].text) && /Werbefirmen/.test(neu[0].text) &&
-    /Datenhändlern/.test(neu[0].text));
+    /Datenhändlern/.test(neu[0].text) && /bleiben deine Familiendaten bei dir/.test(neu[0].text));
   pruefe("F-039 vier neue Bildschirme stehen VOR der Einrichtung",
     neu.length === 4 && sortiert.length > 4 && /Willkommen/.test(sortiert[0].text));
   pruefe("F-039 Schrittnummern sind lueckenlos und passen zu OB_SCHRITTE",
