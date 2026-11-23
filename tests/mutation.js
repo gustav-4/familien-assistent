@@ -683,7 +683,7 @@ const MUTATIONEN = [
   {
     name: 'F-039: Knopf "Jetzt einrichten" fehlt',
     datei: 'app-2.js',
-    suchen: 'obIndex === 3 ? "Jetzt einrichten ›" : "Weiter ›"',
+    suchen: 'obIndex === 5 ? "Jetzt einrichten ›" : "Weiter ›"',
     ersetzen: '"Weiter ›"',
     erwarteRot: ['F-039 Auf Bildschirm 4 heisst der Knopf'],
   },

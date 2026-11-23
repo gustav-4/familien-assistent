@@ -2219,7 +2219,7 @@ function obZeige() {
   const weiter = document.getElementById("obWeiterBtn");
   if (weiter) weiter.textContent =
     obIndex === OB_SCHRITTE - 1 ? "🚀 Los geht's!" :
-    obIndex === 3 ? "Jetzt einrichten ›" : "Weiter ›";
+    obIndex === 5 ? "Jetzt einrichten ›" : "Weiter ›";
   if (obOffen) {
     // Kompletten sichtbaren Seitentext vorlesen (Wunsch: nicht nur
     // Zusammenfassung). Knoepfe/Navigation bleiben stumm.
