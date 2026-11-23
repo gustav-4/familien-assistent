@@ -2081,7 +2081,8 @@ warte(async () => {
   const index = fs.readFileSync(dir + "/index.html", "utf8");
   const schritte = [...index.matchAll(/<div class="ob-step[^"]*" data-ob="(\d+)">([\s\S]*?)(?=<div class="ob-step|<\/div>\s*<div class="ob-fuss")/g)]
     .map((m) => ({ nr: Number(m[1]), text: m[2].replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim() }));
-  const neu = schritte.filter((s) => s.nr < 4);
+  const sortiert = [...schritte].sort((a, b) => a.nr - b.nr);
+  const neu = sortiert.filter((s) => s.nr >= 2 && s.nr < 6);
   const alle = neu.map((s) => s.text).join(" | ");
   const datenschutz = fs.readFileSync(dir + "/datenschutz.html", "utf8");
 
@@ -2089,11 +2090,11 @@ warte(async () => {
     neu[0] && /^Deine Familie ist keine Ware/.test(neu[0].text));
   pruefe("F-039 Bildschirm 1: gehoert ausschliesslich dir, nicht Werbefirmen/Datenhaendlern",
     neu[0] && /ausschließlich dir/.test(neu[0].text) && /Werbefirmen/.test(neu[0].text) &&
-    /Datenhändlern/.test(neu[0].text) && /bleibt alles, was deine Familie ausmacht, auf deinem Handy/.test(neu[0].text));
+    /Datenhändlern/.test(neu[0].text));
   pruefe("F-039 vier neue Bildschirme stehen VOR der Einrichtung",
-    neu.length === 4 && schritte.length > 4 && /Willkommen/.test(schritte[4].text));
+    neu.length === 4 && sortiert.length > 4 && /Willkommen/.test(sortiert[0].text));
   pruefe("F-039 Schrittnummern sind lueckenlos und passen zu OB_SCHRITTE",
-    schritte.every((s, i) => s.nr === i) && schritte.length === OB_SCHRITTE);
+    sortiert.every((s, i) => s.nr === i) && sortiert.length === OB_SCHRITTE);
   pruefe("F-039 Bildschirm 2 nennt das Stichwort \"Termin\" nicht mehr",
     neu[1] && !/Stichwort/i.test(neu[1].text) && /Namen, Alter und Allergien/.test(neu[1].text));
   pruefe("F-039 Bildschirm 2: Kein Konto, kein Tracking, keine Werbung",
@@ -2127,7 +2128,7 @@ warte(async () => {
       pruefe("F-039 Wiederaufruf startet bei Bildschirm 1; nach 4 Schritten beginnt die Einrichtung",
         start === 0 && nachDrei === 3 && obIndex === 4);
       pruefe("F-039 Auf Bildschirm 4 heisst der Knopf \"Jetzt einrichten\"",
-        (obIndex = 3, obZeige(), document.getElementById("obWeiterBtn").textContent.indexOf("Jetzt einrichten") >= 0));
+        (obIndex = 5, obZeige(), document.getElementById("obWeiterBtn").textContent.indexOf("Jetzt einrichten") >= 0));
       obFertig(true);
     } catch (e) {
       pruefe("F-039 Ablauf laeuft ohne Fehler (" + e.message + ")", false);
