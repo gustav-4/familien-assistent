@@ -416,7 +416,7 @@
    <div class="ob-step" data-ob="0">
     <div class="ob-hero">👨‍👩‍👧‍👦</div>
     <h2>Willkommen beim Familien-Assistenten!</h2>
-    <div class="ob-funk" style="text-align:center;margin:4px 0 10px;font-size:.82rem">🏆 <b>Sicherheits-Goldstandard:</b> Mozilla A+ · SSL A+ · Security Headers A+ · OWASP ZAP: 0 Fehler</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px 8px;justify-content:center;margin:4px 0 10px;font-size:.8rem;color:#94897a"><span>🔒 Kein Konto</span> <span>·</span> <span>📵 Keine Werbung</span> <span>·</span> <span>📱 Daten auf deinem Handy</span> <span>·</span> <span>🇩🇪 Server Frankfurt</span></div>
     <p class="ob-fuer-wen"><b>Für wen?</b> Für alle, bei denen der Kopf immer voll ist:
     <i>Was kochen wir heute? Wer muss morgen wann wohin? Was fehlt
     im Haus? Und bloß nichts mit Nuss für die Kleine…</i></p>
@@ -520,10 +520,7 @@
    <div class="ob-step hidden" data-ob="11">
     <div class="ob-hero">🌱</div>
     <h2>Ein ehrliches Wort zum Schluss</h2>
-    <p><b>Diese App kann euch nur helfen, wenn ihr sie auch
-    benutzt.</b> Wie so vieles im Leben ist das ein Prozess: Die ersten
-    Tage heißt es dran denken – „Einkauf Milch" rufen statt Zettel
-    suchen, den Termin der App sagen statt ihn im Kopf zu jonglieren.</p>
+    <p>Die ersten Tage: statt den Zettel zu suchen, ruft einfach „Einkauf Milch". Statt im Kopf zu jonglieren, sagt der App den Termin. <b>Kleine Gewohnheit – großer Unterschied.</b></p>
     <p>Nach kurzer Zeit wird es selbstverständlich – und dann spart
     sie euch jeden Tag Denkarbeit, Zettelwirtschaft und das
     „Ach-Mist-vergessen"-Gefühl. <b>Es wird sich für euch lohnen. 💛</b></p>
@@ -1203,6 +1200,7 @@
   <p class="pw-sub">Deine 14-tägige Testphase ist abgelaufen.<br>
   Wähle einen Plan und behalte vollen Zugang:</p>
   <p style="font-size:.8rem;color:var(--muted);margin:0 0 12px">Kein versteckter Vertrag · Kein Konto · Deine Daten bleiben auf dem Gerät.</p>
+  <div id="pw-rueckblick" style="display:none;font-size:.85rem;color:#7e9c6f;text-align:center;padding:8px 12px;background:#f0f5ee;border-radius:8px;margin:0 0 10px"></div>
   <div class="pw-pläne">
    <div class="pw-plan">
     <div class="pw-plan-name">Monatlich</div>
@@ -1274,5 +1272,16 @@
     <div id="sicherungStatus" role="status" aria-live="polite" style="margin-top:6px"></div>
   </details>
 </footer>
+<script>
+(function(){
+  try {
+    var t=JSON.parse(localStorage.getItem('familienapp_termine')||'[]').length;
+    if(t>0){
+      var el=document.getElementById('pw-rueckblick');
+      if(el){el.textContent='✓ '+t+' Termin'+(t===1?'':'e')+' habt ihr schon eingetragen – die bleiben euch erhalten.';el.style.display='block';}
+    }
+  }catch(e){}
+})();
+</script>
 </body>
 </html>
