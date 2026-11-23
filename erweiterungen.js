@@ -6,30 +6,34 @@
 /* ── Paywall-Zustandsvariable ──────────────────────────────────────── */
 var paywallAktiv = false;
 
-/* ── Lizenz-Weiche (IIFE, läuft synchron beim Parsen) ─────────────── */
+/* ── Lizenz-Weiche (IIFE, läuft synchron beim Parsen) ─────────────────── */
 (function lizenzWeiche() {
   var MONAT_MS  = 30  * 24 * 60 * 60 * 1000;
   var JAHR_MS   = 365 * 24 * 60 * 60 * 1000;
 
-  /* 1. Stripe-Redirect auswerten */
+  /* 1. Stripe-Redirect auswerten (session_id + plan via /api/verify-checkout) */
   try {
-    var params  = new URLSearchParams(window.location.search);
-    var session = params.get('checkout_session');
-    if (session === 'lifetime') {
-      localStorage.setItem('lizenz_aktiv',  'true');
-      localStorage.setItem('lizenz_ablauf', String(Date.now() + 100 * JAHR_MS));
-      localStorage.setItem('lizenz_plan',   'lifetime');
+    var params    = new URLSearchParams(window.location.search);
+    var sessionId = params.get('session_id');
+    var plan      = params.get('plan');
+    if (sessionId && plan && ['monat', 'jahr', 'lifetime'].indexOf(plan) !== -1) {
       history.replaceState(null, '', window.location.pathname);
-    } else if (session === 'jahr') {
-      localStorage.setItem('lizenz_aktiv',  'true');
-      localStorage.setItem('lizenz_ablauf', String(Date.now() + JAHR_MS));
-      localStorage.setItem('lizenz_plan',   'jahr');
-      history.replaceState(null, '', window.location.pathname);
-    } else if (session === 'monat') {
-      localStorage.setItem('lizenz_aktiv',  'true');
-      localStorage.setItem('lizenz_ablauf', String(Date.now() + MONAT_MS));
-      localStorage.setItem('lizenz_plan',   'monat');
-      history.replaceState(null, '', window.location.pathname);
+      fetch('/api/verify-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId, plan: plan })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.valid) {
+          localStorage.setItem('lizenz_aktiv',  'true');
+          localStorage.setItem('lizenz_ablauf', String(d.expires_at));
+          localStorage.setItem('lizenz_plan',   d.plan);
+        }
+        window.location.reload();
+      })
+      .catch(function() { window.location.reload(); });
+      return;
     }
   } catch(e) {}
 
@@ -64,20 +68,32 @@ var paywallAktiv = false;
   }
 })();
 
-/* ── B2B-Code einlösen ─────────────────────────────────────────────── */
+/* ── B2B-Code einlösen (via /api/verify-code) ──────────────────────────── */
 function b2bCodeEinloesen() {
   var input  = document.getElementById('pw-code-input');
   var fehler = document.getElementById('pw-code-fehler');
   if (!input) return;
   var code = (input.value || '').trim().toUpperCase();
-  if (code === '4UOLT-3OX15-OJGZN-0Q6X9') {
-    localStorage.setItem('lizenz_aktiv',  'true');
-    localStorage.setItem('lizenz_ablauf', String(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000));
-    window.location.reload();
-  } else {
-    if (fehler) fehler.style.display = 'block';
-    setTimeout(function() { if (fehler) fehler.style.display = 'none'; }, 3000);
-  }
+  if (!code) return;
+  fetch('/api/verify-code', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: code })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.valid) {
+      localStorage.setItem('lizenz_aktiv',  'true');
+      localStorage.setItem('lizenz_ablauf', String(d.expires_at));
+      localStorage.setItem('lizenz_plan',   d.plan || 'lifetime');
+      window.location.reload();
+    } else {
+      if (fehler) { fehler.style.display = 'block'; setTimeout(function() { if (fehler) fehler.style.display = 'none'; }, 3000); }
+    }
+  })
+  .catch(function() {
+    if (fehler) { fehler.style.display = 'block'; setTimeout(function() { if (fehler) fehler.style.display = 'none'; }, 3000); }
+  });
 }
 
 /* ── Stripe-Zahlungsweiterleitung ───────────────────────────────────── */
