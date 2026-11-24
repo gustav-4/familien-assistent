@@ -1,23 +1,40 @@
-/* B2B-Codes und Geschenkcodes serverseitig validieren
+﻿/* netlify/functions/verify-code.js
+   Validiert B2B- und Geschenkcodes serverseitig.
    Erwartet POST { code: string }
    Gibt zurueck: { valid: true, plan, expires_at } oder { valid: false }
 
-   B2B_CODES  - kommasepariert, kein Suffix       -> immer lifetime, kein Single-Use
-   GIFT_CODES - kommasepariert, Format CODE:plan  -> z.B. WEIHN25-XK9P:jahr
-                Geschenkcodes sind single-use via Upstash Redis (SETNX - atomar)
+   Env-Variablen:
+     GIFT_CODES               - kommasepariert, Format CODE:plan
+                                Single-use via Redis SETNX (atomar)
+                                Beispiel: XXXX-XXXX-XXXX-XXXX:jahr
+
+     B2B_CODES                - kommasepariert, Format CODE:maxEinloesungen
+                                Multi-use via Redis INCR, immer lifetime
+                                Beispiel: YYYY-YYYY-YYYY-YYYY:10,...
+
+     UPSTASH_REDIS_REST_URL   - Upstash Redis REST Endpoint (Pflicht)
+     UPSTASH_REDIS_REST_TOKEN - Upstash Redis REST Token (Pflicht)
+
+   Rate Limiting: 10 Versuche pro IP / 15 Minuten (fail-closed bei Redis-Fehler)
+   Sicherheit:
+     - Codes werden nie an den Client zurueckgegeben
+     - Codes haben kein erkennbares Muster (zufaellig generiert)
+     - Format-Validierung blockiert Brute-Force-Varianten
 */
-exports.handler = async function(event) {
+
+exports.handler = async function (event) {
   const headers = { 'Content-Type': 'application/json' };
 
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
 
+  /* -- Eingabe parsen ---------------------------------------------------- */
   let code;
   try {
     const body = JSON.parse(event.body || '{}');
     code = (body.code || '').trim().toUpperCase();
-  } catch(e) {
+  } catch (_) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid request' }) };
   }
 
@@ -25,81 +42,115 @@ exports.handler = async function(event) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing code' }) };
   }
 
+  /* -- Format-Validierung: XXXX-XXXX-XXXX-XXXX --------------------------- */
+  const CODE_RE = /^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/;
+  if (!CODE_RE.test(code)) {
+    return { statusCode: 200, headers, body: JSON.stringify({ valid: false }) };
+  }
+
+  /* -- Redis-Hilfsfunktion ----------------------------------------------- */
+  const redisUrl   = process.env.UPSTASH_REDIS_REST_URL;
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!redisUrl || !redisToken) {
+    console.error('[verify-code] UPSTASH_REDIS nicht konfiguriert');
+    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Server not configured' }) };
+  }
+
+  async function redis(...args) {
+    const path = args.map(a => encodeURIComponent(String(a))).join('/');
+    const res  = await fetch(`${redisUrl}/${path}`, {
+      headers: { Authorization: `Bearer ${redisToken}` }
+    });
+    if (!res.ok) throw new Error(`Redis HTTP ${res.status}`);
+    return res.json();
+  }
+
+  /* -- Rate Limiting: 10 Versuche / IP / 15 Minuten --------------------- */
+  const ip     = (event.headers['x-forwarded-for'] || 'unknown').split(',')[0].trim();
+  const ratKey = `rate:vc:${ip}`;
+  try {
+    const incr = await redis('incr', ratKey);
+    if (incr.result === 1) {
+      await redis('expire', ratKey, 900);
+    }
+    if (incr.result > 10) {
+      return { statusCode: 429, headers, body: JSON.stringify({ error: 'Too many attempts' }) };
+    }
+  } catch (e) {
+    console.error('[verify-code] Rate-Limit Redis-Fehler:', e.message);
+    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Service unavailable' }) };
+  }
+
+  /* -- Laufzeit-Tabelle -------------------------------------------------- */
   const PLAN_MS = {
     monat:    30  * 24 * 60 * 60 * 1000,
     jahr:     365 * 24 * 60 * 60 * 1000,
     lifetime: 100 * 365 * 24 * 60 * 60 * 1000
   };
 
-  /* 1. B2B-Codes pruefen (immer lifetime, kein Single-Use) */
-  const rawB2B = process.env.B2B_CODES || '';
-  const b2bCodes = rawB2B.split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
-  if (b2bCodes.includes(code)) {
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
-        valid: true,
-        plan: 'lifetime',
-        expires_at: Date.now() + PLAN_MS.lifetime
-      })
-    };
-  }
-
-  /* 2. Geschenkcode-Format validieren (CODE:plan in GIFT_CODES) */
+  /* -- 1. GIFT_CODES - Single-Use via SETNX (atomar) -------------------- */
   const rawGift = process.env.GIFT_CODES || '';
-  const giftEntries = rawGift.split(',').map(e => e.trim()).filter(Boolean);
+  for (const entry of rawGift.split(',').map(e => e.trim()).filter(Boolean)) {
+    const sep  = entry.lastIndexOf(':');
+    if (sep === -1) continue;
+    const entryCode = entry.slice(0, sep).toUpperCase();
+    const entryPlan = entry.slice(sep + 1).toLowerCase();
+    if (entryCode !== code || PLAN_MS[entryPlan] === undefined) continue;
 
-  let matchedPlan = null;
-  for (const entry of giftEntries) {
-    const colonIdx = entry.lastIndexOf(':');
-    if (colonIdx === -1) continue;
-    const entryCode = entry.slice(0, colonIdx).toUpperCase();
-    const entryPlan = entry.slice(colonIdx + 1).toLowerCase();
-    if (entryCode === code && PLAN_MS[entryPlan] !== undefined) {
-      matchedPlan = entryPlan;
-      break;
+    try {
+      const setnx = await redis('setnx', `gift:${code}`, '1');
+      if (setnx.result !== 1) {
+        return { statusCode: 200, headers, body: JSON.stringify({ valid: false }) };
+      }
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          valid:      true,
+          plan:       entryPlan,
+          expires_at: Date.now() + PLAN_MS[entryPlan]
+        })
+      };
+    } catch (e) {
+      console.error('[verify-code] Gift-Redis-Fehler:', e.message);
+      return { statusCode: 500, headers, body: JSON.stringify({ error: 'Service unavailable' }) };
     }
   }
 
-  if (!matchedPlan) {
-    return { statusCode: 200, headers, body: JSON.stringify({ valid: false }) };
-  }
+  /* -- 2. B2B_CODES - Multi-Use via INCR mit Limit, immer lifetime ------- */
+  const rawB2B = process.env.B2B_CODES || '';
+  for (const entry of rawB2B.split(',').map(e => e.trim()).filter(Boolean)) {
+    const sep     = entry.lastIndexOf(':');
+    if (sep === -1) continue;
+    const entryCode = entry.slice(0, sep).toUpperCase();
+    const maxUses   = parseInt(entry.slice(sep + 1), 10);
+    if (entryCode !== code || isNaN(maxUses) || maxUses < 1) continue;
 
-  /* 3. Single-Use via Redis SETNX (atomar - verhindert Doppeleinloesung) */
-  const redisUrl   = process.env.UPSTASH_REDIS_REST_URL;
-  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+    try {
+      const incr  = await redis('incr', `b2b:${code}`);
+      const count = incr.result;
 
-  if (!redisUrl || !redisToken) {
-    console.error('UPSTASH_REDIS nicht konfiguriert - kein Single-Use-Schutz aktiv');
-    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Server not configured' }) };
-  }
+      if (count > maxUses) {
+        await redis('decr', `b2b:${code}`);
+        return { statusCode: 200, headers, body: JSON.stringify({ valid: false }) };
+      }
 
-  try {
-    /* SETNX: setzt den Key nur wenn er noch nicht existiert (atomar).
-       result === 1 -> erster Aufruf (einloesen)
-       result === 0 -> Code wurde bereits eingeloest (ablehnen) */
-    const setnxRes = await fetch(
-      `${redisUrl}/setnx/${encodeURIComponent('gift:' + code)}/1`,
-      { headers: { Authorization: `Bearer ${redisToken}` } }
-    );
-    const setnxData = await setnxRes.json();
-
-    if (setnxData.result !== 1) {
-      return { statusCode: 200, headers, body: JSON.stringify({ valid: false }) };
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          valid:      true,
+          plan:       'lifetime',
+          expires_at: Date.now() + PLAN_MS.lifetime
+        })
+      };
+    } catch (e) {
+      console.error('[verify-code] B2B-Redis-Fehler:', e.message);
+      return { statusCode: 500, headers, body: JSON.stringify({ error: 'Service unavailable' }) };
     }
-
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
-        valid: true,
-        plan: matchedPlan,
-        expires_at: Date.now() + PLAN_MS[matchedPlan]
-      })
-    };
-  } catch(e) {
-    /* Redis-Fehler: sicherheitshalber ablehnen (fail-closed) */
-    return { statusCode: 200, headers, body: JSON.stringify({ valid: false }) };
   }
+
+  /* -- Kein Code gefunden ------------------------------------------------ */
+  return { statusCode: 200, headers, body: JSON.stringify({ valid: false }) };
 };
