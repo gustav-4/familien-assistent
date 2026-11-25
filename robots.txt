@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
 
+Disallow: /feedback-admin.html
+Disallow: /qa-admin.html
+Disallow: /aktivieren.html
+
 Sitemap: https://familienassistent.net/sitemap.xml

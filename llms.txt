@@ -1,6 +1,6 @@
 # Familien-Assistent
 
-> Kostenloser sprachgesteuerter Kochassistent und Essensplaner fuer
+> Sprachgesteuerter Kochassistent und Essensplaner fuer
 > Familien (deutschsprachig, Web-App, kein Konto noetig).
 
 ## Was die App kann
@@ -12,17 +12,46 @@
 - Erstellt automatisch Einkaufslisten in Familienmengen
   (skaliert nach Anzahl Erwachsener und Kinder, klug gerundet)
 - Fuehrt beim Kochen Schritt fuer Schritt per Sprachausgabe,
-  mit Timern und Garzeit-Ansagen ("Die Moehren sollten jetzt gar sein")
+  mit Timern und Garzeit-Ansagen
 - Bestaetigung per Sprachbefehl "fertig" - ideal mit nassen Haenden
 - KI-Rezeptrecherche mit deterministischer Sicherheits-Pruefschicht
 - Favoriten-Sammlung lokal auf dem Geraet
+- Terminkalender mit Wochen-Matrix und Push-Erinnerungen
+- Kassenbon-Scanner mit OCR direkt auf dem Geraet (kein Cloud-Upload)
+- Familien-Sync Ende-zu-Ende-verschluesselt (bis zu 4 Geraete)
 
 ## Zielgruppe
 
 Eltern mit mehreren Kindern und wenig Zeit, die freihaendig kochen
 und Unvertraeglichkeiten zuverlaessig beruecksichtigen wollen.
 
+## Datenschutz & Technik
+
+Alle Familiendaten (Namen, Allergien, Termine, Einkaufslisten) bleiben
+lokal auf dem Geraet. Kein Konto, kein Tracking. Serverstandort: Frankfurt, EU.
+Sicherheitszertifikate: A+ Mozilla Observatory, A+ SSL Labs, A+ Security Headers.
+OWASP ZAP Sicherheits-Scan: 0 Fehler (Stand 09.11.2026).
+
+## Preise (Stand November 2026)
+
+- Kostenlose Testphase: 14 Tage
+- Monatsplan: 4,99 Euro/Monat (monatlich kuendbar)
+- Jahresplan: 49,90 Euro/Jahr (entspricht 4,16 Euro/Monat)
+- Lifetime: einmalig 89 Euro (lebenslanger Zugang, alle Updates)
+
 ## Zugang
 
-https://familienassistent.netlify.app/ - kostenlos, im Browser,
-optimiert fuer Smartphones (Chrome/Edge fuer Spracherkennung).
+https://familienassistent.net/ - kostenlos, im Browser,
+optimiert fuer Smartphones (Chrome/Edge fuer Spracherkennung empfohlen).
+
+## Impressum / Kontakt
+
+https://familienassistent.net/impressum.html
+
+## Technische Details
+
+- Single-Page-App (Vanilla HTML/CSS/JS, keine Frameworks)
+- PWA-faehig (auf Homescreen installierbar)
+- Hosting: Netlify (Frankfurt, EU)
+- CI/CD: GitHub Actions mit 350+ automatischen Tests und Mutations-Tests
+- SonarCloud Reliability: A

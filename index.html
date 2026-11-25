@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Familien-Assistent – Sprachgesteuerter Kochassistent &amp; Essensplaner für Familien</title>
-<meta name="description" content="Familien-App: Rezepte passend zu Zeit, Unverträglichkeiten (alle 14 EU-Allergene) und Ernährungsform finden, Einkaufsliste automatisch in Familienmengen erstellen und freihändig mit Sprachführung kochen – inkl. Timer und Garzeit-Ansagen. Ohne Konto, direkt im Browser.">
+<title>Familien-Assistent – Allergie-Rezepte &amp; freihändiges Kochen</title>
+<meta name="description" content="Rezepte nach euren Allergien &amp; Ernährungsformen, automatische Einkaufsliste, freihändiges Sprachkochen mit Timern. Kein Konto, direkt im Browser.">
 <link rel="canonical" href="https://familienassistent.net/">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#c4704b">
@@ -15,13 +15,17 @@
 <meta property="og:description" content="Rezepte nach Zeit, Unverträglichkeiten &amp; Ernährungsform, automatische Einkaufsliste, sprachgeführtes Kochen mit Timern. Direkt im Browser.">
 <meta property="og:url" content="https://familienassistent.net/">
 <meta property="og:image" content="https://familienassistent.net/apple-touch-icon.png">
+<meta property="og:image:width" content="180">
+<meta property="og:image:height" content="180">
+<meta property="og:image:alt" content="Familien-Assistent – App für Familien">
 <meta property="og:locale" content="de_DE">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://familienassistent.net/apple-touch-icon.png">
 <meta name="twitter:title" content="Familien-Assistent – Kochen mit freien Händen">
 <meta name="twitter:description" content="Sprachgesteuerter Koch- und Essensplaner für Familien. Direkt im Browser, ohne Konto.">
-<meta name="keywords" content="Kochassistent Familie, Rezepte Allergien Kinder, sprachgesteuertes Kochen, Einkaufsliste Familien-App, Essensplaner ohne Konto, freinhändig kochen, Terminplaner Familie">
-<meta name="robots" content="index, follow">
+<meta name="keywords" content="Kochassistent Familie, Rezepte Allergien Kinder, sprachgesteuertes Kochen, Einkaufsliste Familien-App, Essensplaner ohne Konto, freihändig kochen, Terminplaner Familie, Koch-App ohne Konto, Allergiefilter Rezepte, Sprachkochen Browser">
+<meta name="author" content="Familien-Assistent">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -54,12 +58,12 @@
   "@context": "https://schema.org",
   "@type": "HowTo",
   "name": "Allergiesicher kochen mit dem Familien-Assistenten",
-  "description": "Rezept finden, Einkaufsliste erstellen und freinhändig kochen – abgesichert gegen alle Allergien eurer Familie.",
+  "description": "Rezept finden, Einkaufsliste erstellen und freihändig kochen – abgesichert gegen alle Allergien eurer Familie.",
   "step": [
     { "@type": "HowToStep", "name": "Familie einrichten", "text": "Allergien und Ernährungsformen der Familienmitglieder einmalig eintragen – alle 14 EU-Hauptallergene werden unterstützt." },
     { "@type": "HowToStep", "name": "Rezept finden", "text": "Zeit angeben und sprechen oder tippen – die App zeigt nur Rezepte, die zu euren Allergien passen." },
     { "@type": "HowToStep", "name": "Einkaufen", "text": "Die Einkaufsliste wird automatisch in Familienmengen erstellt und kann per Sprache abgehakt werden." },
-    { "@type": "HowToStep", "name": "Freinhändig kochen", "text": "Die App liest jeden Schritt vor. Timer laufen automatisch. Per Sprachbefehl weiterschalten – die Hände bleiben frei." }
+    { "@type": "HowToStep", "name": "Freihändig kochen", "text": "Die App liest jeden Schritt vor. Timer laufen automatisch. Per Sprachbefehl weiterschalten – die Hände bleiben frei." }
   ]
 }
 </script>
@@ -76,12 +80,12 @@
     {
       "@type": "Question",
       "name": "Welche Unverträglichkeiten berücksichtigt die App?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Alle 14 EU-Hauptallergene: Gluten, Laktose/Milch, Nüsse, Ei, Erdnüsse, Soja, Fisch, Krebs- und Weichtiere, Sellerie, Senf, Sesam, Lupinen und Sulfite. Rezepte mit ausgeschlossenen Zutaten werden hart herausgefiltert – auch versteckte Quellen wie Sellerie in Brühe." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Alle 14 EU-Hauptallergene: Gluten, Laktose, Nüsse, Ei, Erdnüsse, Soja, Fisch, Krebs- und Weichtiere, Sellerie, Senf, Sesam, Lupinen und Sulfite. Rezepte mit ausgeschlossenen Zutaten werden hart herausgefiltert – auch versteckte Quellen wie Sellerie in Brühe." }
     },
     {
       "@type": "Question",
       "name": "Kann ich Ernährungsformen pro Person festlegen?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Ja. Im Familienprofil lässt sich pro Person eine Ernährungsform speichern (vegan, vegetarisch, pescetarisch, low carb). Mit dem Umschalter „Für wen kochst du heute?" zeigt die App entweder Gerichte für die ganze Familie – inklusive Varianten-Hinweisen für Einzelne – oder strikt passende Rezepte für eine bestimmte Person." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Ja. Im Familienprofil lässt sich pro Person eine Ernährungsform speichern: vegan, vegetarisch, pescetarisch oder low carb. Die App zeigt dann nur Rezepte, die für alle gewählten Personen geeignet sind." }
     },
     {
       "@type": "Question",
@@ -91,12 +95,12 @@
     {
       "@type": "Question",
       "name": "Was kostet der Familien-Assistent?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Nach 14 Tagen kostenlosem Test gibt es drei Pläne: Monatlich 4,99 €/Monat (jederzeit kündbar), Jahresplan 49,90 €/Jahr (nur 4,16 €/Monat) oder Einmalig 89 € (lebenslanger Zugang). Alle Pläne umfassen den vollen Funktionsumfang." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Nach 14 Tagen kostenlosem Test gibt es drei Pläne: Monatlich 4,99 Euro/Monat, Jahresplan 49,90 Euro/Jahr oder einmalig 89 Euro (lebenslanger Zugang). Alle Pläne umfassen den vollen Funktionsumfang." }
     },
     {
       "@type": "Question",
-      "name": "Was passiert mit meinen Daten beim Testen?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Alle Familiendaten – Namen, Allergien, Termine, Einkaufslisten – bleiben ausschließlich auf deinem Gerät. Kein Konto, kein Tracking. Der KI-Dienst für neue Rezepte nutzt anonymisierte Anfragen. Serverstandort: Frankfurt, EU." }
+      "name": "Was passiert mit meinen Daten?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Alle Familiendaten bleiben ausschließlich auf deinem Gerät. Kein Konto, kein Tracking. Der KI-Dienst nutzt anonymisierte Anfragen. Serverstandort: Frankfurt, EU." }
     },
     {
       "@type": "Question",
@@ -106,7 +110,7 @@
     {
       "@type": "Question",
       "name": "Wie funktioniert die Sprachsteuerung?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Die Spracheingabe nutzt die eingebaute Spracherkennung des Browsers. Du kannst Zutaten zur Einkaufsliste hinzufügen, Kochschritte vor- und zurückschalten, Timer starten sowie Termine erfassen – alles freinhändig." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Die Spracheingabe nutzt die eingebaute Spracherkennung des Browsers. Du kannst Zutaten hinzufügen, Kochschritte schalten, Timer starten sowie Termine erfassen – alles freihändig." }
     }
   ]
 }
@@ -351,6 +355,22 @@
     margin-top:5px; font-weight:600; display:inline-block; }
   .btn-uebernehmen:hover { opacity:.82; }
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Familien-Assistent",
+  "url": "https://familienassistent.net/",
+  "logo": {
+    "@type": "ImageObject",
+    "url": "https://familienassistent.net/icon-512.png",
+    "width": 512,
+    "height": 512
+  },
+  "description": "Entwickler des sprachgesteuerten Familien-Assistenten für Rezepte, Einkaufslisten und Terminplanung.",
+  "sameAs": []
+}
+</script>
 </head>
 <body>
 <div id="gvChip" data-on-click="gvToggle()" title="Sprachsteuerung an/aus">🎤 starte …</div>
