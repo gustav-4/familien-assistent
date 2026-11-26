@@ -242,7 +242,7 @@ async function hauptlauf() {
       + `${anzahl} verwertbare Testfaelle.`);
     if (!anzahl && roh) {
       console.log("  Antwortanfang zur Diagnose: "
-        + roh.slice(0, 200).replace(/\n/g, " | "));
+        + roh.slice(0, 200).replaceAll("\n", " | "));
     }
     if (code) { alleZeilen.push(code); benutzteModelle.add(quelle); }
    } catch (e) {

@@ -124,8 +124,8 @@ exports.handler = async function (event) {
     const sep     = entry.lastIndexOf(':');
     if (sep === -1) continue;
     const entryCode = entry.slice(0, sep).toUpperCase();
-    const maxUses   = parseInt(entry.slice(sep + 1), 10);
-    if (entryCode !== code || isNaN(maxUses) || maxUses < 1) continue;
+    const maxUses   = Number.parseInt(entry.slice(sep + 1), 10);
+    if (entryCode !== code || Number.isNaN(maxUses) || maxUses < 1) continue;
 
     try {
       const incr  = await redis('incr', `b2b:${code}`);

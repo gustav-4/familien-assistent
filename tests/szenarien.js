@@ -2080,7 +2080,7 @@ warte(async () => {
   const dir = process.cwd();
   const index = fs.readFileSync(dir + "/index.html", "utf8");
   const schritte = [...index.matchAll(/<div class="ob-step[^"]*" data-ob="(\d+)">([\s\S]*?)(?=<div class="ob-step|<\/div>\s*<div class="ob-fuss")/g)]
-    .map((m) => ({ nr: Number(m[1]), text: m[2].replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim() }));
+    .map((m) => ({ nr: Number(m[1]), text: m[2].replace(/<[^>]+>/g, " ").replaceAll("&amp;", "&").replace(/\s+/g, " ").trim() }));
   const sortiert = [...schritte].sort((a, b) => a.nr - b.nr);
   const neu = sortiert.filter((s) => s.nr >= 2 && s.nr < 4);
   const alle = neu.map((s) => s.text).join(" | ");
