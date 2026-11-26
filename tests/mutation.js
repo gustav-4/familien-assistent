@@ -655,7 +655,7 @@ const MUTATIONEN = [
   {
     name: 'F-039: Onboarding beginnt nicht mehr mit dem Versprechen',
     datei: 'index.html',
-    suchen: '<h1>Deine Familie ist keine Ware</h1>',
+    suchen: '<h1>Maximale Datensicherheit – Goldstandard</h1>',
     ersetzen: '<h1>Willkommen</h1>',
     erwarteRot: ['F-039 Bildschirm 1 beginnt mit'],
   },
@@ -671,7 +671,7 @@ const MUTATIONEN = [
     datei: 'index.html',
     suchen: 'technisch zwingend vom Handy',
     ersetzen: 'garantiert gar nicht vom Handy',
-    erwarteRot: ['F-039 Bildschirm 4: ehrlicher Hinweis'],
+    erwarteRot: ['F-039 Bildschirm 2: ehrlicher Hinweis'],
   },
   {
     name: 'F-039: Pruefbarer Sicherheits-Link auf der Website entfernt',
@@ -683,9 +683,9 @@ const MUTATIONEN = [
   {
     name: 'F-039: Knopf "Jetzt einrichten" fehlt',
     datei: 'app-2.js',
-    suchen: 'obIndex === 5 ? "Jetzt einrichten ›" : "Weiter ›"',
+    suchen: 'obIndex === 3 ? "Jetzt einrichten ›" : "Weiter ›"',
     ersetzen: '"Weiter ›"',
-    erwarteRot: ['F-039 Auf Bildschirm 4 heisst der Knopf'],
+    erwarteRot: ['F-039 Auf Bildschirm 2 heisst der Knopf'],
   },
   {
     name: 'F-037: Stilles Update laedt auch mitten im Kochen neu',
