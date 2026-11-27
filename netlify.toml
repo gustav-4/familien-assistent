@@ -81,6 +81,20 @@
 # fremde Server abfliessen. Skripte duerfen nur aus eigenen Dateien kommen (kein
 # 'unsafe-inline', F-034); Stile duerfen noch in der Seite stehen. 'wasm-unsafe-eval'
 # brauchen der Scanner (Tesseract) und die lokale KI (WebAssembly). Kein 'unsafe-eval'.
+# SEO: favicon.ico als Rewrite auf icon.svg (verhindert 404 bei Google-Crawl)
+[[redirects]]
+  from = "/favicon.ico"
+  to = "/icon.svg"
+  status = 200
+  force = true
+
+# SEO: manifest.webmanifest → manifest.json (manche Browser fragen .webmanifest)
+[[redirects]]
+  from = "/manifest.webmanifest"
+  to = "/manifest.json"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/*"
   [headers.values]
